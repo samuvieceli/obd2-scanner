@@ -28,6 +28,7 @@ pub mod interpret;
 pub mod mode06;
 pub mod pid;
 pub mod readiness;
+pub mod report;
 pub mod response;
 pub mod safety;
 pub mod session;

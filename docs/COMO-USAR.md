@@ -268,4 +268,6 @@ Enquanto grava, o programa também guarda uma **cópia de segurança** no disco,
 - **CSV padrão**: separador `,` e ponto decimal.
 - **JSON**: gravação completa, pode ser reaberta e reproduzida no programa (*Gravações → Abrir gravação*).
 - **PNG**: imagem dos gráficos.
-- **Relatório**: *Imprimir / salvar como PDF* (escolha "Microsoft Print to PDF") ou HTML.
+- **Relatório de diagnóstico**: feito a partir de uma gravação, só quando você pede. Em **Gravações e relatórios → Relatório de diagnóstico**, escolha **Relatório da última gravação** ou **Relatório de uma gravação salva…** (um JSON). O relatório abre na tela, com os botões *Imprimir / salvar como PDF* (escolha "Microsoft Print to PDF") e *Salvar relatório (HTML)*. Ele traz os dados do veículo e do adaptador, os códigos de falha lidos no início (e os que surgiram até o fim), o quadro congelado, a prontidão, o Modo 06, os indícios encontrados no trajeto todo (com o momento em que apareceram), gráficos dos principais parâmetros com os eventos marcados e uma tabela com mínimo, média e máximo de cada parâmetro. Gravações feitas em versões antigas também funcionam, mas sem códigos, prontidão e Modo 06.
+
+**O que a gravação guarda:** os sensores lidos no Painel ao vivo e, junto, uma leitura de diagnóstico no começo (veículo, códigos de falha com quadro congelado, prontidão e Modo 06) e outra no fim (códigos e prontidão). Essas leituras só consultam o carro, nunca apagam nem alteram nada. Se o carro não responder a alguma delas, a gravação continua normalmente e o relatório avisa o que faltou.

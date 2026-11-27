@@ -20,7 +20,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Veículo e prontidão**: chassi (VIN) decodificado, monitores de prontidão, luz de injeção e **lista das centrais** que respondem (motor, câmbio...) com número da peça e versão do software.
 - **Teste de compatibilidade do adaptador**: descobre a versão real do ELM327 (clones costumam anunciar mais do que fazem).
 - **Terminal AT** para comandos diretos ao adaptador.
-- **Gravações e relatórios**: CSV (inclusive no formato do Excel brasileiro), JSON, **reprodução de gravações** como se fosse ao vivo, e relatório para imprimir ou salvar como PDF.
+- **Gravações e relatórios**: CSV (inclusive no formato do Excel brasileiro), JSON, **reprodução de gravações** como se fosse ao vivo, e relatório de diagnóstico gerado a partir de uma gravação (códigos, prontidão, indícios do trajeto, gráficos e mínimo/média/máximo), para imprimir ou salvar como PDF.
 - Interface em **português (Brasil)** e **inglês (EUA)**, 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
 
 ## Baixar e instalar (Windows 10 e 11)

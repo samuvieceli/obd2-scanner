@@ -577,6 +577,9 @@ struct RecordingStatus {
     marks: usize,
     last_frames: usize,
     last_duration_s: f64,
+    /// Identifies the recording in progress (or the last one) when saving
+    /// diagnostic reads with it.
+    started_at_unix_ms: Option<u64>,
 }
 
 fn recording_status(r: &Recorder) -> RecordingStatus {
@@ -586,6 +589,7 @@ fn recording_status(r: &Recorder) -> RecordingStatus {
         marks: r.mark_count(),
         last_frames: r.last.as_ref().map(|s| s.frames.len()).unwrap_or(0),
         last_duration_s: r.last.as_ref().map(|s| s.duration_s()).unwrap_or(0.0),
+        started_at_unix_ms: r.started_at(),
     }
 }
 
@@ -620,6 +624,46 @@ fn stop_recording(state: State<'_, AppState>) -> RecordingStatus {
     let mut r = state.recorder.lock().unwrap();
     r.stop();
     recording_status(&r)
+}
+
+/// Saves diagnostic reads (vehicle, codes, readiness, Mode 06) with the
+/// recording that started at `started_at`. False when it no longer exists.
+#[tauri::command]
+fn add_recording_diagnostics(
+    state: State<'_, AppState>,
+    started_at: u64,
+    snapshot: obd_core::session::Snapshot,
+) -> bool {
+    state.recorder.lock().unwrap().attach(started_at, snapshot)
+}
+
+/// Summary for the diagnostic report: of the recording saved at `path`, or
+/// of the last recording when `path` is empty.
+#[tauri::command]
+async fn recording_report(
+    state: State<'_, AppState>,
+    path: Option<String>,
+) -> CmdResult<obd_core::report::RecordingReport> {
+    let last = match path {
+        Some(_) => None,
+        None => Some(
+            state
+                .recorder
+                .lock()
+                .unwrap()
+                .last
+                .clone()
+                .ok_or_else(|| CmdError::other("no_recording", "nothing recorded yet"))?,
+        ),
+    };
+    blocking(move || {
+        let session = match (last, path) {
+            (Some(s), _) => s,
+            (None, path) => read_session(&path.unwrap_or_default())?,
+        };
+        Ok(obd_core::report::RecordingReport::from_session(&session))
+    })
+    .await
 }
 
 /// Frames of a recording interrupted last time (program closed or crashed
@@ -660,11 +704,12 @@ async fn export_session(state: State<'_, AppState>, format: String, path: String
 /// Opens a recording saved as JSON so it can be viewed again.
 #[tauri::command]
 async fn load_session(path: String) -> CmdResult<Session> {
-    blocking(move || {
-        let text = std::fs::read_to_string(&path).map_err(|e| CmdError::other("io", e))?;
-        Session::from_json(&text).map_err(|e| CmdError::other("parse", e))
-    })
-    .await
+    blocking(move || read_session(&path)).await
+}
+
+fn read_session(path: &str) -> CmdResult<Session> {
+    let text = std::fs::read_to_string(path).map_err(|e| CmdError::other("io", e))?;
+    Session::from_json(&text).map_err(|e| CmdError::other("parse", e))
 }
 
 /// Interprets a window of recorded frames (used while replaying a recording,
@@ -759,6 +804,8 @@ pub fn run() {
             start_recording,
             stop_recording,
             add_mark,
+            add_recording_diagnostics,
+            recording_report,
             get_recording_status,
             recovered_recording,
             export_session,

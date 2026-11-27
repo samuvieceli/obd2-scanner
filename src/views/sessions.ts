@@ -6,6 +6,7 @@ import { emit, on, readKeys, state } from "../store";
 import { busy, button, clear, errorText, h, section, timestampForFile, toast } from "../ui";
 import { startPlayback } from "../playback";
 import { buildReportHtml } from "./report";
+import { diagnosticsSaved, savingDiagnostics } from "../recording-diagnostics";
 import { driveHistorySection } from "./drive-history";
 import { toggleRecording } from "./dashboard";
 
@@ -35,11 +36,13 @@ export function mount(root: HTMLElement) {
     recBtn.disabled = state.connection !== "connected" && !r.recording;
     if (r.recording) statusBox.append(h("p", { class: "rec-text" }, t("sessions.recording", { frames: r.frames })));
     if (r.recording && !state.polling) statusBox.append(h("p", { class: "muted small" }, t("sessions.needLive")));
+    if (savingDiagnostics()) statusBox.append(h("p", { class: "muted small" }, t("sessions.savingDiagnostics")));
     if (state.recoveredFrames && !r.recording) statusBox.append(h("div", { class: "alert alert-warning" }, t("sessions.recoveredHint", { frames: state.recoveredFrames })));
     statusBox.append(
       h("p", { class: "muted" }, r.lastFrames ? t("sessions.last", { frames: r.lastFrames, duration: duration(r.lastDurationS) }) : t("sessions.none")),
     );
     exportBtns.forEach((b) => (b.disabled = !r.lastFrames));
+    lastReportBtn.disabled = !r.lastFrames;
   };
 
   const doExport = async (format: "csv" | "csv_br" | "json") => {
@@ -105,29 +108,31 @@ export function mount(root: HTMLElement) {
     location.hash = "#/dashboard";
   }, "primary");
 
-  const saveReport = async () => {
-    const path = await save({ defaultPath: `obd2-relatorio-${timestampForFile()}.html`, filters: [{ name: "HTML", extensions: ["html"] }] });
-    if (!path) return;
-    try {
-      await api.saveText(path, buildReportHtml());
-      toast(t("common.saved", { path }), "ok");
-    } catch (e) {
-      toast(errorText(e), "error");
-    }
+  // Report: made only when asked, from the last recording or a saved one.
+  const showReport = async (path?: string, name?: string) => {
+    // Codes and readiness may still be being read for the last recording.
+    if (!path) await diagnosticsSaved();
+    openReport(buildReportHtml(await api.recordingReport(path), name));
   };
-  const printReport = () => {
-    const frame = h("iframe", { class: "print-frame", title: t("sessions.reportTitle") });
-    document.body.append(frame);
-    frame.srcdoc = buildReportHtml();
-    frame.onload = () => {
-      frame.contentWindow?.focus();
-      frame.contentWindow?.print();
-      setTimeout(() => frame.remove(), 60_000);
-    };
-  };
+  const lastReportBtn = button(t("sessions.reportLast"), () => busy(lastReportBtn, () => showReport()), "primary");
+  const fileReportBtn = button(t("sessions.reportFile"), async () => {
+    const path = await open({ multiple: false, filters: [{ name: "JSON", extensions: ["json"] }] });
+    if (!path || Array.isArray(path)) return;
+    await busy(fileReportBtn, () => showReport(path, path.split(/[\\/]/).pop()));
+  }, "secondary");
 
   page.append(
     section(t("sessions.recordingTitle"), h("p", { class: "muted" }, t("sessions.recordingIntro")), recBtn, statusBox),
+    section(
+      t("sessions.reportTitle"),
+      h("p", { class: "muted" }, t("sessions.reportIntro")),
+      h(
+        "div",
+        { class: "options" },
+        h("div", { class: "option" }, lastReportBtn, h("p", { class: "muted small" }, t("sessions.reportLastDesc"))),
+        h("div", { class: "option" }, fileReportBtn, h("p", { class: "muted small" }, t("sessions.reportFileDesc"))),
+      ),
+    ),
     section(t("sessions.export"), h("div", { class: "options" }, opts.map((o) => o.el))),
     section(
       t("sessions.open"),
@@ -136,16 +141,6 @@ export function mount(root: HTMLElement) {
         { class: "options" },
         h("div", { class: "option" }, replayBtn, h("p", { class: "muted small" }, t("sessions.replayDesc"))),
         h("div", { class: "option" }, openBtn, h("p", { class: "muted small" }, t("sessions.openDesc"))),
-      ),
-    ),
-    section(
-      t("sessions.reportTitle"),
-      h("p", { class: "muted" }, t("sessions.reportIntro")),
-      h(
-        "div",
-        { class: "options" },
-        h("div", { class: "option" }, button(t("sessions.reportPrint"), printReport, "primary"), h("p", { class: "muted small" }, t("sessions.reportPrintDesc"))),
-        h("div", { class: "option" }, button(t("sessions.reportHtml"), saveReport, "secondary")),
       ),
     ),
     driveHistorySection(),
@@ -166,4 +161,45 @@ export function mount(root: HTMLElement) {
     clearInterval(tick);
     offs.forEach((f) => f());
   };
+}
+
+/** Shows a report over the screen, with print (PDF) and save (HTML). */
+function openReport(html: string) {
+  const frame = h("iframe", { class: "report-frame", title: t("sessions.reportTitle") });
+  const close = () => {
+    overlay.remove();
+    document.removeEventListener("keydown", onKey);
+  };
+  const onKey = (ev: KeyboardEvent) => {
+    if (ev.key === "Escape") close();
+  };
+  const print = () => {
+    frame.contentWindow?.focus();
+    frame.contentWindow?.print();
+  };
+  const saveHtml = async () => {
+    const path = await save({ defaultPath: `obd2-relatorio-${timestampForFile()}.html`, filters: [{ name: "HTML", extensions: ["html"] }] });
+    if (!path) return;
+    try {
+      await api.saveText(path, html);
+      toast(t("common.saved", { path }), "ok");
+    } catch (e) {
+      toast(errorText(e), "error");
+    }
+  };
+  const overlay = h(
+    "div",
+    { class: "report-overlay", role: "dialog", "aria-modal": "true", "aria-label": t("sessions.reportTitle") },
+    h(
+      "div",
+      { class: "report-bar" },
+      button(t("sessions.reportPrint"), print, "primary", { title: t("sessions.reportPrintDesc") }),
+      button(t("sessions.reportHtml"), saveHtml, "secondary"),
+      button(t("common.close"), close, "ghost"),
+    ),
+    frame,
+  );
+  document.body.append(overlay);
+  document.addEventListener("keydown", onKey);
+  frame.srcdoc = html;
 }

@@ -3,7 +3,8 @@
 //! The recording lives in memory (fast to export and replay) and, as a safety
 //! copy, is also written as it goes to [`BACKUP_FILE`] in the program's data
 //! folder: one JSON line with the session details, then one line per frame
-//! (and a `{"mark":t_ms}` line per event the driver marks), and an
+//! (a `{"mark":t_ms}` line per event the driver marks and a
+//! `{"diagnostics":{...}}` line per diagnostic read saved with it), and an
 //! `{"end":true}` line when it stops. Lines are buffered and written to
 //! disk at least every [`FLUSH_EVERY`]. If the program or the computer stops
 //! in the middle, the next start finds a file without the end line and
@@ -14,7 +15,7 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use obd_core::session::{Frame, Session};
+use obd_core::session::{Frame, Session, Snapshot};
 
 /// Safety copy of the recording in progress, inside the data folder.
 pub const BACKUP_FILE: &str = "gravacao-em-andamento.jsonl";
@@ -98,6 +99,44 @@ impl Recorder {
         Some(s.marks.len())
     }
 
+    /// Saves diagnostic reads with the recording that started at
+    /// `started_at_unix_ms`: the one in progress or, when the reads finished
+    /// after it stopped, the last one. Returns false if that recording is
+    /// gone (a newer one replaced it).
+    pub fn attach(&mut self, started_at_unix_ms: u64, mut snap: Snapshot) -> bool {
+        if let Some((start, s)) = self.active.as_mut()
+            && s.started_at_unix_ms == started_at_unix_ms
+        {
+            snap.t_ms = start.elapsed().as_millis() as u64;
+            if let Some(b) = self.backup.as_mut()
+                && (serde_json::to_writer(&mut b.file, &DiagnosticsLine { diagnostics: &snap })
+                    .is_err()
+                    || b.file.write_all(b"\n").and_then(|_| flush(b)).is_err())
+            {
+                self.backup = None;
+            }
+            s.diagnostics.push(snap);
+            return true;
+        }
+        match self.last.as_mut() {
+            Some(s) if s.started_at_unix_ms == started_at_unix_ms => {
+                snap.t_ms = s.frames.last().map(|f| f.t_ms).unwrap_or(0);
+                s.diagnostics.push(snap);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Start time of the recording in progress, or else of the last one.
+    pub fn started_at(&self) -> Option<u64> {
+        self.active
+            .as_ref()
+            .map(|(_, s)| s)
+            .or(self.last.as_ref())
+            .map(|s| s.started_at_unix_ms)
+    }
+
     pub fn mark_count(&self) -> usize {
         self.active
             .as_ref()
@@ -161,6 +200,16 @@ struct MarkLine {
     mark: u64,
 }
 
+#[derive(serde::Serialize)]
+struct DiagnosticsLine<'a> {
+    diagnostics: &'a Snapshot,
+}
+
+#[derive(serde::Deserialize)]
+struct DiagnosticsLineIn {
+    diagnostics: Snapshot,
+}
+
 /// The session in a safety copy without its end line and with at least one
 /// frame. A last line cut in half by the crash is skipped.
 fn read_interrupted(path: &Path) -> Option<Session> {
@@ -176,6 +225,8 @@ fn read_interrupted(path: &Path) -> Option<Session> {
             session.frames.push(frame);
         } else if let Ok(m) = serde_json::from_str::<MarkLine>(&line) {
             session.marks.push(m.mark);
+        } else if let Ok(d) = serde_json::from_str::<DiagnosticsLineIn>(&line) {
+            session.diagnostics.push(d.diagnostics);
         }
     }
     (!session.frames.is_empty()).then_some(session)
@@ -208,6 +259,14 @@ mod tests {
         });
         r.push(frame(800.0));
         assert_eq!(r.mark(), Some(1));
+        let started = r.started_at().unwrap();
+        assert!(r.attach(
+            started,
+            Snapshot {
+                dtcs: Some(serde_json::json!({"stored": []})),
+                ..Default::default()
+            }
+        ));
         r.push(frame(900.0));
         // Crash: the buffer reaches the disk only when dropped here, which
         // stands for the periodic flush.
@@ -225,6 +284,8 @@ mod tests {
         assert_eq!(s.adapter, "Demo");
         assert_eq!(s.frames[1].values["rpm"], 900.0);
         assert_eq!(s.marks.len(), 1);
+        assert_eq!(s.diagnostics.len(), 1);
+        assert!(s.diagnostics[0].dtcs.is_some());
         // Offered only once.
         assert_eq!(Recorder::with_backup(dir.clone()).recover(), None);
         std::fs::remove_dir_all(dir).unwrap();
@@ -238,6 +299,12 @@ mod tests {
         r.push(frame(800.0));
         r.stop();
         assert_eq!(Recorder::with_backup(dir.clone()).recover(), None);
+        // Reads that finish after the stop still join that recording...
+        let started = r.started_at().unwrap();
+        assert!(r.attach(started, Snapshot::default()));
+        assert_eq!(r.last.as_ref().unwrap().diagnostics.len(), 1);
+        // ...but never another one.
+        assert!(!r.attach(started + 1, Snapshot::default()));
         std::fs::remove_dir_all(dir).unwrap();
     }
 }

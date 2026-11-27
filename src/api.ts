@@ -139,6 +139,8 @@ export interface RecordingStatus {
   marks: number;
   lastFrames: number;
   lastDurationS: number;
+  /** Identifies the recording in progress (or the last one). */
+  startedAtUnixMs: number | null;
 }
 
 export interface LiveFrame {
@@ -196,6 +198,36 @@ export interface Session {
   frames: { t_ms: number; values: Record<string, number> }[];
   /** Moments marked by the driver, ms since the start (missing in old files). */
   marks?: number[];
+  /** Diagnostic reads saved with the recording (missing in old files). */
+  diagnostics?: DiagnosticSnapshot[];
+}
+
+/** Diagnostic reads taken at one moment of a recording; a part that could
+ * not be read is missing. */
+export interface DiagnosticSnapshot {
+  /** Milliseconds since the start of the recording (set by the program). */
+  t_ms?: number;
+  vehicle?: VehicleInfo;
+  dtcs?: DtcReport;
+  freeze?: FreezeFrame;
+  readiness?: Readiness;
+  mode06?: TestResult[];
+}
+
+/** Summary of a recording for the diagnostic report (crates/obd-core/src/report.rs). */
+export interface RecordingReport {
+  app_version: string;
+  started_at_unix_ms: number;
+  adapter: string;
+  protocol: string;
+  vehicle: VehicleIdentity;
+  duration_s: number;
+  frames: number;
+  marks: number[];
+  diagnostics: DiagnosticSnapshot[];
+  stats: { key: string; unit: string; min: number; avg: number; max: number; count: number }[];
+  findings: { id: string; severity: Severity; values: Record<string, number>; first_s: number; last_s: number; seconds: number }[];
+  charts: { key: string; unit: string; t: number[]; v: number[] }[];
 }
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -227,6 +259,10 @@ export const api = {
   startRecording: () => invoke<RecordingStatus>("start_recording"),
   stopRecording: () => invoke<RecordingStatus>("stop_recording"),
   addMark: () => invoke<RecordingStatus>("add_mark"),
+  addRecordingDiagnostics: (startedAt: number, snapshot: DiagnosticSnapshot) =>
+    invoke<boolean>("add_recording_diagnostics", { startedAt, snapshot }),
+  /** Report of the recording saved at `path`, or of the last recording. */
+  recordingReport: (path?: string) => invoke<RecordingReport>("recording_report", { path: path ?? null }),
   recordingStatus: () => invoke<RecordingStatus>("get_recording_status"),
   exportSession: (format: "csv" | "csv_br" | "json", path: string) =>
     invoke<void>("export_session", { format, path }),
