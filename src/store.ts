@@ -85,6 +85,10 @@ export const state = {
   portableData: null as string | null,
   /** Frames of a recording recovered at start-up (interrupted last time). */
   recoveredFrames: null as number | null,
+  /** Parameters the car stopped answering in the newest live frame. */
+  lastDropped: [] as string[],
+  /** Demo only: the virtual engine is stopped (ATSIMOFF). */
+  demoEngineOff: false,
 };
 
 const subs = new Map<Topic, Set<() => void>>();
@@ -157,6 +161,7 @@ export function pushFrame(f: LiveFrame) {
     }
   }
   state.rateHz = f.rate_hz;
+  state.lastDropped = f.dropped;
   emit("frame");
 }
 

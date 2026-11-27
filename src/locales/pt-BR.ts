@@ -9,6 +9,7 @@ const ptBR = {
     dashboard: "Painel ao vivo",
     hud: "Head-up display (HUD)",
     performance: "Testes de desempenho",
+    guided: "Testes guiados",
     charts: "Gráficos",
     diagnostics: "Códigos de falha",
     vehicle: "Veículo e prontidão",
@@ -174,6 +175,91 @@ const ptBR = {
     samples: "Leituras",
     lowRate: "Poucas leituras por segundo: o tempo pode ter erro maior.",
     clear: "Apagar resultados",
+  },
+  guided: {
+    title: "Testes guiados",
+    intro: "Testes passo a passo que transformam as leituras do carro numa indicação fácil de entender. O programa avança sozinho conforme percebe o que você fez.",
+    needsLive: "Este teste precisa do carro conectado agora; não funciona com uma gravação.",
+    rate: "{rate} leituras por segundo",
+    tabs: {
+      battery: "Bateria e alternador",
+    },
+    grade: {
+      ok: "Bom",
+      warn: "Atenção",
+      bad: "Problema provável",
+    },
+  },
+  battery: {
+    safety: "Faça o teste com o carro parado, freio de mão puxado e em ponto morto (ou P). Na etapa 3 o motor fica ligado: só em lugar aberto.",
+    sourceTip: "Tensão medida pelo próprio adaptador no pino 16 da tomada OBD2, que vai direto à bateria (comando ATRV). Se o adaptador não souber medir, o programa usa a tensão informada pela central do motor (PID 42).",
+    steps: {
+      rest: {
+        title: "Bateria em repouso",
+        do: "Ligue a chave sem dar partida (painel aceso, motor desligado) e espere uns segundos com a tensão estável.",
+      },
+      crank: {
+        title: "Partida",
+        do: "Agora dê a partida normalmente. O programa registra a menor tensão enquanto o motor de arranque gira.",
+      },
+      charge: {
+        title: "Alternador",
+        idle: "Deixe o motor em marcha lenta por uns segundos, sem acelerar.",
+        loaded: "Ligue os faróis e segure o motor perto de 2.000 rpm por uns 5 segundos.",
+      },
+    },
+    hold: {
+      engine_running: "O motor parece ligado (tensão de alternador). Desligue o motor e deixe só a chave ligada.",
+      engine_off: "O motor parece desligado. Ligue o motor para continuar.",
+      not_idle: "Esperando a marcha lenta (solte o acelerador).",
+      rpm_range: "Esperando a rotação perto de 2.000 rpm.",
+    },
+    verdict: {
+      rest: {
+        ok: "Bateria com boa carga.",
+        warn: "Carga baixa: vale recarregar e testar de novo.",
+        bad: "Bateria descarregada ou desgastada (sulfatada).",
+      },
+      crank: {
+        ok: "A bateria aguentou bem a partida.",
+        warn: "A bateria caiu bastante na partida: sinal de desgaste.",
+        bad: "A bateria está perdendo força de partida. Indica troca em breve.",
+      },
+      charge: {
+        ok: "O alternador está carregando normalmente.",
+        warn: "Fora da faixa mais comum, veja a observação.",
+        bad: "Fora do normal. Vale levar a um eletricista.",
+      },
+    },
+    notes: {
+      surface: "Acima de 12,9 V a bateria ainda tem a \"carga de superfície\" da última viagem e parece melhor do que está. Para um valor justo, teste com o carro parado há algumas horas.",
+      few_samples: "Poucas leituras durante a partida: o ponto mais baixo pode ter passado entre elas.",
+      smart: "Muitos carros recentes controlam o alternador (carga inteligente) e ficam nessa faixa de propósito quando a bateria está cheia. Se o seu não é desse tipo, pode ser falta de carga.",
+      not_charging: "Abaixo da tensão da própria bateria: o alternador parece não estar carregando.",
+      high: "Um pouco alta. Alguns carros sobem a tensão com o motor frio, mas fique de olho.",
+      overcharge: "Tensão alta demais: o regulador do alternador pode estar com defeito, o que pode danificar a bateria e módulos.",
+    },
+    crankMissed: {
+      missed: "A partida foi rápida demais para o adaptador medir a queda de tensão.",
+      adapter_reset: "O adaptador reiniciou na partida (a queda de tensão desligou ele por um instante), então não deu para medir. É comum em adaptadores simples.",
+      skipped: "Etapa pulada.",
+    },
+    atIdle: "Em marcha lenta:",
+    atLoad: "A 2.000 rpm com faróis:",
+    skip: "Pular etapa",
+    restart: "Recomeçar",
+    summary: "Resultado",
+    overall: {
+      ok: "Bateria e alternador sem sinais de problema.",
+      warn: "Há pontos de atenção. Veja cada etapa acima.",
+      bad: "Há sinal de problema. Veja cada etapa acima e, se possível, confirme com um teste de carga num eletricista.",
+      none: "Nenhuma medida foi feita.",
+    },
+    precision: "É uma indicação, não um laudo. Adaptadores medem com diferença de 0,1 a 0,3 V, e os limites valem para baterias comuns de 12 V. Frio intenso e motores a diesel baixam a tensão na partida.",
+    demo: {
+      stop: "Desligar o motor virtual",
+      start: "Dar partida no motor virtual",
+    },
   },
   hud: {
     title: "Head-up display (HUD)",

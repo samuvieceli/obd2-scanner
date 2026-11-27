@@ -11,6 +11,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Painel ao vivo** com mais de 80 parâmetros (rotação, temperatura, correção de combustível, sondas lambda e de banda larga, turbo, torque, filtro de partículas, hodômetro, tensão da bateria...), cada um com explicação curta.
 - **Cartões ou mostradores com ponteiro**, **alertas** com som quando um valor sai da faixa segura e **computador de bordo** (consumo em km/L, distância, combustível gasto).
 - **Testes de desempenho** 0–100, 100–0, 40–80 e 80–120 km/h com detecção automática do início e do fim reais de cada teste, distância e histórico.
+- **Testes guiados**: bateria e alternador passo a passo (repouso, partida e carga), com resultado em linguagem simples.
 - **Head-up display (HUD)**: até 4 valores enormes em fundo preto, em tela cheia, com opção espelhada para refletir no para-brisa.
 - **Interpretação automática** dos dados (superaquecimento, mistura pobre/rica, carga da bateria, sonda lambda, catalisador).
 - **Gráficos** em tempo real, sincronizados, com exportação para imagem PNG.
