@@ -7,7 +7,7 @@ import type { Category } from "../api";
 import { findingList } from "./findings";
 import { makeGauge } from "../gauge";
 import { activeAlerts } from "../alerts";
-import { fmtNum } from "../i18n";
+import { fmtNum, getLang } from "../i18n";
 import { consumption, displayUnit, toDisplay } from "../units";
 
 function fmtEconomy(kmPerL: number): string {
@@ -29,8 +29,11 @@ export async function startPolling(on_: boolean) {
 }
 
 export async function toggleRecording() {
-  state.recording = state.recording.recording ? await api.stopRecording() : await api.startRecording();
+  const starting = !state.recording.recording;
+  state.recording = starting ? await api.startRecording() : await api.stopRecording();
   emit("recording");
+  // A recording only gets frames while reading: start reading with it.
+  if (starting && !state.polling && !state.playback) await startPolling(true);
 }
 
 /** Marks this moment of the recording (button or Space key). */
@@ -48,12 +51,16 @@ export async function markEvent() {
 /** Big "mark event" button, shown only while recording. */
 export function markButton(): HTMLButtonElement {
   const b = button(t("marks.button"), () => void markEvent(), "danger", { title: t("marks.help") });
+  let shown = false;
   const sync = () => {
+    // Stop listening once the screen that showed the button is gone.
+    if (b.isConnected) shown = true;
+    else if (shown) return off();
     b.hidden = !state.recording.recording;
     b.textContent = state.recording.marks ? `${t("marks.button")} (${state.recording.marks})` : t("marks.button");
   };
+  const off = on("recording", sync);
   sync();
-  on("recording", sync);
   return b;
 }
 
@@ -275,19 +282,48 @@ export function mount(root: HTMLElement) {
     const want = isSupported("maf") ? ["maf"] : ["rpm", "intake_map", "intake_temp"];
     return [...want, "speed"].filter((k) => !keys.has(k) && isSupported(k));
   };
-  const renderTrip = () => {
-    clear(tripBox);
-    const missing = tripNeeds();
-    const row = (label: string, value: string) => h("div", { class: "kv-row" }, h("span", { class: "muted" }, label), h("strong", null, value));
+  // Numbers are redrawn on every reading; the buttons only when they change,
+  // so a click is never lost to a redraw between press and release.
+  const tripData = h("div");
+  const tripActions = h("div");
+  tripBox.append(tripData, tripActions);
+  let actionsFor = "";
+  const renderTripActions = (missing: string[]) => {
+    const noPrice = tripCost(1, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices).cost === undefined;
+    const key = `${missing.join()}|${!!state.playback}|${lastDrive?.endedAt ?? ""}|${noPrice}|${getLang()}`;
+    if (key === actionsFor) return;
+    actionsFor = key;
+    clear(tripActions);
     if (missing.length && !state.playback) {
-      tripBox.append(
-        h("p", { class: "muted small" }, t("trip.needs", { names: missing.map((k) => pidText(k).short).join(", ") })),
+      tripActions.append(
         button(t("trip.addKeys"), () => {
           const keys = [...state.liveKeys, ...missing];
           setLiveKeys(keys);
           api.setLive(keys, state.polling).catch((e) => toast(errorText(e), "error"));
         }, "ghost"),
       );
+    }
+    if (noPrice && !(missing.length && !state.playback)) {
+      tripActions.append(h("p", { class: "muted small" }, h("a", { href: "#/settings" }, t("cost.setPrices"))));
+    }
+    tripActions.append(
+      h(
+        "div",
+        { class: "row" },
+        button(t("trip.reset"), resetTrip, "ghost"),
+        lastDrive ? button(t("summary.open"), () => lastDrive && showSummary(lastDrive), "ghost") : "",
+        h("a", { class: "btn btn-ghost", href: "#/performance" }, t("nav.performance")),
+      ),
+    );
+  };
+  const renderTrip = () => {
+    const tripBox = tripData;
+    clear(tripBox);
+    const missing = tripNeeds();
+    renderTripActions(missing);
+    const row = (label: string, value: string) => h("div", { class: "kv-row" }, h("span", { class: "muted" }, label), h("strong", null, value));
+    if (missing.length && !state.playback) {
+      tripBox.append(h("p", { class: "muted small" }, t("trip.needs", { names: missing.map((k) => pidText(k).short).join(", ") })));
     } else {
       const avg = trip.fuelL > 0.001 ? trip.distanceKm / trip.fuelL : undefined;
       tripBox.append(
@@ -307,18 +343,8 @@ export function mount(root: HTMLElement) {
           h("p", { class: "muted small" }, t("cost.breakEven", { pct: fmtNum(c.breakEven * 100, 0) })),
         );
       }
-      if (c.cost === undefined) tripBox.append(h("p", { class: "muted small" }, h("a", { href: "#/settings" }, t("cost.setPrices"))));
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
     }
-    tripBox.append(
-      h(
-        "div",
-        { class: "row" },
-        button(t("trip.reset"), resetTrip, "ghost"),
-        lastDrive ? button(t("summary.open"), () => lastDrive && showSummary(lastDrive), "ghost") : "",
-        h("a", { class: "btn btn-ghost", href: "#/performance" }, t("nav.performance")),
-      ),
-    );
   };
 
   const renderFindings = () => {

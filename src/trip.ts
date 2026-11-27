@@ -84,6 +84,8 @@ export function initTrip() {
   on("connection", () => {
     if (state.connection !== "connected") lastT = null;
   });
+  // Jumping in a replay re-sends the frames from the start: count them once.
+  on("seek", resetTrip);
   // A new recording replay starts a new trip.
   let replaying = false;
   on("playback", () => {

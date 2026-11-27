@@ -6,6 +6,7 @@ import { emit, on, state } from "../store";
 import { busy, button, clear, errorText, h, section, timestampForFile, toast } from "../ui";
 import { startPlayback } from "../playback";
 import { buildReportHtml } from "./report";
+import { toggleRecording } from "./dashboard";
 
 function duration(s: number): string {
   const m = Math.floor(s / 60);
@@ -20,20 +21,17 @@ export function mount(root: HTMLElement) {
 
   const statusBox = h("div");
   const recBtn = button("", async () => {
-    const r = await busy(recBtn, () => (state.recording.recording ? api.stopRecording() : api.startRecording()));
-    if (r) {
-      state.recording = r;
-      state.recoveredFrames = null;
-      emit("recording");
-    }
+    // Starting also turns reading on, or the recording would stay empty.
+    if (await busy(recBtn, async () => (await toggleRecording(), true))) state.recoveredFrames = null;
+    renderStatus();
   }, "primary");
-  recBtn.disabled = state.connection !== "connected";
 
   const renderStatus = () => {
     clear(statusBox);
     const r = state.recording;
     recBtn.textContent = r.recording ? t("sessions.stop") : t("sessions.start");
     recBtn.className = `btn ${r.recording ? "btn-danger" : "btn-primary"}`;
+    recBtn.disabled = state.connection !== "connected" && !r.recording;
     if (r.recording) statusBox.append(h("p", { class: "rec-text" }, t("sessions.recording", { frames: r.frames })));
     if (r.recording && !state.polling) statusBox.append(h("p", { class: "muted small" }, t("sessions.needLive")));
     if (state.recoveredFrames && !r.recording) statusBox.append(h("div", { class: "alert alert-warning" }, t("sessions.recoveredHint", { frames: state.recoveredFrames })));
@@ -161,9 +159,9 @@ export function mount(root: HTMLElement) {
       /* ignore */
     }
   }, 1000);
-  const off = on("recording", renderStatus);
+  const offs = [on("recording", renderStatus), on("connection", renderStatus)];
   return () => {
     clearInterval(tick);
-    off();
+    offs.forEach((f) => f());
   };
 }

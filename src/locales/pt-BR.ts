@@ -274,6 +274,7 @@ const ptBR = {
     samples: "Leituras",
     lowRate: "Poucas leituras por segundo: o tempo pode ter erro maior.",
     clear: "Apagar resultados",
+    clearConfirm: "Apagar todos os resultados de desempenho de \"{name}\"? Não dá para desfazer.",
   },
   guided: {
     title: "Testes guiados",
@@ -644,7 +645,7 @@ const ptBR = {
     recoveredHint: "Esta é a gravação que estava em andamento quando o programa fechou ({frames} leituras). Exporte agora: ela será substituída pela próxima gravação.",
     title: "Gravações e relatórios",
     recordingTitle: "Gravação de dados",
-    recordingIntro: "Grava os valores lidos no Painel ao vivo para analisar depois ou abrir em planilhas.",
+    recordingIntro: "Grava os valores lidos no Painel ao vivo para analisar depois ou abrir em planilhas. Se a leitura estiver parada, ela começa junto com a gravação.",
     start: "Iniciar gravação",
     stop: "Parar gravação",
     recording: "Gravando: {frames} leituras",

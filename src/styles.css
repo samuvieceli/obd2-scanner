@@ -1,4 +1,7 @@
 /* OBD2 Scanner — design tokens and layout. Dark by default, light optional. */
+/* The hidden attribute always wins over display rules of components. */
+[hidden] { display: none !important; }
+
 :root {
   --bg: #0b1220;
   --surface: #111a2c;

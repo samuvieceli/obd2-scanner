@@ -116,6 +116,10 @@ export function initDriveSummary() {
       finished(drive.finish("disconnected"));
     }
   });
+  on("seek", () => {
+    drive.reset();
+    lastT = null;
+  });
   // Replays are not real drives of this session: start fresh around them.
   let replaying = false;
   on("playback", () => {

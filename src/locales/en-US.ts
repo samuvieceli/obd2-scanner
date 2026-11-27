@@ -276,6 +276,7 @@ const enUS: Messages = {
     samples: "Readings",
     lowRate: "Few readings per second: the time may be less accurate.",
     clear: "Delete results",
+    clearConfirm: "Delete all performance results of \"{name}\"? This cannot be undone.",
   },
   guided: {
     title: "Guided tests",
@@ -646,7 +647,7 @@ const enUS: Messages = {
     recoveredHint: "This is the recording that was running when the program closed ({frames} readings). Export it now: the next recording replaces it.",
     title: "Recordings & reports",
     recordingTitle: "Data recording",
-    recordingIntro: "Records the values read on the Live dashboard to analyze later or open in spreadsheets.",
+    recordingIntro: "Records the values read on the Live dashboard to analyze later or open in spreadsheets. If reading is stopped, it starts together with the recording.",
     start: "Start recording",
     stop: "Stop recording",
     recording: "Recording: {frames} reads",
