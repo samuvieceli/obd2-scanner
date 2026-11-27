@@ -14,6 +14,7 @@ import { initDriveSummary } from "./views/drive-summary";
 import { initSearch, openSearch } from "./views/search";
 import { initMini } from "./views/mini";
 import { initKeepAwake } from "./awake";
+import { initSafety } from "./views/safety";
 import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
 import { fmtNum } from "./i18n";
 
@@ -455,6 +456,8 @@ async function boot() {
   onLangChange(layout);
   window.addEventListener("hashchange", renderView);
   layout();
+  // Safety notice on top of everything until the user confirms it.
+  initSafety();
 }
 
 boot();
