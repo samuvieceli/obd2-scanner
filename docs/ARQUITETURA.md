@@ -6,8 +6,8 @@
 ┌──────────────────────── Interface (src/, TypeScript + Vite) ────────────────────────┐
 │ telas (views/) · textos pt-BR/en-US (locales/) · gráficos uPlot · estado (store.ts) │
 │ playback · trip · summary · drives · perf · battery · o2test · trims · alerts       │
-│ prefs · units · fuels · cost · presets · warmup · search · share · gauge · theme    │
-│ awake                                                                               │
+│ prefs · units · fuels · cost · presets · calc · warmup · search · share · gauge     │
+│ theme · awake                                                                       │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
@@ -39,7 +39,7 @@
 - **Perfis e unidades só na interface.** O núcleo trabalha sempre em unidades métricas (as do padrão OBD2). `units.ts` converte apenas na exibição e na digitação de limites; `prefs.ts` guarda os perfis (combustível, cilindrada, alertas, VIN); `fuels.ts` calcula a relação ar/combustível e a densidade de cada combustível a partir da mistura legal (E32, E25, etanol hidratado, B15), ponderada pela massa, então uma mudança na lei só pede um número novo ali e escolhe o perfil pelo VIN ao conectar. Resultados de desempenho levam o `profileId`.
 - **Só leitura garantido no código.** O Terminal AT passa cada linha por `safety::check_terminal_command` e envia `safety::normalize` (só ASCII visível, então uma linha nunca leva um segundo comando depois de um CR); comandos AT que gravam no adaptador e serviços que escrevem, testam peças ou reiniciam centrais são recusados antes de sair do programa. `ATCAF0` também é recusado (sem a formatação automática do CAN, um pedido de escrita passaria por leitura). `Elm327::clear_dtcs` pergunta giro (010C) e velocidade (010D) na hora e recusa (`ObdError::Refused("engine_running")`) com o motor girando ou o carro andando, ou (`"engine_unknown"`) se o carro não responder; a tela lê os códigos de novo depois de apagar. No simulador, `ATSIMOFF`/`ATSIMON` desligam e ligam o motor virtual. Um AT que muda a configuração (`safety::changes_adapter_setup`: tudo menos leituras como `ATI`, `ATRV`, `ATDP`) marca o estado, e ao sair do Terminal a tela chama `restore_adapter`, que roda `Elm327::reconfigure`.
 - **Textos fora do código Rust.** O núcleo devolve chaves (`coolant_temp`, `mixture_lean_b1`) e a interface traduz. Descrições de DTC ficam em `crates/obd-core/data/dtc_descriptions.json` (pt e en).
-- **Cálculos derivados na interface.** Consumo (`trip.ts`), testes de desempenho (`perf.ts`, lógica pura testada com Vitest), testes guiados (`battery.ts`, `o2test.ts` e `trims.ts`, também lógica pura: etapas, limites e avaliação; a tela `views/guided.ts` só desenha e pede ao trabalhador que leia apenas os valores do teste), alertas (`alerts.ts`) e reprodução de gravações (`playback.ts`) usam os mesmos quadros ao vivo que o painel; por isso funcionam igual com o carro e com uma gravação. A interpretação durante a reprodução usa o mesmo código Rust (`interpret_frames`).
+- **Cálculos derivados na interface.** Consumo (`trip.ts`; o consumo instantâneo também vira os parâmetros calculados de `calc.ts`, que a tela Gráficos desenha como os do carro), testes de desempenho (`perf.ts`, lógica pura testada com Vitest), testes guiados (`battery.ts`, `o2test.ts` e `trims.ts`, também lógica pura: etapas, limites e avaliação; a tela `views/guided.ts` só desenha e pede ao trabalhador que leia apenas os valores do teste), alertas (`alerts.ts`) e reprodução de gravações (`playback.ts`) usam os mesmos quadros ao vivo que o painel; por isso funcionam igual com o carro e com uma gravação. A interpretação durante a reprodução usa o mesmo código Rust (`interpret_frames`).
 - **Indícios do Modo 06** (`mode06hints.ts`, lógica pura testada com Vitest): lê a lista de testes da central já recebida e aponta padrões conhecidos (falha de combustão em um cilindro, catalisador, sondas). A tela `views/diagnostics.ts` só mostra o resultado.
 - **Nada carregado da internet.** O gráfico (uPlot) é empacotado no app; a política de segurança (CSP) bloqueia fontes externas.
 
@@ -53,7 +53,8 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 - `src/battery.test.ts` (Vitest): teste de bateria com tensões simuladas (carro saudável, tensão instável, motor ligado na etapa 1, partida não vista, carga inteligente).
 - `src/o2test.test.ts` (Vitest): sondas com sinais simulados (catalisador bom e gasto, sonda parada, adaptador lento, sonda de banda larga).
 - `src/trims.test.ts` (Vitest): mapa de correção (faixas, malha aberta ignorada, reserva pela temperatura, padrões de entrada de ar, falta de combustível, pobre em tudo, purga).
-- `src/presets.test.ts` e `src/warmup.test.ts` (Vitest): painéis prontos (só o que o carro informa, alternativas) e selo de motor frio/pronto.
+- `src/presets.test.ts` e `src/warmup.test.ts` (Vitest): painéis prontos e predefinições dos gráficos (só o que o carro informa, alternativas) e selo de motor frio/pronto.
+- `src/calc.test.ts` (Vitest): de quais parâmetros do carro cada valor calculado depende.
 - `src/cost.test.ts` (Vitest): custo da viagem, comparação gasolina × etanol pela energia e preço da mistura no flex.
 - `src/search.test.ts` (Vitest): busca global (acentos e maiúsculas ignorados, todas as palavras, título vale mais que descrição, códigos de falha).
 - `src/drives.test.ts` (Vitest): histórico de viagens (grupos por combustível, flex pela porcentagem de etanol, médias pela distância total, viagens curtas sem média).

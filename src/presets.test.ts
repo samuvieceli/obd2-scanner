@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchPreset, presetAfterClick, presetKeys } from "./presets";
+import { chartPresetKeys, matchChartPreset, matchPreset, presetAfterClick, presetKeys } from "./presets";
 
 describe("dashboard presets", () => {
   it("keeps only what the car supports, picking the first alternative", () => {
@@ -24,5 +24,15 @@ describe("dashboard presets", () => {
     expect(presetAfterClick("turbo", "turbo")).toBe("full");
     expect(presetAfterClick("turbo", "daily")).toBe("turbo");
     expect(presetAfterClick("full", "full")).toBe("full");
+  });
+});
+
+describe("chart presets", () => {
+  it("keeps what is available and follows the dashboard with null", () => {
+    const has = new Set(["stft_b1", "ltft_b1", "lambda_b1s1", "intake_map", "rpm"]);
+    expect(chartPresetKeys("mixture", (k) => has.has(k))).toEqual(["stft_b1", "ltft_b1", "lambda_b1s1", "intake_map", "rpm"]);
+    expect(chartPresetKeys("dashboard", () => true)).toBeNull();
+    expect(matchChartPreset(null, () => true)).toBe("dashboard");
+    expect(matchChartPreset(["rpm", "ltft_b1", "stft_b1", "lambda_b1s1", "intake_map"], (k) => has.has(k))).toBe("mixture");
   });
 });

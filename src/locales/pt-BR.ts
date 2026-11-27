@@ -591,6 +591,21 @@ const ptBR = {
     viewing: "Visualizando gravação: {name}",
     backToLive: "Voltar ao ao vivo",
     time: "Tempo (s)",
+    presets: "Predefinições:",
+    preset: {
+      dashboard: { name: "Do painel", help: "Os mesmos parâmetros escolhidos no Painel ao vivo." },
+      mixture: { name: "Mistura (injeção)", help: "Correções de combustível curto e longo prazo, sondas lambda, fluxo de ar (MAF) ou pressão do coletor (MAP) e rotação. Para ver se o motor está pobre ou rico." },
+      temperatures: { name: "Temperaturas", help: "Motor, ar admitido, óleo, ar externo e catalisador (os que o carro informar)." },
+      electrical: { name: "Elétrica", help: "Tensão da bateria e da central, com a rotação, para conferir bateria e alternador." },
+      consumption: { name: "Consumo", help: "Consumo instantâneo calculado (L/h e km/L), velocidade, rotação e carga." },
+      acceleration: { name: "Aceleração", help: "Velocidade, rotação, borboleta, pedal do acelerador, carga e avanço de ignição." },
+      turbo: { name: "Turbo", help: "Pressão do turbo (real e pedida) ou do coletor, temperatura do ar admitido, avanço, borboleta e rotação." },
+    },
+    choose: "Escolher parâmetros",
+    closePicker: "Fechar lista",
+    remove: "clique para tirar do gráfico",
+    chooseHelp: "Pode escolher qualquer parâmetro que o carro informa, mesmo fora do Painel: ele passa a ser lido também (e entra nas gravações). Quanto mais parâmetros, mais lenta a atualização.",
+    chooseHelpRecording: "Parâmetros que existem nesta gravação, mais os calculados a partir deles.",
   },
   dtc: {
     clearedConfirmed: "Códigos apagados e conferidos: o carro não informa mais nenhum código ativo ou pendente.",
@@ -920,6 +935,7 @@ const ptBR = {
     emissions: "Emissões",
     electrical: "Elétrica",
     vehicle: "Veículo",
+    calculated: "Calculados pelo programa",
   },
   errors: {
     engine_unknown: "O carro não respondeu ao giro nem à velocidade, então não dá para confirmar que o motor está desligado. Gire a chave até a ignição ligada (luzes do painel acesas, motor parado) e tente de novo.",
@@ -1030,6 +1046,8 @@ const ptBR = {
     { term: "Corte de combustível na desaceleração", desc: "Ao tirar o pé do acelerador com marcha engatada, a central corta a injeção. Nesse momento a sonda lambda marca \"pobre\" e a correção de combustível não vale: o programa ignora esses instantes." },
   ],
   pids: {
+    calc_fuel_flow: { name: "Consumo instantâneo (litros por hora)", short: "Consumo L/h", desc: "Calculado pelo programa: vem do PID de consumo, ou do fluxo de ar (MAF), ou da pressão do coletor (MAP) com a cilindrada do perfil. É uma estimativa.", typical: "0,5–1,2 L/h em marcha lenta" },
+    calc_economy: { name: "Consumo instantâneo (km por litro)", short: "Consumo km/L", desc: "Calculado pelo programa: velocidade dividida pelo consumo em L/h. Só aparece com o carro andando. É uma estimativa.", typical: "Varia muito; em velocidade constante na estrada costuma ser o maior valor" },
     battery_voltage: { name: "Tensão da bateria", short: "Bateria", desc: "Medida pelo próprio adaptador no conector OBD. Mostra o estado da bateria e do alternador.", typical: "12,4–12,8 V desligado; 13,5–14,7 V com motor ligado" },
     engine_load: { name: "Carga do motor calculada", short: "Carga", desc: "Quanto do esforço máximo o motor está usando agora.", typical: "15–35% em marcha lenta; até 100% acelerando forte" },
     coolant_temp: { name: "Temperatura do líquido de arrefecimento", short: "Temp. motor", desc: "Temperatura do motor. Influencia mistura, marcha lenta e ventoinha.", typical: "85–105 °C com motor quente" },

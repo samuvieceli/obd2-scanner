@@ -1,4 +1,5 @@
 // Application state shared by all screens, with a tiny publish/subscribe.
+import { calcInputs, isCalc } from "./calc";
 import type {
   AdapterInfo,
   CmdError,
@@ -42,9 +43,9 @@ export const DEFAULT_KEYS = [
   "battery_voltage",
 ];
 
-function loadKeys(): string[] | null {
+function loadKeys(name = "liveKeys"): string[] | null {
   try {
-    const v = localStorage.getItem("liveKeys");
+    const v = localStorage.getItem(name);
     return v ? (JSON.parse(v) as string[]) : null;
   } catch {
     return null;
@@ -59,6 +60,8 @@ export const state = {
   link: null as LinkStatus | null,
   catalog: [] as PidMeta[],
   liveKeys: loadKeys() ?? [...DEFAULT_KEYS],
+  /** Parameters chosen on the Charts screen; null = follow the dashboard. */
+  chartKeys: loadKeys("chartKeys"),
   polling: false,
   rateHz: 0,
   latest: {} as Record<string, number>,
@@ -141,25 +144,59 @@ export function setLiveKeys(keys: string[]) {
   emit("live-keys");
 }
 
+/** Keeps the chart choice and makes sure those parameters are read too. */
+export function setChartKeys(keys: string[] | null) {
+  state.chartKeys = keys;
+  try {
+    if (keys) localStorage.setItem("chartKeys", JSON.stringify(keys));
+    else localStorage.removeItem("chartKeys");
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Everything the adapter must read: the dashboard parameters plus those
+ * chosen only for the charts (for a calculated value, the ones it needs).
+ */
+export function readKeys(): string[] {
+  const out = [...state.liveKeys];
+  for (const k of state.chartKeys ?? []) {
+    const add = isCalc(k) ? (calcInputs(k, isSupported) ?? []) : isSupported(k) ? [k] : [];
+    for (const a of add) if (!out.includes(a)) out.push(a);
+  }
+  return out;
+}
+
+/** Adds values computed by the app (see calc.ts) to the history at time `t` (s). */
+export function pushCalculated(t: number, values: Record<string, number | undefined>) {
+  for (const [k, v] of Object.entries(values)) {
+    if (v === undefined || !Number.isFinite(v)) continue;
+    addPoint(k, t, v);
+  }
+}
+
+function addPoint(k: string, t: number, v: number) {
+  state.latest[k] = v;
+  const mm = state.minmax[k];
+  state.minmax[k] = mm ? [Math.min(mm[0], v), Math.max(mm[1], v)] : [v, v];
+  let s = state.history.get(k);
+  if (!s) {
+    s = { t: [], v: [] };
+    state.history.set(k, s);
+  }
+  s.t.push(t);
+  s.v.push(v);
+  if (s.t.length > MAX_POINTS) {
+    s.t.splice(0, s.t.length - MAX_POINTS);
+    s.v.splice(0, s.v.length - MAX_POINTS);
+  }
+}
+
 export function pushFrame(f: LiveFrame) {
   const t = f.t_ms / 1000;
   state.lastFrameT = t;
-  for (const [k, v] of Object.entries(f.values)) {
-    state.latest[k] = v;
-    const mm = state.minmax[k];
-    state.minmax[k] = mm ? [Math.min(mm[0], v), Math.max(mm[1], v)] : [v, v];
-    let s = state.history.get(k);
-    if (!s) {
-      s = { t: [], v: [] };
-      state.history.set(k, s);
-    }
-    s.t.push(t);
-    s.v.push(v);
-    if (s.t.length > MAX_POINTS) {
-      s.t.splice(0, s.t.length - MAX_POINTS);
-      s.v.splice(0, s.v.length - MAX_POINTS);
-    }
-  }
+  for (const [k, v] of Object.entries(f.values)) addPoint(k, t, v);
   state.rateHz = f.rate_hz;
   state.lastDropped = f.dropped;
   emit("frame");

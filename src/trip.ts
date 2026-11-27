@@ -6,7 +6,7 @@
 // 3. "speed-density" for cars with a MAP sensor and no MAF (very common in
 //    Brazil): air mass = rpm × displacement × efficiency × pressure / (R × T).
 // Ethanol content from PID 52 is used for flex cars when available.
-import { emit, on, recentValues, state } from "./store";
+import { emit, on, pushCalculated, recentValues, state } from "./store";
 import { profile } from "./prefs";
 import { FUELS, flexProps, type FuelProps } from "./fuels";
 import { advance, loadMeters, resetMeter, saveMeters, type TripId, type TripMeters } from "./trips";
@@ -35,6 +35,17 @@ export function fuelFlow(v: Record<string, number>): number | undefined {
   if (air === undefined) return undefined;
   const { afr, density } = fuelProps();
   return ((air / afr) * 3600) / density;
+}
+
+/** Instant economy in km/L: only when moving and burning fuel. */
+function economy(lph: number | undefined, speed: number | undefined): number | undefined {
+  return lph !== undefined && speed !== undefined && speed > 3 && lph > 0.05 ? speed / lph : undefined;
+}
+
+/** Calculated parameters (calc.ts) for one set of car values. */
+export function calcValues(v: Record<string, number>): Record<string, number | undefined> {
+  const lph = fuelFlow(v);
+  return { calc_fuel_flow: lph, calc_economy: economy(lph, v.speed) };
 }
 
 export interface Trip {
@@ -114,7 +125,9 @@ function onFrame() {
   trip.lph = lph;
   trip.source = v.fuel_rate !== undefined ? "pid" : v.maf !== undefined ? "maf" : lph !== undefined ? "map" : null;
   const speed = v.speed;
-  trip.kmpl = lph !== undefined && speed !== undefined && speed > 3 && lph > 0.05 ? speed / lph : undefined;
+  trip.kmpl = economy(lph, speed);
+  // Kept like a car value so the Charts screen can draw it.
+  pushCalculated(t, { calc_fuel_flow: lph, calc_economy: trip.kmpl });
   if (state.playback) {
     if (dt > 0 && dt < 5) {
       trip.timeS += dt;

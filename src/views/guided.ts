@@ -4,7 +4,7 @@
 import uPlot from "uplot";
 import { api, type MonitorState } from "../api";
 import { fmtNum, pidText, t } from "../i18n";
-import { freshValue, hasLiveSource, isSupported, on, state } from "../store";
+import { freshValue, hasLiveSource, isSupported, on, readKeys, state } from "../store";
 import { BatteryTest, overall, type BatteryResult, type Grade, type Reading } from "../battery";
 import { LOAD_BINS, MIN_SAMPLES, RPM_BINS, TrimMap, gradeTrim, type Pattern } from "../trims";
 import { O2Test, RPM_RANGE, WARM_C, WINDOW_S, type O2Result, type Verdict } from "../o2test";
@@ -85,7 +85,7 @@ function focusPolling() {
     },
     restore: () => {
       if (state.connection !== "connected") return;
-      api.setLive(state.liveKeys, wasPolling).catch(() => undefined);
+      api.setLive(readKeys(), wasPolling).catch(() => undefined);
       state.polling = wasPolling;
     },
   };

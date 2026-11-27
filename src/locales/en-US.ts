@@ -593,6 +593,21 @@ const enUS: Messages = {
     viewing: "Viewing recording: {name}",
     backToLive: "Back to live",
     time: "Time (s)",
+    presets: "Presets:",
+    preset: {
+      dashboard: { name: "From dashboard", help: "The same parameters chosen on the live dashboard." },
+      mixture: { name: "Mixture (fuel)", help: "Short and long term fuel trims, oxygen sensors, air flow (MAF) or manifold pressure (MAP) and RPM. To see whether the engine runs lean or rich." },
+      temperatures: { name: "Temperatures", help: "Engine, intake air, oil, ambient air and catalyst (those the car reports)." },
+      electrical: { name: "Electrical", help: "Battery and control module voltage, with RPM, to check battery and alternator." },
+      consumption: { name: "Fuel use", help: "Calculated instant fuel use (L/h and km/L), speed, RPM and load." },
+      acceleration: { name: "Acceleration", help: "Speed, RPM, throttle, accelerator pedal, load and ignition timing." },
+      turbo: { name: "Turbo", help: "Boost pressure (actual and commanded) or manifold pressure, intake air temperature, timing, throttle and RPM." },
+    },
+    choose: "Choose parameters",
+    closePicker: "Close list",
+    remove: "click to remove from the chart",
+    chooseHelp: "Any parameter the car reports can be chosen, even if it is not on the dashboard: it is read too (and goes into recordings). The more parameters, the slower the updates.",
+    chooseHelpRecording: "Parameters in this recording, plus those calculated from them.",
   },
   dtc: {
     clearedConfirmed: "Codes cleared and checked: the car reports no active or pending code anymore.",
@@ -922,6 +937,7 @@ const enUS: Messages = {
     emissions: "Emissions",
     electrical: "Electrical",
     vehicle: "Vehicle",
+    calculated: "Calculated by the app",
   },
   errors: {
     engine_unknown: "The car answered neither RPM nor speed, so the engine cannot be confirmed off. Turn the key to ignition on (dashboard lights on, engine stopped) and try again.",
@@ -1032,6 +1048,8 @@ const enUS: Messages = {
     { term: "Deceleration fuel cut-off", desc: "Lifting off the throttle with a gear engaged makes the computer cut injection. At that moment the O2 sensor reads \"lean\" and fuel trims mean nothing: the program ignores those moments." },
   ],
   pids: {
+    calc_fuel_flow: { name: "Instant fuel use (liters per hour)", short: "Fuel L/h", desc: "Calculated by the app: from the fuel rate PID, or air flow (MAF), or manifold pressure (MAP) with the profile's engine size. An estimate.", typical: "0.5–1.2 L/h at idle" },
+    calc_economy: { name: "Instant fuel economy", short: "Economy", desc: "Calculated by the app: speed divided by fuel use in L/h. Only while moving. An estimate.", typical: "Varies a lot; highest at steady highway speed" },
     battery_voltage: { name: "Battery voltage", short: "Battery", desc: "Measured by the adapter itself at the OBD connector. Shows battery and alternator health.", typical: "12.4–12.8 V engine off; 13.5–14.7 V running" },
     engine_load: { name: "Calculated engine load", short: "Load", desc: "How much of its maximum effort the engine is using right now.", typical: "15–35% at idle; up to 100% at full throttle" },
     coolant_temp: { name: "Engine coolant temperature", short: "Coolant", desc: "Engine temperature. Affects mixture, idle and cooling fan.", typical: "85–105 °C when warm" },

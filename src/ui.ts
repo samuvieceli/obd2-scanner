@@ -3,6 +3,7 @@ import { warmState } from "./warmup";
 import { fmtNum, pidText, t } from "./i18n";
 import type { CmdError } from "./api";
 import { meta, on, state } from "./store";
+import { CALC_UNITS } from "./calc";
 import { displayUnit, extraDecimals, toDisplay } from "./units";
 
 type Child = Node | string | number | null | undefined | false;
@@ -142,7 +143,7 @@ export function pidTip(key: string): HTMLElement {
 
 /** Metric unit of a parameter, as decoded from the car. */
 export function baseUnitOf(key: string): string {
-  return meta(key)?.unit ?? (key === "battery_voltage" ? "V" : "");
+  return meta(key)?.unit ?? CALC_UNITS[key] ?? (key === "battery_voltage" ? "V" : "");
 }
 
 /** Unit shown on screen, after the user's unit choice. */

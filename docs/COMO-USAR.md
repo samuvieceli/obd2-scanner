@@ -150,6 +150,17 @@ Para evitar alarme falso, cada regra:
 
 Quando a regra deixa de valer por um instante (uma acelerada, uma freada), o último resultado de mistura, marcha lenta e catalisador continua na tela enquanto o motor estiver ligado.
 
+## 6e. Gráficos
+
+Na tela **Gráficos**, cada parâmetro ganha um gráfico próprio, todos com o mesmo eixo de tempo.
+
+- **Predefinições:** um clique escolhe um grupo pronto: **Do painel** (os mesmos do Painel ao vivo), **Mistura (injeção)**, **Temperaturas**, **Elétrica**, **Consumo**, **Aceleração** e **Turbo**. Só entra o que o carro informa.
+- **Escolher parâmetros:** abre a lista completa, por categoria e com busca. Dá para escolher qualquer parâmetro que o carro informa, mesmo que não esteja no Painel: o programa passa a lê-lo também (e ele entra nas gravações). Para tirar um gráfico, clique no nome dele (com ✕).
+- **Calculados pelo programa:** o consumo instantâneo em **L/h** e em **km/L** (ou L/100 km / mpg, conforme as Unidades) não vem do carro: é calculado como no computador de bordo e pode ser desenhado como qualquer outro parâmetro.
+- Quanto mais parâmetros lidos, mais devagar cada um atualiza.
+
+Com uma gravação aberta, a lista mostra os parâmetros que existem nela, mais os calculados a partir deles.
+
 ## 7. Testes da central (Modo 06)
 
 Em **Códigos de falha → Testes da central**, clique em **Ler testes**. Cada linha é um autoteste da central com o valor medido e os limites aceitos. Um teste **reprovado** costuma indicar o componente com problema antes mesmo de aparecer um código de falha. Disponível em carros com rede CAN (a maioria a partir de 2008–2010).

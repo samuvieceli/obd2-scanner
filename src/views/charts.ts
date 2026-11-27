@@ -3,7 +3,11 @@ import uPlot from "uplot";
 import { save } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { pidText, t } from "../i18n";
-import { hasLiveSource, on, state, type Series } from "../store";
+import { hasLiveSource, isSupported, on, readKeys, setChartKeys, state, type Series } from "../store";
+import { CALC_KEYS, calcInputs, isCalc } from "../calc";
+import { calcValues } from "../trip";
+import { CHART_PRESETS, chartPresetKeys, matchChartPreset, type ChartPresetId } from "../presets";
+import { normalize } from "../search";
 import { cssVar } from "../theme";
 import { button, clear, decimalsFor, displayValue, errorText, h, timestampForFile, toast, unitOf } from "../ui";
 import { fmtNum } from "../i18n";
@@ -12,8 +16,11 @@ import { copyCard, drawCard } from "../share";
 const PALETTE = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
 const WINDOWS = [30, 60, 300, 900, 0]; // seconds, 0 = all
 
+const CATEGORY_ORDER = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
+
 let windowS = 60;
-let chosen: string[] | null = null;
+/** Choice for a recording (opened or replayed); live data uses state.chartKeys. */
+let recChosen: string[] | null = null;
 
 export function mount(root: HTMLElement) {
   const page = h("div", { class: "page" });
@@ -24,6 +31,14 @@ export function mount(root: HTMLElement) {
   if (viewing) {
     for (const f of viewing.session.frames) {
       for (const [k, v] of Object.entries(f.values)) {
+        let s = sessionSeries.get(k);
+        if (!s) sessionSeries.set(k, (s = { t: [], v: [] }));
+        s.t.push(f.t_ms / 1000);
+        s.v.push(v);
+      }
+      // Calculated values (consumption), computed from each frame.
+      for (const [k, v] of Object.entries(calcValues(f.values))) {
+        if (v === undefined || !Number.isFinite(v)) continue;
         let s = sessionSeries.get(k);
         if (!s) sessionSeries.set(k, (s = { t: [], v: [] }));
         s.t.push(f.t_ms / 1000);
@@ -58,42 +73,166 @@ export function mount(root: HTMLElement) {
     ctx.restore();
   };
   const source = () => (viewing ? sessionSeries : state.history);
-  const available = () => (viewing ? [...sessionSeries.keys()] : state.playback ? [...state.playback.keys] : [...state.liveKeys]);
+  const live = () => !viewing && !state.playback;
+  /** Whether `key` can be charted here: recorded, or answered by the car. */
+  const has = (key: string): boolean => {
+    if (viewing) return sessionSeries.has(key);
+    if (isCalc(key)) return calcInputs(key, has) !== null;
+    // Before connecting anything known can be chosen; it is read once supported.
+    if (live() && !state.adapter) return key === "battery_voltage" || state.catalog.some((m) => m.key === key);
+    return isSupported(key);
+  };
+  const allKeys = () => [...state.catalog.map((m) => m.key), ...(state.catalog.some((m) => m.key === "battery_voltage") ? [] : ["battery_voltage"]), ...CALC_KEYS];
+  const available = () => (viewing ? [...sessionSeries.keys()] : allKeys().filter(has));
 
   let paused = false;
   const plots = new Map<string, uPlot>();
   const chartBox = h("div", { class: "charts" });
   const chips = h("div", { class: "chips" });
+  const presetRow = h("div", { class: "chips preset-row", role: "group", "aria-label": t("charts.presets") });
+  const picker = h("div", { class: "picker", hidden: true });
 
-  const selected = () => {
+  /** The stored choice: null follows the dashboard (live) or shows the first four (recording). */
+  const stored = () => (live() ? state.chartKeys : recChosen);
+  const selected = (): string[] => {
     const avail = available();
-    const sel = (chosen ?? avail.slice(0, 4)).filter((k) => avail.includes(k));
-    return sel.length ? sel : avail.slice(0, 4);
+    const sel = stored();
+    if (sel) return sel.filter(has);
+    if (live()) return state.liveKeys.filter((k) => has(k) || state.history.has(k));
+    return avail.slice(0, 4);
+  };
+
+  /** Changes the charted parameters; live, the adapter starts reading new ones. */
+  const choose = (keys: string[] | null) => {
+    if (live()) {
+      setChartKeys(keys);
+      if (state.connection === "connected") api.setLive(readKeys(), state.polling).catch((e) => toast(errorText(e), "error"));
+    } else recChosen = keys;
+    renderAll();
+  };
+
+  const renderPresets = () => {
+    clear(presetRow);
+    presetRow.append(h("span", { class: "muted small" }, t("charts.presets")));
+    const active = matchChartPreset(stored(), has);
+    for (const id of Object.keys(CHART_PRESETS) as ChartPresetId[]) {
+      const keys = chartPresetKeys(id, has);
+      // A recording has no dashboard to follow; skip groups with nothing to show.
+      if (id === "dashboard" ? !live() : !keys?.length) continue;
+      presetRow.append(
+        h(
+          "button",
+          {
+            type: "button",
+            class: `chip ${id === active ? "on" : ""}`,
+            "aria-pressed": String(id === active),
+            title: t(`charts.preset.${id}.help`),
+            onclick: () => choose(keys),
+          },
+          t(`charts.preset.${id}.name`),
+        ),
+      );
+    }
   };
 
   const renderChips = () => {
     clear(chips);
     const sel = selected();
-    for (const k of available()) {
-      const on_ = sel.includes(k);
+    for (const k of sel) {
       chips.append(
         h(
           "button",
           {
             type: "button",
-            class: `chip ${on_ ? "on" : ""}`,
-            "aria-pressed": on_ ? "true" : "false",
-            title: pidText(k).name,
-            onclick: () => {
-              chosen = on_ ? sel.filter((x) => x !== k) : [...sel, k];
-              renderChips();
-              buildPlots();
-            },
+            class: "chip on",
+            title: `${pidText(k).name} · ${t("charts.remove")}`,
+            onclick: () => choose(sel.filter((x) => x !== k)),
           },
-          pidText(k).short,
+          `${pidText(k).short} ✕`,
         ),
       );
     }
+    chips.append(
+      h(
+        "button",
+        {
+          type: "button",
+          class: "chip",
+          "aria-expanded": String(!picker.hidden),
+          onclick: () => {
+            picker.hidden = !picker.hidden;
+            renderAll();
+            if (!picker.hidden) picker.querySelector<HTMLInputElement>("input[type=search]")?.focus();
+          },
+        },
+        picker.hidden ? `+ ${t("charts.choose")}` : t("charts.closePicker"),
+      ),
+    );
+  };
+
+  // Full list by category with a search box, like the dashboard's picker.
+  let query = "";
+  const pickerList = h("div");
+  const renderPickerList = () => {
+    clear(pickerList);
+    const sel = selected();
+    const words = normalize(query).split(/\s+/).filter(Boolean);
+    const matches = (key: string) => {
+      const p = pidText(key);
+      const pid = state.catalog.find((m) => m.key === key)?.pid;
+      const text = normalize(`${p.name} ${p.short} ${key} ${pid === undefined ? "" : pid.toString(16).padStart(2, "0")}`);
+      return words.every((w) => text.includes(w));
+    };
+    const avail = available().filter(matches);
+    const category = (k: string) => (isCalc(k) ? "calculated" : k === "battery_voltage" ? "electrical" : (state.catalog.find((m) => m.key === k)?.category ?? "vehicle"));
+    let shown = 0;
+    for (const cat of ["calculated", ...CATEGORY_ORDER]) {
+      const items = avail.filter((k) => category(k) === cat);
+      if (!items.length) continue;
+      shown += items.length;
+      pickerList.append(
+        h(
+          "fieldset",
+          null,
+          h("legend", null, t(`categories.${cat}`)),
+          items.map((k) =>
+            h(
+              "label",
+              { class: "check", title: pidText(k).desc },
+              h("input", {
+                type: "checkbox",
+                checked: sel.includes(k),
+                onchange: (e: Event) => choose((e.target as HTMLInputElement).checked ? [...sel, k] : sel.filter((x) => x !== k)),
+              }),
+              h("span", null, pidText(k).name),
+            ),
+          ),
+        ),
+      );
+    }
+    if (!shown) pickerList.append(h("p", { class: "muted small" }, t("dashboard.pickerNone")));
+  };
+  const pickerSearch = h("input", {
+    type: "search",
+    class: "grow",
+    placeholder: t("dashboard.pickerSearch"),
+    "aria-label": t("dashboard.pickerSearch"),
+    oninput: (e: Event) => {
+      query = (e.target as HTMLInputElement).value;
+      renderPickerList();
+    },
+  });
+  picker.append(
+    h("div", { class: "row" }, h("p", { class: "muted small grow" }, live() ? t("charts.chooseHelp") : t("charts.chooseHelpRecording")), button(t("dashboard.selectNone"), () => choose([]), "ghost")),
+    h("div", { class: "row" }, pickerSearch),
+    pickerList,
+  );
+
+  const renderAll = () => {
+    renderPresets();
+    renderChips();
+    if (!picker.hidden) renderPickerList();
+    buildPlots();
   };
 
   const sync = uPlot.sync("obd");
@@ -277,7 +416,7 @@ export function mount(root: HTMLElement) {
   } else if (!hasLiveSource() && !state.history.size) {
     page.append(h("p", { class: "muted" }, t("charts.empty")));
   }
-  page.append(h("div", { class: "field" }, h("span", { class: "label" }, t("charts.params")), chips));
+  page.append(presetRow, h("div", { class: "field" }, h("span", { class: "label" }, t("charts.params")), chips), picker);
   if (marks.length) {
     // Jump chips: zoom all charts to 30 s around each marked event.
     page.append(
@@ -318,6 +457,7 @@ export function mount(root: HTMLElement) {
     );
   }
   page.append(chartBox);
+  renderPresets();
   renderChips();
   requestAnimationFrame(buildPlots);
 
@@ -339,9 +479,12 @@ export function mount(root: HTMLElement) {
     on("playback", () => {
       if (!raf) raf = requestAnimationFrame(() => ((raf = 0), refresh()));
     }),
-    on("live-keys", () => {
+    on("live-keys", renderAll),
+    // Connecting tells which parameters the car answers.
+    on("connection", () => {
+      renderPresets();
       renderChips();
-      buildPlots();
+      if (!picker.hidden) renderPickerList();
     }),
   ];
   return () => {

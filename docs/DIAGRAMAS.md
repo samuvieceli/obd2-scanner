@@ -235,7 +235,8 @@ flowchart LR
         units["units.ts<br/>unidades"]
         gauge["gauge.ts<br/>mostradores"]
         theme["theme.ts<br/>temas e botão dia/noite"]
-        presets["presets.ts<br/>painéis prontos e Completo"]
+        presets["presets.ts<br/>painéis prontos e<br/>predefinições dos gráficos"]
+        calc["calc.ts<br/>parâmetros calculados<br/>(consumo L/h e km/L)"]
         share["share.ts<br/>cartão 'Copiar imagem'"]
         warmup["warmup.ts<br/>motor frio / pronto"]
         summary["summary.ts + drive-summary.ts<br/>resumo ao desligar o motor"]
@@ -247,6 +248,8 @@ flowchart LR
     dashboard --> gauge & trip & alerts & presets & warmup
     hud --> warmup & mini
     diagnostics & charts --> share
+    charts --> presets & calc & trip
+    store --> calc
     diagnostics --> m06hints
     dashboard --> summary
     summary --> trip & cost & share

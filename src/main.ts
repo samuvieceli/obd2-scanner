@@ -4,7 +4,7 @@ import "./styles.css";
 
 import { api, events, isTauri } from "./api";
 import { getLang, onLangChange, setLang, t } from "./i18n";
-import { emit, on, pushFrame, pushLog, state } from "./store";
+import { emit, on, pushFrame, pushLog, setChartKeys, state } from "./store";
 import { clear, h, installTooltips, toast, errorText } from "./ui";
 import { applyTheme, getTheme, type Theme } from "./theme";
 import { prefs, setActiveProfile } from "./prefs";
@@ -378,6 +378,7 @@ async function boot() {
     if (f.dropped.length) {
       const names = f.dropped.join(", ");
       state.liveKeys = state.liveKeys.filter((k) => !f.dropped.includes(k));
+      if (state.chartKeys) setChartKeys(state.chartKeys.filter((k) => !f.dropped.includes(k)));
       emit("live-keys");
       toast(t("dashboard.dropped", { names }), "info");
     }

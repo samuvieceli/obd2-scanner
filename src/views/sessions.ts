@@ -2,7 +2,7 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { fmtNum, t } from "../i18n";
-import { emit, on, state } from "../store";
+import { emit, on, readKeys, state } from "../store";
 import { busy, button, clear, errorText, h, section, timestampForFile, toast } from "../ui";
 import { startPlayback } from "../playback";
 import { buildReportHtml } from "./report";
@@ -93,7 +93,7 @@ export function mount(root: HTMLElement) {
     }
     if (state.polling) {
       try {
-        await api.setLive(state.liveKeys, false);
+        await api.setLive(readKeys(), false);
       } catch {
         /* the worker may already be gone */
       }
