@@ -41,6 +41,8 @@ function profilesSection(offs: (() => void)[]): HTMLElement {
       {
         id: "profile-pick",
         onchange: (e: Event) => {
+          // Another car: a half-confirmed removal must not carry over to it.
+          removeArmed = false;
           setActiveProfile((e.target as HTMLSelectElement).value);
           render();
         },
@@ -332,7 +334,7 @@ function alertsSection(offs: (() => void)[]): HTMLElement {
     );
   };
   render();
-  offs.push(on("profile", render));
+  offs.push(on("profile", render), on("units", render));
   const p = prefs();
   const check = (label: string, value: boolean, set: (v: boolean) => void) =>
     h(

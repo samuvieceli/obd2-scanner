@@ -4,12 +4,12 @@
 import uPlot from "uplot";
 import { api, type MonitorState } from "../api";
 import { fmtNum, pidText, t } from "../i18n";
-import { hasLiveSource, isSupported, on, state } from "../store";
+import { freshValue, hasLiveSource, isSupported, on, state } from "../store";
 import { BatteryTest, overall, type BatteryResult, type Grade, type Reading } from "../battery";
 import { LOAD_BINS, MIN_SAMPLES, RPM_BINS, TrimMap, gradeTrim, type Pattern } from "../trims";
 import { O2Test, RPM_RANGE, WARM_C, WINDOW_S, type O2Result, type Verdict } from "../o2test";
 import { cssVar } from "../theme";
-import { button, clear, errorText, h, infoTip, leaveOnDisconnect, notConnected, toast } from "../ui";
+import { button, clear, errorText, fmtValue, h, infoTip, leaveOnDisconnect, notConnected, toast, unitOf } from "../ui";
 
 type Panel = (box: HTMLElement) => (() => void) | void;
 
@@ -63,11 +63,7 @@ export function mount(root: HTMLElement) {
 // Shared helpers
 
 /** Value of `key` in the newest live frame, or undefined if it was not in it. */
-function fresh(key: string): number | undefined {
-  const s = state.history.get(key);
-  if (!s || !s.t.length || s.t[s.t.length - 1] !== state.lastFrameT) return undefined;
-  return s.v[s.v.length - 1];
-}
+const fresh = freshValue;
 
 /** Polls only `keys` while a test runs; gives the dashboard its keys back after. */
 function focusPolling() {
@@ -77,6 +73,8 @@ function focusPolling() {
     set: async (keys: string[]) => {
       const id = keys.join(",");
       if (id === current) return;
+      // Warn once: while the test runs, only its values go into a recording.
+      if (!current && state.recording.recording) toast(t("guided.recordingNote"));
       current = id;
       try {
         await api.setLive(keys, true);
@@ -406,7 +404,7 @@ function o2Panel(box: HTMLElement): () => void {
       h(
         "p",
         { class: "muted small" },
-        `${pidText("rpm").short}: ${rpm === undefined ? "—" : fmtNum(rpm, 0)} · ${pidText("coolant_temp").short}: ${cool === undefined ? "—" : `${fmtNum(cool, 0)} °C`} · `,
+        `${pidText("rpm").short}: ${rpm === undefined ? "—" : fmtNum(rpm, 0)} · ${pidText("coolant_temp").short}: ${cool === undefined ? "—" : `${fmtValue("coolant_temp", cool)} ${unitOf("coolant_temp")}`} · `,
         t("guided.rate", { rate: fmtNum(state.rateHz, 1) }),
       ),
     );

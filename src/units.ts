@@ -5,6 +5,7 @@
 // Conversion happens only when a value is displayed or typed by the user, so
 // changing units never changes stored data.
 import { prefs, savePrefs } from "./prefs";
+import { emit } from "./store";
 
 export interface UnitPrefs {
   speed: "km/h" | "mph";
@@ -39,6 +40,7 @@ export function units(): UnitPrefs {
 
 export function saveUnits(change: Partial<UnitPrefs>) {
   savePrefs({ units: { ...units(), ...change } });
+  emit("units");
 }
 
 /** Linear conversion `shown = value × k + offset`. */
@@ -99,7 +101,8 @@ export function extraDecimals(base: string): number {
 export function consumption(kmPerL: number): [number, string] {
   switch (units().consumption) {
     case "L/100km":
-      return [100 / kmPerL, "L/100 km"];
+      // Standing still (0 km/L) is shown as 0, not as infinity.
+      return [kmPerL > 0 ? 100 / kmPerL : 0, "L/100 km"];
     case "mpg":
       return [kmPerL * 2.35215, "mpg"];
     case "mpg_uk":

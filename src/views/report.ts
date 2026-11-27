@@ -80,7 +80,9 @@ export function buildReportHtml(): string {
   parts.push(
     state.findings.length
       ? `<ul>${state.findings.map((f) => `<li class="sev-${f.severity}">${e(findingText(f))}</li>`).join("")}</ul><p class="muted">${e(t("dashboard.findingsDisclaimer"))}</p>`
-      : notRead,
+      : Object.keys(state.latest).length
+        ? `<p class="muted">${e(t("dashboard.findingsNormal"))}</p>`
+        : notRead,
   );
 
   // Current values

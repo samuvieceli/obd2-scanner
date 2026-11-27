@@ -217,7 +217,18 @@ export function mount(root: HTMLElement) {
         step: 100,
         value: String(value),
         onchange: (e: Event) => {
-          set(Number((e.target as HTMLInputElement).value));
+          const input = e.target as HTMLInputElement;
+          const v = Number(input.value);
+          // Empty or invalid: keep the previous value (0 or NaN would break
+          // the next connection).
+          if (input.value.trim() === "" || !Number.isFinite(v)) {
+            input.value = String(value);
+            return;
+          }
+          const ok = Math.min(max, Math.max(min, Math.round(v)));
+          input.value = String(ok);
+          value = ok;
+          set(ok);
           saveForm(form);
         },
       }),
@@ -429,10 +440,13 @@ export function mount(root: HTMLElement) {
       state.vehicleError = res.vehicleError;
       toast(t("connection.connected", { transport: res.adapter.transport }), "ok");
       if (!res.vehicleError) {
-        // VIN → vehicle profile, in the background.
+        // VIN → vehicle profile, in the background. Ignored if the user
+        // disconnected or connected elsewhere in the meantime.
+        const adapter = res.adapter;
         api
           .readVehicleInfo()
           .then((v) => {
+            if (state.connection !== "connected" || state.adapter !== adapter) return;
             state.vehicle = v;
             reportVin(v.identity.vin);
           })

@@ -17,7 +17,7 @@ import type {
   VehicleInfo,
 } from "./api";
 
-export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link";
+export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units";
 
 export interface Series {
   t: number[];
@@ -163,6 +163,13 @@ export function pushFrame(f: LiveFrame) {
   state.rateHz = f.rate_hz;
   state.lastDropped = f.dropped;
   emit("frame");
+}
+
+/** Value of `key` only if it came in the latest frame (not an old reading). */
+export function freshValue(key: string): number | undefined {
+  const s = state.history.get(key);
+  if (!s || !s.t.length || s.t[s.t.length - 1] !== state.lastFrameT) return undefined;
+  return s.v[s.v.length - 1];
 }
 
 export function pushLog(e: LogEvent) {

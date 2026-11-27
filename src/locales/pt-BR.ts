@@ -243,6 +243,7 @@ const ptBR = {
     intro: "Mede 0–100, 100–0, 40–80 e 80–120 km/h. Não precisa apertar nada: com esta tela aberta, o programa reconhece sozinho o início real de cada teste (quando o carro sai do lugar, cruza a velocidade inicial acelerando ou começa a frear) e o fim, e guarda o resultado.",
     safety: "Faça testes só em local fechado e seguro, como autódromo ou área de testes. Nunca em via pública.",
     fastMode: "Modo preciso: ler só a velocidade enquanto esta tela está aberta (mais leituras por segundo)",
+    recordingNote: "Há uma gravação em andamento: o modo preciso começa desligado, porque ele deixaria só a velocidade na gravação.",
     rateGood: "{rate} leituras de velocidade por segundo: boa precisão (cerca de ±0,1 s).",
     rateOk: "{rate} leituras por segundo: precisão razoável (cerca de ±0,2 s).",
     rateLow: "{rate} leituras por segundo: precisão baixa. Use o modo preciso ou um adaptador mais rápido.",
@@ -281,6 +282,7 @@ const ptBR = {
     clearConfirm: "Apagar todos os resultados de desempenho de \"{name}\"? Não dá para desfazer.",
   },
   guided: {
+    recordingNote: "Há uma gravação em andamento: durante este teste, só os valores do teste entram nela.",
     interrupted: "A conexão com o adaptador caiu e o teste foi interrompido. Conecte de novo para repetir.",
     title: "Testes guiados",
     intro: "Testes passo a passo que transformam as leituras do carro numa indicação fácil de entender. O programa avança sozinho conforme percebe o que você fez.",
@@ -486,6 +488,7 @@ const ptBR = {
     max: "máx",
     findings: "Interpretação dos dados",
     findingsEmpty: "Inicie a leitura para ver a interpretação automática.",
+    findingsNormal: "Nenhuma anomalia nos parâmetros lidos.",
     findingsDisclaimer: "Indicações automáticas, não substituem o diagnóstico de um mecânico.",
     dropped: "O veículo não respondeu: {names}. Removido(s) da leitura.",
     notSupported: "não suportado por este veículo",

@@ -157,7 +157,8 @@ export function mount(root: HTMLElement) {
     if (!s || !s.t.length) return [[], []];
     const shown = (v: number[]) => v.map((x) => displayValue(key, x));
     if (!windowS || viewing) return [s.t.slice(), shown(s.v)];
-    const end = s.t[s.t.length - 1];
+    // Same time window for every chart, even when one value comes slower.
+    const end = Math.max(state.lastFrameT ?? 0, s.t[s.t.length - 1]);
     let i = s.t.length - 1;
     while (i > 0 && s.t[i - 1] >= end - windowS) i--;
     return [s.t.slice(i), shown(s.v.slice(i))];
@@ -323,6 +324,8 @@ export function mount(root: HTMLElement) {
   let raf = 0;
   const ro = new ResizeObserver(() => {
     const w = chartBox.clientWidth;
+    // Hidden (mini mode): keep the last size instead of shrinking to nothing.
+    if (w === 0) return;
     plots.forEach((p) => p.setSize({ width: w, height: 170 }));
   });
   ro.observe(chartBox);

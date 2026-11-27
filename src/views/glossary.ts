@@ -8,7 +8,9 @@ import type { Category } from "../api";
 let pending: { query?: string; anchor?: string } | null = null;
 export function openGlossary(query?: string, anchor?: string) {
   pending = { query, anchor };
-  location.hash = "#/glossary";
+  // Already on that screen: no hashchange would fire, so send one.
+  if (location.hash === "#/glossary") window.dispatchEvent(new HashChangeEvent("hashchange"));
+  else location.hash = "#/glossary";
 }
 
 const CATS: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
