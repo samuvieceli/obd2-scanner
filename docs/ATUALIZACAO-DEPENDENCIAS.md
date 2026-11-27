@@ -7,8 +7,8 @@ Cada etapa é um PR separado, do mais fácil para o mais arriscado.
 |---|---|---|
 | 1 | Node.js 22 → 26 LTS, Rust edição 2021 → 2024, Vite 7.3 → 8.4, Vitest 3.2 → 5.1, ações do GitHub v4 → v7 | feito (PR #19) |
 | 2 | Demais dependências (Cargo.lock e package-lock.json na versão mais nova compatível) | nada a fazer: já estavam todas na mais nova |
-| 3 | btleplug 0.11 → 0.13 (Bluetooth BLE) | em andamento |
-| 4 | TypeScript 5.9 → 7.0 | pendente |
+| 3 | btleplug 0.11 → 0.13 (Bluetooth BLE) | feito (PR #20) |
+| 4 | TypeScript 5.9 → 7.0 | feito |
 
 Já estavam na versão mais nova: Tauri 2.12.7, serialport 4.10.1, uPlot 1.6.32,
 plugins dialog 2.8.4 e opener 2.7.3, serde, serde_json, thiserror, tokio,
@@ -28,6 +28,12 @@ operações rodavam ao mesmo tempo, falha de tudo depois de reconectar um
 adaptador que caiu, e busca de dispositivos que podia não achar aparelhos
 comuns. O código compila e passa no clippy também para Windows.
 Só dá para confirmar de verdade com um adaptador BLE real (ver lista abaixo).
+
+**Etapa 4.** O TypeScript 7 foi reescrito em Go e verifica o código cerca de
+10 vezes mais rápido. Ele passou a conferir também as importações de arquivos
+CSS; para isso o arquivo `src/vite-env.d.ts` diz a ele que o Vite cuida
+desses arquivos. Nenhum outro ajuste foi preciso, e ele continua acusando
+erros de tipo normalmente.
 
 ## Como testar o Bluetooth BLE com um adaptador real
 
