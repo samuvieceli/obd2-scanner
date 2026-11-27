@@ -240,6 +240,7 @@ const enUS: Messages = {
     toast: "Alert: {name} at {value} (limit {limit}).",
   },
   perf: {
+    interrupted: "The adapter connection dropped; the measurement in progress was discarded.",
     title: "Performance tests",
     intro: "Measures 0–100, 100–0, 40–80 and 80–120 km/h. No buttons needed: with this screen open, the program detects the real start of each test (when the car moves off, crosses the start speed accelerating, or starts braking) and its end, and saves the result.",
     safety: "Only test in a closed, safe area such as a track or test ground. Never on public roads.",
@@ -282,6 +283,7 @@ const enUS: Messages = {
     clearConfirm: "Delete all performance results of \"{name}\"? This cannot be undone.",
   },
   guided: {
+    interrupted: "The adapter connection dropped and the test stopped. Connect again to repeat it.",
     title: "Guided tests",
     intro: "Step-by-step tests that turn the car's readings into an indication that is easy to understand. The program moves on by itself as it notices what you did.",
     needsLive: "This test needs the car connected right now; it does not work with a recording.",

@@ -2,7 +2,7 @@
 import { warmState } from "./warmup";
 import { fmtNum, pidText, t } from "./i18n";
 import type { CmdError } from "./api";
-import { meta } from "./store";
+import { meta, on, state } from "./store";
 import { displayUnit, extraDecimals, toDisplay } from "./units";
 
 type Child = Node | string | number | null | undefined | false;
@@ -196,6 +196,19 @@ export async function busy<T>(btn: HTMLButtonElement, action: () => Promise<T>):
     btn.classList.remove("busy");
     btn.textContent = label;
   }
+}
+
+/**
+ * Screens that run a live test: if the connection ends (not a short
+ * reconnect), say the test stopped and draw the screen again, which then
+ * shows "not connected" instead of a frozen progress bar.
+ */
+export function leaveOnDisconnect(message: string): () => void {
+  return on("connection", () => {
+    if (state.playback || state.connection === "connected") return;
+    toast(message, "error");
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  });
 }
 
 export function notConnected(): HTMLElement {

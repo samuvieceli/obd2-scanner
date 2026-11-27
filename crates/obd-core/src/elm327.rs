@@ -13,7 +13,10 @@ use serde::{Deserialize, Serialize};
 use crate::dtc::{Dtc, decode_dtc_response};
 use crate::pid::{PIDS, PidValue, decode_supported};
 use crate::readiness::{Readiness, decode_readiness};
-use crate::response::{assemble_messages, check_errors, clean_lines, filter_responses};
+use crate::response::{
+    assemble_can_with_headers, assemble_messages, check_errors, clean_lines, filter_responses,
+    has_interleaved_frames,
+};
 use crate::transport::Transport;
 use crate::vin::assemble_mode09_string;
 use crate::{ObdError, Result};
@@ -459,13 +462,24 @@ impl Elm327 {
             cmd.push_str(&format!("{b:02X}"));
         }
         let lines = self.command_with_retry(&cmd)?;
+        let messages = if self.info.is_can() && has_interleaved_frames(&lines) {
+            self.log(
+                LogDirection::Info,
+                &format!("{cmd}: long answers from several units mixed, asking again with headers"),
+            );
+            self.command("ATH1")?;
+            let headed = self.command_with_retry(&cmd);
+            // Back to the normal setup whatever happened.
+            let restored = self.command("ATH0");
+            let messages = assemble_can_with_headers(&headed?);
+            restored?;
+            messages
+        } else {
+            assemble_messages(&lines)
+        };
         // Mode 02 echoes the PID but the frame number is part of the answer.
         let echo_len = if mode == 0x02 { 1 } else { data.len() };
-        filter_responses(
-            assemble_messages(&lines),
-            mode,
-            &data[..echo_len.min(data.len())],
-        )
+        filter_responses(messages, mode, &data[..echo_len.min(data.len())])
     }
 
     /// Reads several mode 01 PIDs in one request (CAN allows up to 6).

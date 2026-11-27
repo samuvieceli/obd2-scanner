@@ -238,6 +238,7 @@ const ptBR = {
     toast: "Alerta: {name} em {value} (limite {limit}).",
   },
   perf: {
+    interrupted: "A conexão com o adaptador caiu; a medição em andamento foi descartada.",
     title: "Testes de desempenho",
     intro: "Mede 0–100, 100–0, 40–80 e 80–120 km/h. Não precisa apertar nada: com esta tela aberta, o programa reconhece sozinho o início real de cada teste (quando o carro sai do lugar, cruza a velocidade inicial acelerando ou começa a frear) e o fim, e guarda o resultado.",
     safety: "Faça testes só em local fechado e seguro, como autódromo ou área de testes. Nunca em via pública.",
@@ -280,6 +281,7 @@ const ptBR = {
     clearConfirm: "Apagar todos os resultados de desempenho de \"{name}\"? Não dá para desfazer.",
   },
   guided: {
+    interrupted: "A conexão com o adaptador caiu e o teste foi interrompido. Conecte de novo para repetir.",
     title: "Testes guiados",
     intro: "Testes passo a passo que transformam as leituras do carro numa indicação fácil de entender. O programa avança sozinho conforme percebe o que você fez.",
     needsLive: "Este teste precisa do carro conectado agora; não funciona com uma gravação.",

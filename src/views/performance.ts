@@ -5,7 +5,7 @@ import { api } from "../api";
 import { fmtNum, getLang, t } from "../i18n";
 import { hasLiveSource, on, state } from "../store";
 import { PERF_TESTS, PerfDetector, type PerfResult, type PerfTestId } from "../perf";
-import { button, clear, errorText, h, notConnected, toast } from "../ui";
+import { button, clear, errorText, h, leaveOnDisconnect, notConnected, toast } from "../ui";
 import { FIRST_PROFILE, profile } from "../prefs";
 import { displayUnit, toDisplay } from "../units";
 
@@ -202,7 +202,7 @@ export function mount(root: HTMLElement) {
   renderCards();
   renderHistory();
   void applyPolling();
-  const offs = [on("frame", onFrame)];
+  const offs = [on("frame", onFrame), leaveOnDisconnect(t("perf.interrupted"))];
   return () => {
     offs.forEach((f) => f());
     // Give the dashboard its parameters back.

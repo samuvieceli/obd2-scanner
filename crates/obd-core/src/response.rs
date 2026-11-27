@@ -175,6 +175,90 @@ pub fn assemble_messages(lines: &[String]) -> Vec<Vec<u8>> {
     messages
 }
 
+/// With headers off, two units sending long answers at the same time (for
+/// example engine and gearbox for `03` or `0902`) show up as interleaved
+/// frames that cannot be told apart: a new length line arrives before the
+/// previous message is complete. The caller then asks again with headers on
+/// and uses [`assemble_can_with_headers`].
+pub fn has_interleaved_frames(lines: &[String]) -> bool {
+    // (declared length, bytes received so far) of the message in progress.
+    let mut open: Option<(usize, usize)> = None;
+    for line in lines {
+        let compacted = compact(line);
+        if compacted.len() == 3 && compacted.chars().all(|c| c.is_ascii_hexdigit()) {
+            if open.is_some_and(|(len, got)| got < len) {
+                return true;
+            }
+            open = Some((usize::from_str_radix(&compacted, 16).unwrap_or(0), 0));
+        } else if let Some((_, rest)) = split_frame_index(line)
+            && let (Some((_, got)), Some(bytes)) = (open.as_mut(), parse_hex_line(rest))
+        {
+            *got += bytes.len();
+        }
+    }
+    false
+}
+
+/// CAN answer lines with headers on (`ATH1`), joined per sending unit:
+/// `7E8 10 14 49 02 01 31 47 31` (first frame), `7E8 21 ...` (next ones),
+/// `7E9 06 41 00 ...` (single frame). Frames of different units may be
+/// interleaved; each unit's message is assembled on its own. Returned in the
+/// order the units first answered.
+pub fn assemble_can_with_headers(lines: &[String]) -> Vec<Vec<u8>> {
+    // sender → (declared length, bytes)
+    let mut by_unit: Vec<(String, usize, Vec<u8>)> = Vec::new();
+    for line in lines {
+        let tokens: Vec<&str> = line.split_whitespace().collect();
+        let Some(first) = tokens.first() else {
+            continue;
+        };
+        let (unit, data) = if first.len() == 3 {
+            (
+                first.to_ascii_uppercase(),
+                parse_hex_line(&tokens[1..].join(" ")),
+            )
+        } else {
+            match parse_hex_line(&tokens.join(" ")) {
+                Some(b) if b.len() > 4 => (
+                    b[..4].iter().map(|x| format!("{x:02X}")).collect(),
+                    Some(b[4..].to_vec()),
+                ),
+                _ => continue,
+            }
+        };
+        let Some(data) = data else { continue };
+        let Some(&pci) = data.first() else { continue };
+        match pci >> 4 {
+            0 => {
+                let len = (pci & 0x0F) as usize;
+                if let Some(b) = data.get(1..1 + len) {
+                    by_unit.push((unit, len, b.to_vec()));
+                }
+            }
+            1 => {
+                let len = (((pci & 0x0F) as usize) << 8) | *data.get(1).unwrap_or(&0) as usize;
+                by_unit.push((unit, len, data.get(2..).unwrap_or(&[]).to_vec()));
+            }
+            2 => {
+                if let Some((_, len, bytes)) = by_unit
+                    .iter_mut()
+                    .rev()
+                    .find(|(u, len, b)| *u == unit && b.len() < *len)
+                {
+                    bytes.extend(&data[1..]);
+                    bytes.truncate(*len);
+                }
+            }
+            _ => {}
+        }
+    }
+    by_unit
+        .into_iter()
+        .filter(|(_, _, b)| !b.is_empty())
+        .map(|(_, _, b)| b)
+        .collect()
+}
+
 /// Keeps only the messages that answer `mode` (positive response = mode + 0x40)
 /// and, when given, start with the request bytes after the mode (e.g. the PID).
 /// A negative response (`7F <mode> <code>`) becomes an error if nothing else
@@ -279,5 +363,39 @@ mod tests {
         assert_eq!(r, vec![vec![0x41, 0x0C, 0x1A, 0xF8]]);
         let neg = filter_responses(vec![vec![0x7F, 0x01, 0x12]], 0x01, &[0x0C]);
         assert!(matches!(neg, Err(ObdError::NegativeResponse(0x12))));
+    }
+
+    #[test]
+    fn interleaved_multi_frame_answers_are_detected_and_split_with_headers() {
+        let lines = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        // Headers off: engine and gearbox start long answers at the same time.
+        let off = lines(&[
+            "00A",
+            "0: 43 04 01 33 02 20",
+            "00A",
+            "0: 43 04 07 00 07 01",
+            "1: 03 00 11 00",
+            "1: 07 02 07 03",
+        ]);
+        assert!(has_interleaved_frames(&off));
+        let clean = lines(&["00A", "0: 43 04 01 33 02 20", "1: 03 00 11 00 00 00 00"]);
+        assert!(!has_interleaved_frames(&clean));
+
+        let on = lines(&[
+            "7E8 10 0A 43 04 01 33 02 20",
+            "7E9 10 0A 43 04 07 00 07 01",
+            "7E8 21 03 00 11 00 00 00 00",
+            "7E9 21 07 02 07 03 00 00 00",
+            "7EA 03 43 01 00",
+        ]);
+        let msgs = assemble_can_with_headers(&on);
+        assert_eq!(
+            msgs,
+            vec![
+                vec![0x43, 0x04, 0x01, 0x33, 0x02, 0x20, 0x03, 0x00, 0x11, 0x00],
+                vec![0x43, 0x04, 0x07, 0x00, 0x07, 0x01, 0x07, 0x02, 0x07, 0x03],
+                vec![0x43, 0x01, 0x00],
+            ]
+        );
     }
 }
