@@ -17,6 +17,7 @@ export function mount(root: HTMLElement) {
   }
   const infoBox = h("div");
   const readyBox = h("div");
+  const ecuBox = h("div");
 
   const kv = (pairs: [string, string | HTMLElement | null | undefined][]) =>
     h(
@@ -85,6 +86,55 @@ export function mount(root: HTMLElement) {
     );
   };
 
+  const renderEcus = () => {
+    clear(ecuBox);
+    const list = state.ecus;
+    if (!list) return;
+    if (!list.length) {
+      ecuBox.append(h("p", { class: "muted" }, t("ecus.none")));
+      return;
+    }
+    ecuBox.append(
+      h(
+        "div",
+        { class: "table-wrap" },
+        h(
+          "table",
+          { class: "table" },
+          h("thead", null, h("tr", null, [t("ecus.address"), t("ecus.unit"), t("ecus.pids"), t("ecus.identity")].map((c) => h("th", null, c)))),
+          h(
+            "tbody",
+            null,
+            list.map((e) =>
+              h(
+                "tr",
+                null,
+                h("td", { class: "mono" }, e.address),
+                h("td", null, h("strong", null, t(`ecus.role.${e.role}`)), e.name ? h("div", { class: "muted small mono" }, e.name) : null),
+                h("td", { class: "num" }, String(e.supported_pids)),
+                h(
+                  "td",
+                  null,
+                  e.ids.length
+                    ? h("dl", { class: "kv compact" }, e.ids.flatMap((id) => [h("dt", null, t(`ecus.ids.${id.key}`)), h("dd", { class: "mono" }, id.value)]))
+                    : h("span", { class: "muted small" }, t("ecus.noIds")),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
+  const ecuBtn = button(t("ecus.scan"), async () => {
+    const list = await busy(ecuBtn, () => api.scanEcus());
+    if (list) {
+      state.ecus = list;
+      renderEcus();
+    }
+  }, "primary");
+
   const infoBtn = button(t("vehicle.readInfo"), async () => {
     const v = await busy(infoBtn, () => api.readVehicleInfo());
     if (v) {
@@ -108,7 +158,9 @@ export function mount(root: HTMLElement) {
       section(t("vehicle.vin"), infoBtn, infoBox),
       section(t("vehicle.readiness"), h("p", { class: "muted small" }, t("vehicle.readinessIntro")), readyBtn, readyBox),
     ),
+    section(t("ecus.title"), h("p", { class: "muted small" }, t("ecus.intro")), ecuBtn, ecuBox),
   );
   renderInfo();
   renderReady();
+  renderEcus();
 }

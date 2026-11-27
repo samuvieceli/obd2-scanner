@@ -408,3 +408,13 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .sidebar-foot { flex-wrap: wrap; }
 .sidebar-foot > select:first-child { flex: 1 1 100%; min-width: 0; }
 .vin-row { margin: 4px 0 14px; align-items: center; gap: 10px; }
+
+/* Adapter test and ECU list */
+.alert-ok { border-color: color-mix(in srgb, var(--ok) 50%, transparent); background: color-mix(in srgb, var(--ok) 10%, var(--surface)); }
+.probe-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.probe { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); }
+.probe small { color: var(--muted); }
+.probe-accepted { border-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+.probe-rejected { border-color: color-mix(in srgb, var(--danger) 60%, transparent); color: var(--danger); }
+.probe-no_answer { opacity: 0.7; }
+.kv.compact { margin: 0; gap: 2px 12px; font-size: 13px; }

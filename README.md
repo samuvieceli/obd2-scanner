@@ -16,7 +16,8 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Gráficos** em tempo real, sincronizados, com exportação para imagem PNG.
 - **Códigos de falha**: confirmados, pendentes e permanentes, com descrição em português e tabelas de 10 marcas; apagar códigos; quadro congelado; consulta de qualquer código.
 - **Testes da central (Modo 06)**: resultados dos autotestes (sondas, catalisador, falhas de combustão...) com aprovado/reprovado, para achar problemas antes da luz de injeção acender.
-- **Veículo e prontidão**: chassi (VIN) decodificado, monitores de prontidão, luz de injeção.
+- **Veículo e prontidão**: chassi (VIN) decodificado, monitores de prontidão, luz de injeção e **lista das centrais** que respondem (motor, câmbio...) com número da peça e versão do software.
+- **Teste de compatibilidade do adaptador**: descobre a versão real do ELM327 (clones costumam anunciar mais do que fazem).
 - **Terminal AT** para comandos diretos ao adaptador.
 - **Gravações e relatórios**: CSV (inclusive no formato do Excel brasileiro), JSON, **reprodução de gravações** como se fosse ao vivo, e relatório para imprimir ou salvar como PDF.
 - Interface em **português (Brasil)** e **inglês (EUA)**, 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
@@ -55,6 +56,7 @@ Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Parte
 - [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (GPL-3.0): ~2.500 descrições de códigos em português do Brasil; lista de PIDs (`pids.csv`) usada para conferir fórmulas dos parâmetros extras; ideia do modo head-up display.
 - [ELMduino](https://github.com/PowerBroker2/ELMduino) (MIT): ideia da leitura rápida (vários parâmetros por pedido).
 - [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) (AGPL-3.0): tabelas de códigos específicos de 10 marcas.
+- [DDT4ALL](https://github.com/cedricp/ddt4all) (GPL-3.0): ideia do teste de versão real do adaptador e da busca de centrais.
 - [obdium](https://github.com/provrb/obdium) (GPL-3.0) e [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) (MIT): referência de ideias.
 
 ---

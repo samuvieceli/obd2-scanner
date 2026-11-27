@@ -384,6 +384,17 @@ impl Elm327 {
         if !alive {
             return Err(ObdError::Connection("the adapter stopped answering".into()));
         }
+        let result = self.reconfigure();
+        if result.is_ok() {
+            self.log(LogDirection::Info, "adapter recovered");
+        }
+        result
+    }
+
+    /// Resets the adapter (`ATZ`), sends the settings again and, if a car
+    /// was connected, talks to it on the protocol found before (no slow
+    /// search). Used after a recovery and after tests that change settings.
+    pub fn reconfigure(&mut self) -> Result<()> {
         let user_protocol = self.config.protocol.clone();
         let known = self
             .info
@@ -391,15 +402,13 @@ impl Elm327 {
             .trim_start_matches('A')
             .to_string();
         if !known.is_empty() {
-            self.config.protocol = known;
+            self.config.protocol = known.clone();
         }
-        let result = self
-            .setup_adapter()
-            .and_then(|_| self.connect_vehicle().map(|_| ()));
+        let mut result = self.setup_adapter();
+        if result.is_ok() && !known.is_empty() {
+            result = self.connect_vehicle().map(|_| ());
+        }
         self.config.protocol = user_protocol;
-        if result.is_ok() {
-            self.log(LogDirection::Info, "adapter recovered");
-        }
         result
     }
 

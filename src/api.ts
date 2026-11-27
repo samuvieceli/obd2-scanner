@@ -146,6 +146,21 @@ export interface LiveFrame {
   rate_hz: number;
 }
 
+export interface AdapterReport {
+  claimed: string | null;
+  real: string | null;
+  probes: { version: string; command: string; result: "accepted" | "rejected" | "no_answer" }[];
+  overclaims: boolean;
+}
+
+export interface EcuInfo {
+  address: string;
+  role: "engine" | "transmission" | "other";
+  supported_pids: number;
+  name: string | null;
+  ids: { key: string; value: string }[];
+}
+
 /** Change in the state of the link to the adapter (see worker.rs). */
 export interface LinkStatus {
   state: "recovering" | "recovered" | "vehicle_silent" | "reconnecting" | "reconnected";
@@ -197,6 +212,8 @@ export const api = {
   readFreezeFrame: (lang: string) => invoke<FreezeFrame>("read_freeze_frame", { lang }),
   readReadiness: () => invoke<Readiness>("read_readiness"),
   readMode06: () => invoke<TestResult[]>("read_mode06"),
+  testAdapter: () => invoke<AdapterReport>("test_adapter"),
+  scanEcus: () => invoke<EcuInfo[]>("scan_ecus"),
   readVehicleInfo: () => invoke<VehicleInfo>("read_vehicle_info"),
   sendRaw: (command: string, timeoutMs?: number) => invoke<string>("send_raw", { command, timeoutMs }),
   startRecording: () => invoke<RecordingStatus>("start_recording"),

@@ -6,8 +6,15 @@
 //! repeating 60 s drive cycle, a mildly lean engine, a misfire on cylinder 1
 //! and a tired catalytic converter, so every screen has something to show.
 //!
-//! With `quirky = true` it imitates a cheap clone: ignores `ATE0`, rejects
-//! some AT commands, prints `SEARCHING...` and sends stray NUL bytes.
+//! A second control unit, a transmission (`7E9`), answers `0100` and its
+//! own identification, so the ECU scan has something to find. Headers
+//! (`ATH1`) and request headers (`ATSH`) work like on a real adapter. The
+//! engine also answers standard UDS identification requests (service 0x22).
+//!
+//! Without `quirky` it accepts the AT commands of ELM327 v1.0 to v1.4b,
+//! like a good clone. With `quirky = true` it imitates a cheap clone:
+//! ignores `ATE0`, knows only v1.0-v1.2 commands (and not all of them),
+//! prints `SEARCHING...` and sends stray NUL bytes.
 //!
 //! Failures of cheap clones can be triggered on purpose with commands a
 //! real adapter does not have (they answer `?` there), to try the recovery
@@ -149,6 +156,10 @@ pub struct Simulator {
     out: VecDeque<u8>,
     ready_at: Instant,
     fault: Fault,
+    /// `ATH1`: show the sender address on every answer line.
+    headers: bool,
+    /// `ATSH`: request address (`7DF` = every unit).
+    header: String,
 }
 
 const SUPPORTED: &[u8] = &[
@@ -189,6 +200,8 @@ impl Simulator {
             out: VecDeque::new(),
             ready_at: Instant::now(),
             fault: Fault::None,
+            headers: false,
+            header: "7DF".into(),
         }
     }
 
@@ -393,6 +406,17 @@ impl Simulator {
         prefix
     }
 
+    /// AT commands this adapter knows besides the ones handled one by one.
+    fn known_at(at: &str, quirky: bool) -> bool {
+        const V10_12: &[&str] = &["AL", "CAF1", "CAF0", "R1", "FCSM0", "AR", "KW0", "BD"];
+        const V13_14B: &[&str] = &["D0", "V0", "JE", "FE", "CSM1", "CEA", "SS", "CRA"];
+        if quirky {
+            // Cheap clone: some v1.0-v1.2 commands are missing too.
+            return V10_12.contains(&at) && at != "AR" && at != "KW0";
+        }
+        V10_12.contains(&at) || V13_14B.contains(&at)
+    }
+
     fn handle_at(&mut self, at: &str) -> Vec<String> {
         let ok = || vec!["OK".to_string()];
         let quirky = self.opts.quirky;
@@ -410,6 +434,8 @@ impl Simulator {
                 if self.fault == Fault::Hang {
                     self.fault = Fault::None;
                 }
+                self.headers = false;
+                self.header = "7DF".into();
                 self.echo = true;
                 self.spaces = true;
                 self.linefeeds = true;
@@ -451,6 +477,18 @@ impl Simulator {
                 ok()
             }
             "AT1" | "AT2" | "DP" if quirky => vec!["?".into()],
+            "H0" | "H1" => {
+                self.headers = at == "H1";
+                ok()
+            }
+            a if a.starts_with("SH") => {
+                self.header = a[2..].to_string();
+                ok()
+            }
+            "PPS" => vec!["00:FF F  01:FF F  02:FF F  03:32 F".into()],
+            "IGN" if !quirky => vec!["ON".into()],
+            // Commands of each ELM327 version (see adapter_test.rs).
+            a if Self::known_at(a, quirky) => ok(),
             "DPN" => vec!["A6".into()],
             "DP" => vec!["AUTO, ISO 15765-4 (CAN 11/500)".into()],
             "RV" => {
@@ -472,7 +510,74 @@ impl Simulator {
         }
     }
 
+    /// Answers an OBD request from every unit the request header reaches.
     fn handle_obd(&mut self, req: &[u8]) -> Vec<String> {
+        let h = self.header.to_ascii_uppercase();
+        let functional = h == "7DF" || h.ends_with("DB33F1");
+        let to_engine = functional || h == "7E0" || h.ends_with("DA10F1");
+        let to_tcm = functional || h == "7E1" || h.ends_with("DA18F1");
+        let mut lines = Vec::new();
+        if to_engine {
+            if let Some(bytes) = self.engine_answer(req) {
+                lines.extend(self.format_answer("7E8", &bytes));
+            }
+        }
+        if to_tcm {
+            // The transmission answers functional requests only for 0100.
+            let asked = !functional || req == [0x01, 0x00];
+            if let Some(bytes) = asked.then(|| Self::tcm_answer(req)).flatten() {
+                lines.extend(self.format_answer("7E9", &bytes));
+            }
+        }
+        if lines.is_empty() {
+            lines.push("NO DATA".into());
+        }
+        lines
+    }
+
+    /// Answer lines, with the sender address when headers are on.
+    fn format_answer(&self, address: &str, payload: &[u8]) -> Vec<String> {
+        if !self.headers {
+            return self.can_lines(payload);
+        }
+        if payload.len() <= 7 {
+            let mut b = vec![payload.len() as u8];
+            b.extend(payload);
+            return vec![format!("{address} {}", self.hex(&b))];
+        }
+        let mut out = Vec::new();
+        let len = payload.len();
+        let first = [&[0x10 | (len >> 8) as u8, len as u8][..], &payload[..6]].concat();
+        out.push(format!("{address} {}", self.hex(&first)));
+        for (i, chunk) in payload[6..].chunks(7).enumerate() {
+            let mut b = vec![0x20 | ((i + 1) % 16) as u8];
+            b.extend(chunk);
+            b.resize(8, 0);
+            out.push(format!("{address} {}", self.hex(&b)));
+        }
+        out
+    }
+
+    /// The simulated automatic transmission: few PIDs, a name, no UDS.
+    fn tcm_answer(req: &[u8]) -> Option<Vec<u8>> {
+        match req {
+            [0x01, 0x00] => Some(
+                [
+                    &[0x41, 0x00][..],
+                    &encode_supported(0, &[0x05, 0x0C, 0x0D, 0x11]),
+                ]
+                .concat(),
+            ),
+            [0x09, 0x0A] => {
+                let mut name = b"TCM-Transmission".to_vec();
+                name.resize(20, 0);
+                Some([&[0x49, 0x0A, 0x01][..], &name].concat())
+            }
+            _ => None,
+        }
+    }
+
+    fn engine_answer(&mut self, req: &[u8]) -> Option<Vec<u8>> {
         let e = engine_at(self.now());
         let mode = req[0];
         let resp: Option<Vec<u8>> = match mode {
@@ -527,6 +632,22 @@ impl Simulator {
                 Some(vec![0x44])
             }
             0x06 if req.len() >= 2 => self.mode06(req[1]),
+            // UDS ReadDataByIdentifier: standard identification records.
+            0x22 if req.len() == 3 => {
+                let text: Option<&[u8]> = match (req[1], req[2]) {
+                    (0xF1, 0x90) => Some(DEMO_VIN.as_bytes()),
+                    (0xF1, 0x87) => Some(b"03C906024AB"),
+                    (0xF1, 0x8A) => Some(b"SIM-SUPPLIER"),
+                    (0xF1, 0x95) => Some(b"SW 0102"),
+                    (0xF1, 0x97) => Some(b"ECM"),
+                    _ => None,
+                };
+                Some(match text {
+                    Some(t) => [&[0x62, req[1], req[2]][..], t].concat(),
+                    // Negative response: request out of range.
+                    None => vec![0x7F, 0x22, 0x31],
+                })
+            }
             0x09 if req.len() >= 2 => match req[1] {
                 0x00 => {
                     Some([&[0x49, 0x00][..], &encode_supported(0, &[0x02, 0x04, 0x0A])].concat())
@@ -546,10 +667,7 @@ impl Simulator {
             },
             _ => None,
         };
-        match resp {
-            Some(bytes) => self.can_lines(&bytes),
-            None => vec!["NO DATA".into()],
-        }
+        resp
     }
 }
 

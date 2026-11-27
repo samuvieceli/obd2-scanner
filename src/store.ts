@@ -3,6 +3,7 @@ import type {
   AdapterInfo,
   CmdError,
   DtcReport,
+  EcuInfo,
   Finding,
   FreezeFrame,
   LinkStatus,
@@ -74,6 +75,7 @@ export const state = {
   readiness: null as Readiness | null,
   mode06: null as TestResult[] | null,
   vehicle: null as VehicleInfo | null,
+  ecus: null as EcuInfo[] | null,
   /** A recording opened from disk, shown on the Charts screen. */
   viewSession: null as { name: string; session: Session } | null,
   /** A recording being replayed as if it were live (see playback.ts). */
@@ -171,4 +173,5 @@ export function resetLiveData() {
   state.readiness = null;
   state.mode06 = null;
   state.vehicle = null;
+  state.ecus = null;
 }

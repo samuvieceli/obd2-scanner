@@ -7,6 +7,7 @@
 | [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) | AGPL-3.0 | Tabelas de códigos específicos por marca (Audi, BMW, Ford, Honda, Hyundai, Kia, Mazda, Nissan, Toyota, Volkswagen) | `crates/obd-core/data/dtc_brands.json` |
 | [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (Erwin Scheuch-Heilig e tradutores) | GPL-3.0 | Descrições de ~2.500 códigos em português do Brasil e ~1.500 em inglês (`codes*.properties`); `pids.csv` usado para conferir as fórmulas dos PIDs de vários valores; ideia do modo head-up display | `crates/obd-core/data/dtc_descriptions.json`, `pid.rs`, `src/views/hud.ts` |
 | [ELMduino](https://github.com/PowerBroker2/ELMduino) | MIT | Ideia de pedir vários PIDs por requisição (leitura rápida) | `elm327.rs` (`read_pids_multi`), reescrito em Rust |
+| [DDT4ALL](https://github.com/cedricp/ddt4all) (Cedric Paille e colaboradores) | GPL-3.0 | Ideia do teste de versão real do adaptador (comandos AT por versão do ELM327, `elm_checker`) e da busca de centrais com identificação (`ecu_scanner`); lista reduzida a comandos seguros e reescrita em Rust | `adapter_test.rs`, `ecu_scan.rs` |
 | [obdium](https://github.com/provrb/obdium) | GPL-3.0 | Referência de fórmulas e da ideia de modo demonstração | — |
 | [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) | MIT | Referência de descrições de códigos P | — |
 | [uPlot](https://github.com/leeoniya/uPlot) | MIT | Biblioteca de gráficos | dependência npm |

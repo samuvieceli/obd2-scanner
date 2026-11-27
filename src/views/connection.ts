@@ -1,6 +1,6 @@
 // Connection screen: choose transport, connect, show adapter information.
 import { stopPlayback } from "../playback";
-import { api, type BleDevice, type ConnectionTarget, type ElmConfig, type PortInfo } from "../api";
+import { api, type AdapterReport, type BleDevice, type ConnectionTarget, type ElmConfig, type PortInfo } from "../api";
 import { t } from "../i18n";
 import { emit, on, resetLiveData, state } from "../store";
 import { busy, button, clear, errorText, h, infoTip, section, toast } from "../ui";
@@ -442,8 +442,50 @@ export function mount(root: HTMLElement) {
       emit("connection");
     }, "danger");
     card.append(h("div", { class: "actions" }, h("a", { class: "btn btn-primary", href: "#/dashboard" }, t("nav.dashboard")), disc));
+    card.append(adapterTestBox());
     if (a.transport.startsWith("Demo")) card.append(demoFaults());
     return card;
+  };
+
+  /** Tries AT commands of each ELM327 version to tell the adapter's real level. */
+  const adapterTestBox = () => {
+    const out = h("div");
+    const show = (r: AdapterReport) => {
+      clear(out);
+      const verdict = !r.real
+        ? t("adapterTest.verdictNone")
+        : r.overclaims
+          ? t("adapterTest.verdictClone", { claimed: r.claimed ?? "?", real: r.real })
+          : t("adapterTest.verdictOk", { real: r.real });
+      out.append(
+        h("div", { class: `alert ${r.overclaims || !r.real ? "alert-warning" : "alert-ok"}` }, h("p", null, verdict), h("p", { class: "small muted" }, t("adapterTest.meaning"))),
+        h(
+          "div",
+          { class: "probe-grid" },
+          r.probes.map((p) =>
+            h(
+              "span",
+              { class: `probe probe-${p.result}`, title: t(`adapterTest.result.${p.result}`) },
+              h("small", null, `v${p.version}`),
+              ` ${p.command} `,
+              p.result === "accepted" ? "✓" : p.result === "rejected" ? "✗" : "…",
+            ),
+          ),
+        ),
+      );
+    };
+    const run: HTMLButtonElement = button(t("adapterTest.run"), async () => {
+      const r = await busy(run, () => api.testAdapter());
+      if (r) show(r);
+    }, "secondary");
+    return h(
+      "details",
+      { class: "help" },
+      h("summary", null, t("adapterTest.title")),
+      h("p", { class: "small muted" }, t("adapterTest.intro")),
+      run,
+      out,
+    );
   };
 
   /** Demo only: buttons that make the virtual adapter fail like a clone. */

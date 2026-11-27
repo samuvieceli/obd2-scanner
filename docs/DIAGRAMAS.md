@@ -116,14 +116,33 @@ flowchart TB
         mode06["mode06.rs<br/>resultados dos autotestes"]
         interpret["interpret.rs<br/>interpretação em português"]
         session["session.rs<br/>gravação CSV e JSON"]
-        simulator["simulator.rs<br/>carro virtual com defeitos<br/>e falhas de clone"]
+        simulator["simulator.rs<br/>carro virtual com defeitos,<br/>falhas de clone e 2 centrais"]
+        adaptertest["adapter_test.rs<br/>versão real do ELM327"]
+        ecuscan["ecu_scan.rs<br/>centrais e identificação"]
     end
+    adaptertest --> elm327
+    ecuscan --> elm327
     elm327 --> transport
     elm327 --> response
     elm327 --> pid & dtc & vin & readiness & mode06
     simulator -. "é um" .-> transport
     interpret --> pid
     session --> pid
+```
+
+### Ferramentas de diagnóstico do adaptador e do carro
+
+Os dois testes mudam configurações do adaptador por alguns segundos e sempre terminam com um reinício (`ATZ`) e a configuração de volta. Nenhum deles grava nada no adaptador nem na central do carro.
+
+```mermaid
+flowchart LR
+    subgraph teste["Teste do adaptador (adapter_test.rs)"]
+        t1["Envia comandos AT<br/>de cada versão<br/>(1.0 até 2.1)"] --> t2["Conta aceitos (✓)<br/>e recusados (?)"] --> t3["Versão real x versão anunciada<br/>→ é clone?"]
+    end
+    subgraph busca["Busca de centrais (ecu_scan.rs)"]
+        b1["ATH1: liga os endereços<br/>nas respostas"] --> b2["0100 para todas:<br/>quem respondeu?<br/>(7E8 motor, 7E9 câmbio...)"] --> b3["Para cada uma (ATSH):<br/>nome (09 0A) e<br/>identificação UDS (22 F1xx)"]
+    end
+    t3 & b3 --> r["ATZ + configuração<br/>(Elm327::reconfigure)"]
 ```
 
 ---
@@ -161,13 +180,13 @@ Cada tela é um arquivo em `src/views/`. Os módulos de cálculo ficam em `src/`
 ```mermaid
 flowchart LR
     subgraph telas["Telas (src/views/)"]
-        connection["Conexão"]
+        connection["Conexão<br/>+ teste do adaptador"]
         dashboard["Painel ao vivo"]
         hud["HUD"]
         performance["Testes de desempenho"]
         charts["Gráficos"]
         diagnostics["Códigos de falha<br/>+ Modo 06"]
-        vehicle["Veículo e prontidão"]
+        vehicle["Veículo e prontidão<br/>+ centrais"]
         terminal["Terminal AT"]
         sessions["Gravações e relatórios"]
         glossary["Glossário"]

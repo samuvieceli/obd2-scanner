@@ -76,6 +76,11 @@ Em **Configurações → Unidades**, escolha um padrão (**Brasil**, **Europa**,
 
 Com a opção **Reconectar automaticamente se a conexão cair** ligada (na tela Conexão e em Configurações; vem ligada), o programa volta sozinho quando o Bluetooth sai de alcance, o cabo solta ou o adaptador trava. Uma faixa amarela no topo mostra a tentativa e o tempo até a próxima. Ele tenta por até 3 minutos, com esperas de 1, 2, 3, 5, 8 e depois 10 segundos, e mantém a lista de parâmetros e a gravação em andamento. **Parar e desconectar** cancela.
 
+## 13. Teste do adaptador e centrais do carro
+
+- **Teste de compatibilidade do adaptador** (tela **Conexão**, com o adaptador conectado): descobre até qual versão do ELM327 o adaptador funciona de verdade. Clones costumam dizer "v2.1" e funcionar como v1.3. Só usa comandos que leem algo ou que o reinício desfaz; nada é gravado no adaptador.
+- **Centrais eletrônicas** (tela **Veículo e prontidão**): lista as centrais que respondem pelo OBD (motor, câmbio, sistema híbrido) e lê a identificação de cada uma (nome, número da peça, fornecedor, versão do software), quando o carro informa. Só leitura. ABS, airbag e carroceria usam endereços próprios de cada fabricante e não aparecem.
+
 ## Adaptadores clones
 
 A maioria dos adaptadores baratos é clone do ELM327 (costumam se apresentar como "v1.5" ou "v2.1", versões que o fabricante original nunca lançou). O programa já trata os defeitos mais comuns: não exige `OK`, aceita eco ligado, aguarda resets lentos, repete uma vez pedidos perdidos ou interrompidos (`STOPPED`, `BUFFER FULL`) e segue sem os comandos que o clone recusa. Na tela **Conexão** aparece "provável clone" e a lista de comandos recusados.

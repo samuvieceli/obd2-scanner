@@ -414,6 +414,21 @@ async fn read_mode06(state: State<'_, AppState>) -> CmdResult<Vec<obd_core::mode
     on_worker(&state, |elm| elm.read_mode06()).await
 }
 
+/// Tries AT commands of each ELM327 version to find the adapter's real level.
+#[tauri::command]
+async fn test_adapter(
+    state: State<'_, AppState>,
+) -> CmdResult<obd_core::adapter_test::AdapterReport> {
+    let report = on_worker(&state, obd_core::adapter_test::test_adapter).await?;
+    Ok(report)
+}
+
+/// Lists the control units that answer OBD requests, with their identity.
+#[tauri::command]
+async fn scan_ecus(state: State<'_, AppState>) -> CmdResult<Vec<obd_core::ecu_scan::EcuInfo>> {
+    on_worker(&state, obd_core::ecu_scan::scan_ecus).await
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct VehicleInfo {
@@ -597,6 +612,8 @@ pub fn run() {
             read_freeze_frame,
             read_readiness,
             read_mode06,
+            test_adapter,
+            scan_ecus,
             read_vehicle_info,
             send_raw,
             start_recording,

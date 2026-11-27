@@ -311,3 +311,52 @@ fn dropped_link_is_flagged() {
     assert!(matches!(elm.read_pid(0x0C), Err(ObdError::Io(_))));
     assert!(elm.link_lost());
 }
+
+#[test]
+fn adapter_test_tells_the_real_version() {
+    use obd_core::adapter_test::test_adapter;
+    let mut elm = demo(false);
+    let r = test_adapter(&mut elm).unwrap();
+    assert_eq!(r.claimed.as_deref(), Some("1.5"));
+    assert_eq!(r.real, Some("1.4b"));
+    assert!(!r.overclaims);
+    // Settings are back: reading still works.
+    assert!(elm.read_pid(0x0C).is_ok());
+
+    let mut elm = demo(true);
+    let r = test_adapter(&mut elm).unwrap();
+    assert_eq!(r.real, Some("1.1"));
+    assert!(r.overclaims);
+    assert!(elm.read_pid(0x0C).is_ok());
+}
+
+#[test]
+fn ecu_scan_finds_engine_and_transmission() {
+    use obd_core::ecu_scan::scan_ecus;
+    for quirky in [false, true] {
+        let mut elm = demo(quirky);
+        let ecus = scan_ecus(&mut elm).unwrap();
+        assert_eq!(ecus.len(), 2, "{ecus:?}");
+        let engine = &ecus[0];
+        assert_eq!((engine.address.as_str(), engine.role), ("7E8", "engine"));
+        assert_eq!(engine.name.as_deref(), Some("ECM-EngineControl"));
+        let id = |k: &str| {
+            engine
+                .ids
+                .iter()
+                .find(|i| i.key == k)
+                .map(|i| i.value.clone())
+        };
+        assert_eq!(id("vin").as_deref(), Some(DEMO_VIN));
+        assert_eq!(id("software_version").as_deref(), Some("SW 0102"));
+        assert_eq!(id("serial_number"), None);
+        let tcm = &ecus[1];
+        assert_eq!((tcm.address.as_str(), tcm.role), ("7E9", "transmission"));
+        assert_eq!(tcm.supported_pids, 4);
+        assert_eq!(tcm.name.as_deref(), Some("TCM-Transmission"));
+        assert!(tcm.ids.is_empty());
+        // Headers are off again and requests go to every unit.
+        assert!(elm.read_pid(0x0C).is_ok());
+        assert_eq!(elm.read_vehicle_identity().vin.as_deref(), Some(DEMO_VIN));
+    }
+}
