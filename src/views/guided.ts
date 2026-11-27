@@ -1,15 +1,21 @@
 // Guided tests screen: step-by-step checks that turn live readings into an
 // indication anyone can read. Each test is a tab; its logic lives in a pure
 // module (battery.ts, …) and this file only draws it and feeds it samples.
-import { api } from "../api";
-import { fmtNum, t } from "../i18n";
+import uPlot from "uplot";
+import { api, type MonitorState } from "../api";
+import { fmtNum, pidText, t } from "../i18n";
 import { hasLiveSource, isSupported, on, state } from "../store";
 import { BatteryTest, overall, type BatteryResult, type Grade, type Reading } from "../battery";
+import { O2Test, RPM_RANGE, WARM_C, WINDOW_S, type O2Result, type Verdict } from "../o2test";
+import { cssVar } from "../theme";
 import { button, clear, errorText, h, infoTip, notConnected, toast } from "../ui";
 
 type Panel = (box: HTMLElement) => (() => void) | void;
 
-const TESTS: { id: string; panel: Panel }[] = [{ id: "battery", panel: batteryPanel }];
+const TESTS: { id: string; panel: Panel }[] = [
+  { id: "battery", panel: batteryPanel },
+  { id: "o2", panel: o2Panel },
+];
 
 let lastTab = "battery";
 
@@ -248,5 +254,225 @@ function batteryPanel(box: HTMLElement): () => void {
   return () => {
     offs.forEach((f) => f());
     polling.restore();
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Oxygen sensors and catalytic converter
+
+const PRE_KEYS: [string, boolean][] = [
+  ["o2_b1s1", false],
+  ["lambda_b1s1", true],
+  ["wb_lambda_s1", true],
+];
+const CLEAR_KEYS = ["distance_since_clear", "warmups_since_clear"];
+
+function o2Panel(box: HTMLElement): () => void {
+  const pre = PRE_KEYS.find(([k]) => isSupported(k));
+  if (!pre) {
+    box.append(h("div", { class: "alert" }, h("p", null, t("o2test.noSensor"))));
+    return () => undefined;
+  }
+  const [preKey, wide] = pre;
+  const postKey = isSupported("o2_b1s2") ? "o2_b1s2" : undefined;
+  const live = !state.playback;
+  const polling = focusPolling();
+  // The "since codes were cleared" counters are read once, then dropped from polling.
+  let clearKeys = live ? CLEAR_KEYS.filter(isSupported) : [];
+  const clearInfo: Record<string, number> = {};
+  const keys = () => ["rpm", "coolant_temp", preKey, ...(postKey ? [postKey] : []), ...clearKeys].filter((k) => k === "rpm" || isSupported(k));
+  let test = new O2Test(wide, !!postKey);
+
+  const statusEl = h("div", { class: "card" });
+  const plotBox = h("div", { class: "chart-card" });
+  const resultEl = h("div");
+  const historyEl = h("section", { class: "card" });
+
+  // Live chart of both sensors over the measuring window.
+  const color1 = cssVar("--c1") || "#22d3ee";
+  const color2 = cssVar("--c2") || "#f59e0b";
+  const axis = cssVar("--muted");
+  const grid = cssVar("--grid");
+  const unitPre = wide ? "λ" : "V";
+  const plot = new uPlot(
+    {
+      width: 600,
+      height: 220,
+      legend: { show: true },
+      cursor: { drag: { x: false, y: false } },
+      scales: { x: { time: false }, v: { range: [0, 1.1] }, l: { range: [0.8, 1.2] } },
+      axes: [
+        { stroke: axis, grid: { stroke: grid }, ticks: { stroke: grid }, label: t("charts.time"), labelSize: 18, size: 36 },
+        { scale: wide ? "l" : "v", stroke: axis, grid: { stroke: grid }, ticks: { stroke: grid }, size: 48, values: (_u, vals) => vals.map((v) => fmtNum(v, 2)) },
+        ...(wide ? [{ scale: "v", side: 1 as const, stroke: axis, grid: { show: false }, size: 48, values: (_u: uPlot, vals: number[]) => vals.map((v) => fmtNum(v, 1)) }] : []),
+      ],
+      series: [
+        { label: t("charts.time"), value: (_u, v) => (v == null ? "—" : fmtNum(v, 1)) },
+        { label: `${pidText(preKey).short} (${unitPre})`, scale: wide ? "l" : "v", stroke: color1, width: 2, points: { show: false } },
+        { label: postKey ? `${pidText(postKey).short} (V)` : "—", scale: "v", stroke: color2, width: 2, points: { show: false }, show: !!postKey },
+      ],
+    },
+    [[], [], []],
+    plotBox,
+  );
+  const fitPlot = () => plot.setSize({ width: Math.max(300, plotBox.clientWidth || box.clientWidth - 40), height: 220 });
+
+  const refreshPlot = () => {
+    const s = state.history.get(preKey);
+    if (!s || !s.t.length) return;
+    const from = s.t[s.t.length - 1] - WINDOW_S - 5;
+    let i = s.t.length;
+    while (i > 0 && s.t[i - 1] >= from) i--;
+    const x = s.t.slice(i);
+    const post = postKey ? state.history.get(postKey) : undefined;
+    // Align the downstream values on the upstream timestamps (same frames).
+    const postVals = x.map((tt) => {
+      if (!post) return null;
+      const j = post.t.lastIndexOf(tt);
+      return j >= 0 ? post.v[j] : null;
+    });
+    plot.setData([x, s.v.slice(i), postVals]);
+  };
+
+  const verdictLine = (v: Verdict | undefined, what: string) =>
+    v ? h("p", { class: "guided-reading" }, h("strong", null, t(`o2test.${what}`)), " ", gradeBadge(v.grade), " ", t(`o2test.verdicts.${v.id}`)) : null;
+
+  const renderResult = (r: O2Result | undefined) => {
+    clear(resultEl);
+    if (!r) return;
+    const fmtTrace = (label: string, tr: O2Result["pre"], narrow: boolean) =>
+      h(
+        "li",
+        null,
+        `${label}: `,
+        narrow ? t("o2test.crossings", { n: fmtNum(tr.crossPer10s, 1) }) + " · " : "",
+        t("o2test.swing", { v: fmtNum(tr.amp, 2), unit: narrow ? "V" : unitPre }),
+      );
+    resultEl.append(
+      h(
+        "section",
+        { class: "card" },
+        h("h2", null, t("o2test.result")),
+        verdictLine(r.sensor, "sensorLabel"),
+        wide ? h("p", { class: "muted small" }, t("o2test.wideNote")) : null,
+        verdictLine(r.catalyst, "catalystLabel"),
+        !postKey ? h("p", { class: "muted small" }, t("o2test.noPost")) : null,
+        h(
+          "ul",
+          { class: "muted small" },
+          fmtTrace(pidText(preKey).short, r.pre, !wide),
+          r.post ? fmtTrace(pidText(postKey!).short, r.post, true) : null,
+          h("li", null, t("guided.rate", { rate: fmtNum(r.rateHz, 1) }), r.lowRate ? ` · ${t("o2test.lowRate")}` : ""),
+        ),
+        h("p", { class: "muted small" }, t("o2test.precision")),
+        h("div", { class: "actions" }, button(t("battery.restart"), () => {
+          test = new O2Test(wide, !!postKey);
+          render();
+        }, "ghost")),
+      ),
+    );
+  };
+
+  // Readiness and "since codes were cleared": what reveals codes erased before a sale.
+  let catalystMonitor: MonitorState | undefined;
+  const renderHistory = () => {
+    clear(historyEl);
+    historyEl.append(h("h2", null, t("o2test.history"), " ", infoTip(t("o2test.historyTip"))));
+    const items: HTMLElement[] = [];
+    if (catalystMonitor) items.push(h("li", null, t("o2test.monitor", { state: t(`vehicle.state.${catalystMonitor}`) })));
+    if (clearInfo.distance_since_clear !== undefined) items.push(h("li", null, t("o2test.sinceClearKm", { km: fmtNum(clearInfo.distance_since_clear, 0) })));
+    if (clearInfo.warmups_since_clear !== undefined) items.push(h("li", null, t("o2test.sinceClearWarmups", { n: fmtNum(clearInfo.warmups_since_clear, 0) })));
+    historyEl.append(items.length ? h("ul", null, ...items) : h("p", { class: "muted" }, t(live ? "common.loading" : "o2test.historyLive")));
+    const recent = catalystMonitor === "incomplete" || (clearInfo.distance_since_clear !== undefined && clearInfo.distance_since_clear < 100);
+    if (recent) historyEl.append(h("div", { class: "alert alert-warning" }, h("p", null, t("o2test.recentClear"))));
+    historyEl.append(h("p", { class: "muted small" }, t("o2test.mode06")));
+  };
+
+  const render = () => {
+    const ph = test.phase;
+    clear(statusEl);
+    const rpm = state.latest.rpm;
+    const cool = state.latest.coolant_temp;
+    statusEl.append(
+      h("h2", null, t(`o2test.phase.${ph}`)),
+      h("p", null, t(`o2test.do.${ph}`, { warm: WARM_C, lo: RPM_RANGE[0], hi: RPM_RANGE[1], s: WINDOW_S })),
+      ph === "measuring" ? h("progress", { max: 1, value: test.progress() }) : "",
+      h(
+        "p",
+        { class: "muted small" },
+        `${pidText("rpm").short}: ${rpm === undefined ? "—" : fmtNum(rpm, 0)} · ${pidText("coolant_temp").short}: ${cool === undefined ? "—" : `${fmtNum(cool, 0)} °C`} · `,
+        t("guided.rate", { rate: fmtNum(state.rateHz, 1) }),
+      ),
+    );
+    renderResult(test.result);
+    renderDemo();
+  };
+
+  const demoEl = h("div", { class: "actions" });
+  let demoShown = false;
+  const renderDemo = () => {
+    if (demoShown || !isDemo() || !live) return;
+    demoShown = true;
+    let rev = false;
+    const b: HTMLButtonElement = button(t("o2test.demo.rev"), async () => {
+      try {
+        rev = !rev;
+        await api.sendRaw(rev ? "ATSIMREV" : "ATSIMDRIVE", 1000);
+        b.textContent = t(rev ? "o2test.demo.drive" : "o2test.demo.rev");
+      } catch (e) {
+        toast(errorText(e), "error");
+      }
+    }, "ghost");
+    demoEl.append(b);
+  };
+
+  box.append(
+    h("p", { class: "muted" }, t("o2test.intro")),
+    h("div", { class: "alert alert-warning" }, h("p", null, t("o2test.safety"))),
+    statusEl,
+    demoEl,
+    plotBox,
+    resultEl,
+    historyEl,
+  );
+  fitPlot();
+
+  const onFrame = () => {
+    const tS = state.lastFrameT;
+    if (tS === undefined) return;
+    for (const k of clearKeys) {
+      const v = fresh(k);
+      if (v !== undefined) clearInfo[k] = v;
+    }
+    if (clearKeys.length && clearKeys.every((k) => clearInfo[k] !== undefined || state.lastDropped.includes(k))) {
+      clearKeys = [];
+      renderHistory();
+      if (live) void polling.set(keys());
+    }
+    const before = test.phase;
+    test.push(tS, { rpm: fresh("rpm"), coolant: fresh("coolant_temp") ?? state.latest.coolant_temp, pre: fresh(preKey), post: postKey ? fresh(postKey) : undefined });
+    refreshPlot();
+    if (before !== test.phase || test.phase !== "done") render();
+  };
+
+  render();
+  renderHistory();
+  if (live) {
+    void polling.set(keys());
+    api
+      .readReadiness()
+      .then((r) => {
+        catalystMonitor = r.monitors.find((m) => m.key === "catalyst")?.state;
+        renderHistory();
+      })
+      .catch(() => undefined);
+  }
+  const offs = [on("frame", onFrame)];
+  window.addEventListener("resize", fitPlot);
+  return () => {
+    offs.forEach((f) => f());
+    window.removeEventListener("resize", fitPlot);
+    plot.destroy();
+    if (live) polling.restore();
   };
 }
