@@ -279,6 +279,10 @@ async fn connect(
     // Close a previous connection first.
     let old = state.worker.lock().unwrap().take();
     drop(old);
+    // Forget the previous car and adapter now, so a failed attempt does not
+    // leave them labelling the next recording.
+    *state.adapter.lock().unwrap() = None;
+    *state.identity.lock().unwrap() = VehicleIdentity::default();
     state.terminal_changed_setup.store(false, Ordering::Relaxed);
 
     let app2 = app.clone();
@@ -334,6 +338,7 @@ async fn retry_vehicle(state: State<'_, AppState>) -> CmdResult<AdapterInfo> {
 async fn disconnect(state: State<'_, AppState>) -> CmdResult<()> {
     let old = state.worker.lock().unwrap().take();
     *state.adapter.lock().unwrap() = None;
+    *state.identity.lock().unwrap() = VehicleIdentity::default();
     blocking(move || {
         drop(old);
         Ok(())

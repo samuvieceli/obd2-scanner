@@ -218,6 +218,8 @@ impl Link {
             Err(e) if is_fatal(&e) => self.reconnect(rx, ctx, Some(e.into())),
             Err(e) => {
                 // The adapter is fine, the car is not answering (ignition off?).
+                // The adapter answered, so its failure count starts over.
+                self.health.reset();
                 self.paused_until = Some(Instant::now() + VEHICLE_SILENT_PAUSE);
                 self.emit(LinkStatus {
                     error: Some(e.into()),
@@ -292,12 +294,19 @@ impl Link {
     }
 }
 
+/// Grouped requests without an answer, in a row, before falling back to one
+/// PID per request.
+const MULTI_SILENT_LIMIT: u32 = 3;
+
 /// Polling settings changed by UI messages.
 struct Ctx {
     live: Vec<String>,
     polling: bool,
     failures: HashMap<String, u32>,
     multi_ok: bool,
+    /// Grouped requests that got no answer in a row; one silence can be a
+    /// glitch, so grouping is turned off only after a few.
+    multi_silent: u32,
 }
 
 /// One request of a polling cycle: the PIDs asked (empty = adapter battery
@@ -370,6 +379,7 @@ fn run_loop(link: &mut Link, rx: &Receiver<Msg>, recorder: &Arc<Mutex<Recorder>>
         polling: false,
         failures: HashMap::new(),
         multi_ok: true,
+        multi_silent: 0,
     };
     let mut interpreter = Interpreter::new();
     let mut last_findings = Instant::now() - Duration::from_secs(10);
@@ -439,13 +449,22 @@ fn run_loop(link: &mut Link, rx: &Receiver<Msg>, recorder: &Arc<Mutex<Recorder>>
                     // the rest of this session. Silence still counts for the
                     // health check below.
                     Err(e) if Outcome::of_error(&e) != Outcome::LinkLost => {
-                        ctx.multi_ok = false;
                         if Outcome::of_error(&e) == Outcome::Answered {
+                            ctx.multi_ok = false;
                             continue;
+                        }
+                        ctx.multi_silent += 1;
+                        if ctx.multi_silent >= MULTI_SILENT_LIMIT {
+                            ctx.multi_ok = false;
                         }
                         Err(e)
                     }
-                    r => r,
+                    r => {
+                        if r.is_ok() {
+                            ctx.multi_silent = 0;
+                        }
+                        r
+                    }
                 },
             };
             let generation = link.generation;
