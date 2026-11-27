@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchPreset, presetKeys } from "./presets";
+import { matchPreset, presetAfterClick, presetKeys } from "./presets";
 
 describe("dashboard presets", () => {
   it("keeps only what the car supports, picking the first alternative", () => {
@@ -13,5 +13,16 @@ describe("dashboard presets", () => {
     const all = () => true;
     expect(matchPreset(presetKeys("turbo", all), all)).toBe("turbo");
     expect(matchPreset(["rpm"], all)).toBeUndefined();
+  });
+
+  it("full shows everything supported, and a second click goes back to it", () => {
+    const has = new Set(["speed", "rpm", "coolant_temp"]);
+    const all = ["speed", "rpm", "maf", "coolant_temp"];
+    expect(presetKeys("full", (k) => has.has(k), all)).toEqual(["speed", "rpm", "coolant_temp"]);
+    expect(matchPreset(["rpm", "speed", "coolant_temp"], (k) => has.has(k), all)).toBe("full");
+    expect(matchPreset([], () => false, all)).toBeUndefined();
+    expect(presetAfterClick("turbo", "turbo")).toBe("full");
+    expect(presetAfterClick("turbo", "daily")).toBe("turbo");
+    expect(presetAfterClick("full", "full")).toBe("full");
   });
 });

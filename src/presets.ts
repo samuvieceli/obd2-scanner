@@ -2,22 +2,26 @@
 // preference; a group in brackets means "the first one this car supports".
 // Fuel consumption itself is shown by the trip computer, which needs fuel
 // rate, or air flow (MAF), or manifold pressure + intake temperature.
+// "Full" shows everything the car supports; clicking the active preset again
+// goes back to it.
 
-export type PresetId = "daily" | "trip" | "injection" | "turbo";
+export type PresetId = "full" | "daily" | "trip" | "injection" | "turbo";
 
 type Entry = string | string[];
 
 const CONSUMPTION: Entry[] = [["fuel_rate", "maf", "intake_map"], "intake_temp"];
 
 export const PRESETS: Record<PresetId, Entry[]> = {
+  full: [],
   daily: ["speed", "rpm", "coolant_temp", "battery_voltage", "fuel_level", ...CONSUMPTION],
   trip: ["speed", "fuel_level", "engine_load", "coolant_temp", "rpm", ...CONSUMPTION],
   injection: ["stft_b1", "ltft_b1", ["o2_b1s1", "lambda_b1s1", "wb_lambda_s1"], "o2_b1s2", "timing_advance", ["intake_map", "maf"], "rpm", "engine_load", "coolant_temp"],
   turbo: [["boost_pressure_a", "intake_map"], "intake_temp", "timing_advance", "throttle", "rpm", "engine_load", "speed"],
 };
 
-/** The parameters of a preset this car supports. */
-export function presetKeys(id: PresetId, supported: (key: string) => boolean): string[] {
+/** The parameters of a preset this car supports (`all`: every known key, for "full"). */
+export function presetKeys(id: PresetId, supported: (key: string) => boolean, all: string[] = []): string[] {
+  if (id === "full") return all.filter(supported);
   const out: string[] = [];
   for (const e of PRESETS[id]) {
     const k = Array.isArray(e) ? e.find(supported) : supported(e) ? e : undefined;
@@ -29,9 +33,14 @@ export function presetKeys(id: PresetId, supported: (key: string) => boolean): s
 }
 
 /** The preset whose parameters are exactly `keys`, if any. */
-export function matchPreset(keys: string[], supported: (key: string) => boolean): PresetId | undefined {
+export function matchPreset(keys: string[], supported: (key: string) => boolean, all: string[] = []): PresetId | undefined {
   return (Object.keys(PRESETS) as PresetId[]).find((id) => {
-    const p = presetKeys(id, supported);
-    return p.length === keys.length && p.every((k) => keys.includes(k));
+    const p = presetKeys(id, supported, all);
+    return p.length > 0 && p.length === keys.length && p.every((k) => keys.includes(k));
   });
+}
+
+/** What a click on preset `id` selects: the active one again goes back to "full". */
+export function presetAfterClick(id: PresetId, active: PresetId | undefined): PresetId {
+  return id === active ? "full" : id;
 }

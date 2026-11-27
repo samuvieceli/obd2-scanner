@@ -460,6 +460,7 @@ const ptBR = {
   dashboard: {
     presets: "Painéis prontos:",
     preset: {
+      full: { name: "Completo", help: "Todos os parâmetros que o carro informa. Clicar de novo num painel pronto já escolhido também volta para este." },
       daily: { name: "Uso diário", help: "Velocidade, rotação, temperatura do motor, tensão da bateria, combustível e o que o computador de bordo precisa para o consumo." },
       trip: { name: "Viagem", help: "Velocidade, combustível, carga do motor e temperatura, mais o necessário para consumo médio, distância e combustível gasto." },
       injection: { name: "Injeção", help: "Correções de combustível, sondas lambda, avanço de ignição, pressão do coletor (MAP) ou fluxo de ar (MAF), rotação e carga." },

@@ -462,6 +462,7 @@ const enUS: Messages = {
   dashboard: {
     presets: "Ready layouts:",
     preset: {
+      full: { name: "Full", help: "Every parameter the car reports. Clicking an already chosen preset again also comes back here." },
       daily: { name: "Daily", help: "Speed, engine speed, engine temperature, battery voltage, fuel and what the trip computer needs for consumption." },
       trip: { name: "Road trip", help: "Speed, fuel, engine load and temperature, plus what is needed for average consumption, distance and fuel used." },
       injection: { name: "Injection", help: "Fuel trims, oxygen sensors, ignition timing, manifold pressure (MAP) or air flow (MAF), engine speed and load." },
