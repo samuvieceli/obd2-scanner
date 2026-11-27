@@ -226,7 +226,8 @@ export function warmBadge(el: HTMLElement, state_: { latest: Record<string, numb
   const st = warmState(state_.latest.coolant_temp, state_.latest.oil_temp);
   el.hidden = !st;
   if (!st) return;
-  el.className = `warm-badge warm-${st}`;
+  el.classList.remove("warm-cold", "warm-warming", "warm-ready");
+  el.classList.add(`warm-${st}`);
   el.textContent = t(`warmup.${st}`);
   el.title = t(`warmup.${st}Help`);
 }

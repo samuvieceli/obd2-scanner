@@ -6,6 +6,7 @@ import { baseUnitOf, button, clear, h, infoTip, section, toast, unitOf } from ".
 import { DEFAULT_ALERTS, newProfile, prefs, profile, savePrefs, saveProfile, setActiveProfile, type AlertRule, type FuelType } from "../prefs";
 import { fromDisplay, saveUnits, toDisplay, UNIT_CHOICES, UNIT_PRESETS, units, type UnitPrefs } from "../units";
 import { pidText } from "../i18n";
+import type { PriceKey } from "../cost";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 const REPO_URL = "https://github.com/samuvieceli/obd2-scanner";
@@ -201,6 +202,39 @@ function connectionSection(): HTMLElement {
   );
 }
 
+/** Pump prices, for the trip cost and the gasoline × ethanol comparison. */
+function pricesSection(): HTMLElement {
+  const keys: PriceKey[] = ["gasoline", "gasoline_premium", "ethanol", "diesel"];
+  const box = h("div", { class: "row wrap" });
+  for (const k of keys) {
+    const cur = prefs().fuelPrices[k];
+    box.append(
+      h(
+        "label",
+        { class: "field" },
+        h("span", null, t(`cost.price.${k}`)),
+        h("input", {
+          type: "number",
+          step: 0.01,
+          min: 0,
+          max: 100,
+          inputmode: "decimal",
+          placeholder: t("cost.pricePlaceholder"),
+          value: cur ? String(cur) : "",
+          onchange: (e: Event) => {
+            const raw = (e.target as HTMLInputElement).value.replace(",", ".");
+            const v = raw === "" ? null : Number(raw);
+            if (v !== null && !(Number.isFinite(v) && v >= 0 && v <= 100)) return;
+            savePrefs({ fuelPrices: { ...prefs().fuelPrices, [k]: v } });
+            emit("trip");
+          },
+        }),
+      ),
+    );
+  }
+  return section(t("cost.title"), h("p", { class: "muted small" }, t("cost.help")), box);
+}
+
 function alertsSection(offs: (() => void)[]): HTMLElement {
   const list = h("div", { class: "alert-rules" });
   const render = () => {
@@ -361,6 +395,7 @@ export function mount(root: HTMLElement) {
     profilesSection(offs),
     unitsSection(),
     connectionSection(),
+    pricesSection(),
     alertsSection(offs),
     section(
       t("settings.about"),

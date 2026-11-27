@@ -217,6 +217,7 @@ flowchart LR
         store["store.ts<br/>estado e avisos"]
         api["api.ts<br/>ponte com o Rust"]
         trip["trip.ts<br/>consumo"]
+        cost["cost.ts + fuels.ts<br/>custo em R$ e<br/>gasolina × etanol"]
         perf["perf.ts<br/>detecção 0-100 etc."]
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         o2test["o2test.ts<br/>sondas e catalisador"]
@@ -243,6 +244,8 @@ flowchart LR
     telas --> api
     telas --> i18n
     trip & alerts --> prefs
+    dashboard --> cost
+    cost --> prefs
 ```
 
 ---

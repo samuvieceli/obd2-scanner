@@ -15,6 +15,8 @@ function fmtEconomy(kmPerL: number): string {
   return `${fmtNum(v, 1)} ${unit}`;
 }
 import { resetTrip, trip } from "../trip";
+import { tripCost } from "../cost";
+import { prefs, profile } from "../prefs";
 import { PRESETS, matchPreset, presetKeys, type PresetId } from "../presets";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
@@ -270,6 +272,17 @@ export function mount(root: HTMLElement) {
         row(t("trip.fuel"), `${fmtNum(toDisplay("L", trip.fuelL), 2)} ${displayUnit("L")}`),
         row(t("trip.time"), `${Math.floor(trip.timeS / 60)} min ${String(Math.floor(trip.timeS % 60)).padStart(2, "0")} s`),
       );
+      const money = (v: number) => `${t("cost.currency")} ${fmtNum(v, 2)}`;
+      const c = tripCost(trip.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices);
+      if (c.cost !== undefined) tripBox.append(row(t("cost.trip"), money(c.cost)));
+      if (c.asGasoline !== undefined && c.asEthanol !== undefined && trip.fuelL > 0.01) {
+        tripBox.append(
+          row(t("cost.asGasoline"), money(c.asGasoline)),
+          row(t("cost.asEthanol"), money(c.asEthanol)),
+          h("p", { class: "muted small" }, t("cost.breakEven", { pct: fmtNum(c.breakEven * 100, 0) })),
+        );
+      }
+      if (c.cost === undefined) tripBox.append(h("p", { class: "muted small" }, h("a", { href: "#/settings" }, t("cost.setPrices"))));
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
     }
     tripBox.append(
@@ -314,13 +327,13 @@ export function mount(root: HTMLElement) {
   renderTrip();
 
   let raf = 0;
+  // One redraw per animation frame, whatever asked for it.
+  const redraw = () => {
+    if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip(), warmBadge(warmEl, state)));
+  };
   const offs = [
-    on("frame", () => {
-      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip(), warmBadge(warmEl, state)));
-    }),
-    on("trip", () => {
-      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip()));
-    }),
+    on("frame", redraw),
+    on("trip", redraw),
     on("findings", renderFindings),
     on("alerts", updateValues),
     on("live-keys", renderTrip),

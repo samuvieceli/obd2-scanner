@@ -7,6 +7,8 @@
 3. Vá em **Painel ao vivo** e clique em **Iniciar leitura**. Os valores de um carro virtual começam a aparecer.
 4. Explore **Gráficos**, **Códigos de falha** (o carro virtual tem falhas de propósito) e **Veículo e prontidão**.
 
+O quadro **Primeiros passos**, no alto da tela Conexão, resume esse caminho com botões que levam a cada tela. Clique em **Entendi, esconder** quando não precisar mais; o link **Mostrar os primeiros passos** traz o quadro de volta.
+
 A opção *Simular adaptador clone com defeitos* imita um adaptador barato que responde de forma bagunçada. Serve para testar.
 
 ## 2. Com o carro e um adaptador Bluetooth clássico
@@ -41,6 +43,7 @@ Na tela **Head-up display (HUD)**, escolha até 4 parâmetros (eles vêm da list
 - Ao lado do título aparece o selo **Motor frio** (líquido abaixo de 60 °C), **Aquecendo** (60 a 80 °C, ou óleo abaixo de 70 °C quando o carro informa) ou **Motor pronto**. Com o motor frio, evite acelerar forte. O mesmo selo aparece no canto do HUD.
 - O quadro **Computador de bordo** mostra o consumo agora e a média da viagem em km/L. Ele usa a vazão de combustível, o sensor MAF ou, em carros só com sensor MAP (comum no Brasil), uma estimativa pela cilindrada. Para melhorar a precisão, informe o combustível e a cilindrada do perfil do carro em **Configurações → Veículos (perfis)**.
 - Combustíveis disponíveis, com as misturas em vigor em novembro de 2026: **gasolina comum ou aditivada** (32% de etanol), **gasolina premium** (25% de etanol), **etanol comum ou aditivado**, **diesel S10 ou S500** (15% de biodiesel) e **flex automático**. O flex automático usa a porcentagem de etanol informada pelo carro e, se o carro não informar, considera gasolina comum. Aditivos não mudam o cálculo.
+- **Custo da viagem**: em **Configurações → Preço dos combustíveis**, informe o preço do litro. O computador de bordo passa a mostrar o custo da viagem e, em carros a gasolina, etanol ou flex, quanto a mesma viagem custaria com gasolina e com etanol. A comparação mantém a mesma energia: um litro de etanol tem cerca de 70% da energia de um litro de gasolina comum (E32), daí a regra "etanol compensa até 70% do preço da gasolina". Motores rendem um pouco melhor com etanol, então é uma estimativa. No flex automático, o preço do tanque é a mistura dos dois conforme a porcentagem de etanol que o carro informa.
 - **Alertas** (em **Configurações**): avisam com mensagem e som quando, por exemplo, a temperatura passa de 110 °C ou a bateria fica abaixo de 11,8 V com o motor ligado. Você pode mudar os limites e incluir outros parâmetros.
 
 ## 6b. Testes de desempenho

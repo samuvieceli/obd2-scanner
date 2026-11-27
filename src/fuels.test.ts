@@ -11,8 +11,8 @@ describe("fuels", () => {
   });
 
   it("blends by mass and keeps the ends", () => {
-    const a = { afr: 10, density: 1000 };
-    const b = { afr: 20, density: 1000 };
+    const a = { afr: 10, density: 1000, lhv: 40 };
+    const b = { afr: 20, density: 1000, lhv: 20 };
     expect(blend(a, b, 0)).toEqual(a);
     expect(blend(a, b, 100).afr).toBe(20);
     expect(blend(a, b, 50).afr).toBe(15);
