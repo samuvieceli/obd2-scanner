@@ -3,7 +3,7 @@
 import { ask } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { fmtNum, getLang, t } from "../i18n";
-import { freshValue, hasLiveSource, on, state } from "../store";
+import { freshValue, hasLiveSource, on, readKeys, state } from "../store";
 import { PERF_TESTS, PerfDetector, type PerfResult, type PerfTestId } from "../perf";
 import { button, clear, errorText, h, leaveOnDisconnect, notConnected, toast } from "../ui";
 import { FIRST_PROFILE, profile, saveProfile } from "../prefs";
@@ -66,7 +66,7 @@ export function mount(root: HTMLElement) {
   const applyPolling = async () => {
     if (!live) return;
     try {
-      await api.setLive(fastMode ? ["speed"] : state.liveKeys, true);
+      await api.setLive(fastMode ? ["speed"] : readKeys(), true);
       state.polling = true;
     } catch (e) {
       toast(errorText(e), "error");
@@ -237,7 +237,7 @@ export function mount(root: HTMLElement) {
     offs.forEach((f) => f());
     // Give the dashboard its parameters back.
     if (live && state.connection === "connected") {
-      api.setLive(state.liveKeys, wasPolling).catch(() => undefined);
+      api.setLive(readKeys(), wasPolling).catch(() => undefined);
       state.polling = wasPolling;
     }
   };

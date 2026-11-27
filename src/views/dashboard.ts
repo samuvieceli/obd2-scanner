@@ -1,7 +1,7 @@
 // Live dashboard: value cards for the selected parameters + interpretation.
 import { api } from "../api";
 import { pidText, t } from "../i18n";
-import { DEFAULT_KEYS, displayKeys, emit, hasLiveSource, isSupported, on, setLiveKeys, state } from "../store";
+import { DEFAULT_KEYS, displayKeys, emit, hasLiveSource, isSupported, on, readKeys, setLiveKeys, state } from "../store";
 import { warmBadge, busy, button, clear, displayValue, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
 import type { Category } from "../api";
 import { findingList } from "./findings";
@@ -26,7 +26,7 @@ import { PRESETS, matchPreset, presetAfterClick, presetKeys, type PresetId } fro
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
 
 export async function startPolling(on_: boolean) {
-  await api.setLive(state.liveKeys, on_);
+  await api.setLive(readKeys(), on_);
   state.polling = on_;
   emit("connection");
 }
@@ -141,7 +141,7 @@ export function mount(root: HTMLElement) {
     const apply = async (keys: string[]) => {
       setLiveKeys(keys);
       try {
-        await api.setLive(keys, state.polling);
+        await api.setLive(readKeys(), state.polling);
       } catch (e) {
         toast(errorText(e), "error");
       }
@@ -260,7 +260,7 @@ export function mount(root: HTMLElement) {
               const keys = presetKeys(presetAfterClick(id, active), isSupported, all);
               setLiveKeys(keys);
               try {
-                await api.setLive(keys, state.polling);
+                await api.setLive(readKeys(), state.polling);
               } catch (e) {
                 toast(errorText(e), "error");
               }
@@ -363,7 +363,7 @@ export function mount(root: HTMLElement) {
         button(t("trip.addKeys"), () => {
           const keys = [...state.liveKeys, ...missing];
           setLiveKeys(keys);
-          api.setLive(keys, state.polling).catch((e) => toast(errorText(e), "error"));
+          api.setLive(readKeys(), state.polling).catch((e) => toast(errorText(e), "error"));
         }, "ghost"),
       );
     }

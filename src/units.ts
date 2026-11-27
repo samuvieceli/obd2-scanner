@@ -78,16 +78,23 @@ export function conversion(base: string): Conv {
 }
 
 export function toDisplay(base: string, v: number): number {
+  // Economy is not linear in L/100 km: use the same rule as the trip computer.
+  if (base === "km/L") return consumption(v)[0];
   const c = conversion(base);
   return v * c.k + c.offset;
 }
 
 export function fromDisplay(base: string, v: number): number {
+  if (base === "km/L") {
+    const k = consumption(1)[0];
+    return units().consumption === "L/100km" ? (v > 0 ? 100 / v : 0) : v / k;
+  }
   const c = conversion(base);
   return (v - c.offset) / c.k;
 }
 
 export function displayUnit(base: string): string {
+  if (base === "km/L") return consumption(1)[1];
   return conversion(base).unit;
 }
 

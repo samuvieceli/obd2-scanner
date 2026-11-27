@@ -44,3 +44,39 @@ export function matchPreset(keys: string[], supported: (key: string) => boolean,
 export function presetAfterClick(id: PresetId, active: PresetId | undefined): PresetId {
   return id === active ? "full" : id;
 }
+
+// --- Charts ------------------------------------------------------------------
+// Ready-made groups for the Charts screen, by what is being checked. Same
+// rules as above; "dashboard" follows the parameters of the live dashboard.
+
+export type ChartPresetId = "dashboard" | "mixture" | "temperatures" | "electrical" | "consumption" | "acceleration" | "turbo";
+
+export const CHART_PRESETS: Record<ChartPresetId, Entry[]> = {
+  dashboard: [],
+  mixture: ["stft_b1", "ltft_b1", ["o2_b1s1", "lambda_b1s1", "wb_lambda_s1"], "o2_b1s2", ["maf", "intake_map"], "rpm"],
+  temperatures: ["coolant_temp", "intake_temp", "oil_temp", "ambient_temp", "catalyst_temp_b1s1"],
+  electrical: ["battery_voltage", "module_voltage", "rpm"],
+  consumption: ["calc_fuel_flow", "calc_economy", "speed", "rpm", "engine_load"],
+  acceleration: ["speed", "rpm", "throttle", ["accel_pedal_d", "relative_pedal"], "engine_load", "timing_advance"],
+  turbo: [["boost_pressure_a", "intake_map"], "boost_pressure_cmd_a", "intake_temp", "timing_advance", "throttle", "rpm"],
+};
+
+/** The parameters of chart preset `id` available here (`dashboard`: null = follow it). */
+export function chartPresetKeys(id: ChartPresetId, available: (key: string) => boolean): string[] | null {
+  if (id === "dashboard") return null;
+  const out: string[] = [];
+  for (const e of CHART_PRESETS[id]) {
+    const k = Array.isArray(e) ? e.find(available) : available(e) ? e : undefined;
+    if (k && !out.includes(k)) out.push(k);
+  }
+  return out;
+}
+
+/** The chart preset matching the chosen keys (null = following the dashboard). */
+export function matchChartPreset(keys: string[] | null, available: (key: string) => boolean): ChartPresetId | undefined {
+  if (keys === null) return "dashboard";
+  return (Object.keys(CHART_PRESETS) as ChartPresetId[]).find((id) => {
+    const p = chartPresetKeys(id, available);
+    return !!p && p.length > 0 && p.length === keys.length && p.every((k) => keys.includes(k));
+  });
+}
