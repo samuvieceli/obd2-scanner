@@ -1,2 +1,50 @@
-# obd2-scanner
-Scanner OBD2 para Windows com adaptadores ELM327 via Bluetooth, BLE, USB e Wi-Fi. Dados ao vivo, códigos de falha, gráficos e exportação. PT-BR/EN.
+# OBD2 Scanner
+
+Scanner OBD2 de código aberto para Windows, feito para adaptadores **ELM327** (originais, clones e simuladores).
+Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at the end.)*
+
+## O que ele faz
+
+- **Conexão** por USB, Bluetooth clássico (porta COM), Wi-Fi e **modo demonstração** (carro virtual, sem adaptador). Bluetooth LE vem na próxima versão.
+- **Painel ao vivo** com mais de 45 parâmetros (rotação, temperatura, correção de combustível, sondas lambda, tensão da bateria...), cada um com explicação curta.
+- **Interpretação automática** dos dados (superaquecimento, mistura pobre/rica, carga da bateria, sonda lambda, catalisador).
+- **Gráficos** em tempo real, sincronizados, com exportação para imagem PNG.
+- **Códigos de falha**: confirmados, pendentes e permanentes, com descrição em português; apagar códigos; quadro congelado; consulta de qualquer código.
+- **Veículo e prontidão**: chassi (VIN) decodificado, monitores de prontidão, luz de injeção.
+- **Terminal AT** para comandos diretos ao adaptador.
+- **Gravações e relatórios**: CSV (inclusive no formato do Excel brasileiro), JSON, e relatório para imprimir ou salvar como PDF.
+- Interface em **português (Brasil)** e **inglês (EUA)**, tema escuro e claro, e **glossário** com todos os termos.
+
+## Como instalar no Windows (sem programar)
+
+1. Abra a aba **Actions** deste repositório no GitHub e clique na execução mais recente do **CI** com sinal verde.
+2. No fim da página, em **Artifacts**, baixe `obd2-scanner-windows-instalador`.
+3. Descompacte o arquivo `.zip` e execute o instalador `OBD2 Scanner_..._x64-setup.exe`.
+4. O Windows pode avisar que o programa é de um editor desconhecido (o instalador ainda não é assinado digitalmente): clique em **Mais informações → Executar assim mesmo**.
+
+Detalhes e solução de problemas: [docs/COMO-USAR.md](docs/COMO-USAR.md).
+
+## Para desenvolvedores
+
+Requisitos: [Rust](https://rustup.rs), [Node.js 22](https://nodejs.org) e, no Windows, as "Ferramentas de Build do Visual Studio" (C++). Veja os [pré-requisitos do Tauri](https://v2.tauri.app/start/prerequisites/).
+
+```bash
+npm install
+npm run tauri dev      # abre o app em modo de desenvolvimento
+npm run tauri build    # gera o instalador em target/release/bundle
+cargo test -p obd-core # testes do núcleo
+```
+
+Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
+
+## Créditos e licença
+
+Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Ideias inspiradas nos projetos abertos
+[obdium](https://github.com/provrb/obdium) (GPL-3.0) e [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) (MIT).
+
+---
+
+**English:** OBD2 Scanner is a Rust + Tauri 2 desktop app for ELM327 adapters over USB, Bluetooth classic (COM port),
+Wi-Fi and a built-in demo simulator. It shows live data with explanations and automatic interpretation, charts, trouble
+codes (read/clear, freeze frame), readiness monitors, VIN decoding, an AT terminal, and exports CSV/JSON/PNG plus a
+printable report. UI in Brazilian Portuguese and US English. See `docs/ARCHITECTURE` (Portuguese) for the design.
