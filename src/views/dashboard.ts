@@ -14,7 +14,8 @@ function fmtEconomy(kmPerL: number): string {
   const [v, unit] = consumption(kmPerL);
   return `${fmtNum(v, 1)} ${unit}`;
 }
-import { meters, resetTrip, resetTripMeter, setTripRunning, trip } from "../trip";
+import { calibratedFills, calibrationMethod, cancelFill, fillTracker, meters, resetTrip, resetTripMeter, setTripRunning, startFillTracker, trip } from "../trip";
+import { openRefuelDialog } from "./refuel-dialog";
 import { TRIP_IDS, average, averageSpeed, type TripId } from "../trips";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { lastDrive, showSummary } from "./drive-summary";
@@ -376,7 +377,10 @@ export function mount(root: HTMLElement) {
     // consumption with ethanol in the tank. Ask instead, with one click.
     const flexBlind = profile().fuel === "auto" && !!state.adapter && !state.playback && !isSupported("ethanol_percent");
     const m = meters();
-    const key = `${missing.join()}|${!!state.playback}|${lastDrive?.endedAt ?? ""}|${noPrice}|${flexBlind}|${getLang()}|${m.a.running}|${m.b.running}|${profile().id}`;
+    const cal = calibrationMethod();
+    const f = fillTracker();
+    const filling = f && f.method === cal ? f : null;
+    const key = `${cal}|${filling?.since ?? ""}|${cal ? calibratedFills(cal) : 0}|${missing.join()}|${!!state.playback}|${lastDrive?.endedAt ?? ""}|${noPrice}|${flexBlind}|${getLang()}|${m.a.running}|${m.b.running}|${profile().id}`;
     if (key === actionsFor) return;
     actionsFor = key;
     clear(tripActions);
@@ -425,6 +429,7 @@ export function mount(root: HTMLElement) {
           ),
         );
       }
+      if (cal) tripActions.append(calibrationBox(cal, !!filling));
     }
     tripActions.append(
       h(
@@ -436,6 +441,40 @@ export function mount(root: HTMLElement) {
       ),
     );
   };
+  // Pump calibration: "Tanque cheio" then "Abasteci" (see refuel.ts). Shown
+  // openly for MAP-only cars, under "Avançado" for cars with a MAF sensor.
+  const calibrationBox = (cal: "maf" | "map", filling: boolean): HTMLElement => {
+    const n = calibratedFills(cal);
+    const badge = h("span", { class: `badge ${n ? "badge-ok" : ""}` }, n ? t("refuel.calibrated", { n }) : t("refuel.notCalibrated"));
+    const body = h("div", { class: "refuel" });
+    if (!filling) {
+      body.append(
+        h("p", { class: "muted small" }, t(`refuel.startHint.${cal}`)),
+        h(
+          "div",
+          { class: "row" },
+          button(t("refuel.full"), async () => {
+            const ok = await ask(t("refuel.fullConfirm"), { title: t("refuel.full"), kind: "info", okLabel: t("refuel.full"), cancelLabel: t("common.cancel") }).catch(() => true);
+            if (ok) startFillTracker();
+          }, "secondary"),
+        ),
+      );
+    } else {
+      body.append(
+        h("p", { class: "muted small" }, t("refuel.wholeTrip")),
+        h(
+          "div",
+          { class: "row" },
+          button(t("refuel.done"), openRefuelDialog, "secondary"),
+          button(t("refuel.stop"), cancelFill, "ghost"),
+        ),
+      );
+    }
+    const head = h("div", { class: "row" }, h("strong", null, t("refuel.title")), infoTip(t(`refuel.help.${cal}`)), badge);
+    if (cal === "map") return h("div", { class: "refuel-box" }, head, body);
+    return h("details", { class: "help refuel-box", open: filling }, h("summary", null, t("refuel.advanced")), head, body);
+  };
+
   const renderTrip = () => {
     const tripBox = tripData;
     clear(tripBox);
@@ -485,6 +524,11 @@ export function mount(root: HTMLElement) {
           ),
         ),
       );
+      const f = fillTracker();
+      if (f && f.method === calibrationMethod())
+        tripBox.append(
+          h("p", { class: "muted small" }, t("refuel.progress", { km: fmtNum(toDisplay("km", f.distanceKm), 0), kmUnit: displayUnit("km"), l: fmtNum(f.baseL * (f.method === "map" ? profile().volumetricEff : profile().mafFactor), 1) })),
+        );
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
       return;
     }

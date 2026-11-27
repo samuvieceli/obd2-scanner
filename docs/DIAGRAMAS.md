@@ -225,6 +225,7 @@ flowchart LR
         store["store.ts<br/>estado e avisos"]
         api["api.ts<br/>ponte com o Rust"]
         trip["trip.ts + trips.ts<br/>consumo, Trip A e Trip B"]
+        refuel["refuel.ts<br/>ajuste pelo abastecimento"]
         cost["cost.ts + fuels.ts<br/>custo em R$ e<br/>gasolina × etanol"]
         perf["perf.ts<br/>detecção 0-100 etc."]
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
@@ -315,6 +316,27 @@ flowchart TB
     raw --> files["Gravações e arquivos<br/>continuam métricos"]
 ```
 
+### Como o consumo é calculado e o ajuste pelo abastecimento
+
+Ao conectar, o programa vê quais sensores o carro informa e guarda no perfil qual conta ele usa (linha **Consumo calculado por**). A cilindrada e a eficiência volumétrica só aparecem quando a conta é pelo MAP, porque só ali entram. O ajuste pelo abastecimento compara os litros da bomba com os calculados: em carros só com MAP corrige a eficiência volumétrica; em carros com MAF (dentro de **Avançado**) corrige um fator geral, útil com o sensor sujo ou velho. Quem faz as contas é `refuel.ts`; `trip.ts` soma os litros e aplica a correção.
+
+```mermaid
+flowchart TB
+    car["Sensores que o carro informa"] --> q1{"Vazão de combustível<br/>(PID 5E)?"}
+    q1 -- sim --> pid["Consumo direto da central<br/>(sem ajuste)"]
+    q1 -- não --> q2{"Sensor MAF?"}
+    q2 -- sim --> maf["Ar do MAF ÷ relação ar/combustível<br/>× fator de correção (padrão 100%)"]
+    q2 -- não --> map["Pressão MAP + rotação + temperatura<br/>× cilindrada × eficiência volumétrica (padrão 85%)"]
+    full["Tanque cheio"] --> sum["Soma os litros calculados<br/>e os km, só com o programa lendo"]
+    sum --> fill["Abasteci: janela pede<br/>os litros da bomba"]
+    fill --> check{"≥ 50 km, ≥ 3 L,<br/>sem falhas de leitura,<br/>resultado na faixa?"}
+    check -- não --> ignore["Avisa e não muda nada"]
+    check -- sim --> avg["Média dos últimos 5 abastecimentos<br/>(pesada pelos km)"]
+    avg -- "carro só com MAP" --> map
+    avg -- "carro com MAF (Avançado)" --> maf
+    ignore & avg --> restart["Recomeça a soma<br/>(o tanque está cheio de novo)"]
+```
+
 ---
 
 ## 8. Onde os dados ficam guardados
@@ -327,6 +349,7 @@ flowchart LR
     end
     prefs["Preferências, perfis,<br/>alertas, unidades, tema, idioma"] --> ls
     perfres["Resultados de desempenho<br/>(por perfil)"] --> ls
+    fillsum["Trip A/B e soma desde o<br/>tanque cheio (por perfil)"] --> ls
     conn["Última conexão usada"] --> ls
     rec["Gravação"] --> csv["CSV (Excel)"] & json["JSON (abre de novo<br/>no programa)"]
     rec -- "a cada minuto" --> backup[("Cópia de segurança<br/>gravacao-em-andamento.jsonl<br/>(recuperada se o programa fechar)")]

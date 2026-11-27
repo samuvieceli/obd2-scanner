@@ -12,6 +12,7 @@ import { emit } from "./store";
 import { t } from "./i18n";
 
 import { migrateFuel, type FuelType } from "./fuels";
+import type { FillResult, FuelMethod } from "./refuel";
 export type { FuelType };
 
 export interface AlertRule {
@@ -33,6 +34,12 @@ export interface Profile {
   displacementL: number;
   /** Volumetric efficiency (0-1) used with the displacement. */
   volumetricEff: number;
+  /** Fuel calculation this car allows, learned when reading it (null = not read yet). */
+  fuelMethod: FuelMethod | null;
+  /** Correction of the MAF-based consumption (1 = none), see refuel.ts. */
+  mafFactor: number;
+  /** Past pump calibrations, newest last. */
+  fills: FillResult[];
   alerts: AlertRule[];
   /** The one performance test being measured (see `chosenTest`). */
   perfTest?: PerfTestId;
@@ -63,7 +70,7 @@ export const DEFAULT_ALERTS: AlertRule[] = [
 export const FIRST_PROFILE = "default";
 
 export function newProfile(name: string, id = `p${Date.now().toString(36)}`): Profile {
-  return { id, name, vin: null, fuel: "auto", displacementL: 1.6, volumetricEff: 0.85, alerts: structuredClone(DEFAULT_ALERTS) };
+  return { id, name, vin: null, fuel: "auto", displacementL: 1.6, volumetricEff: 0.85, fuelMethod: null, mafFactor: 1, fills: [], alerts: structuredClone(DEFAULT_ALERTS) };
 }
 
 const DEFAULT_UNITS: UnitPrefs = { speed: "km/h", temp: "°C", pressure: "kPa", distance: "km", volume: "L", consumption: "km/L", torque: "Nm" };
@@ -92,7 +99,13 @@ function load(): Prefs {
   profiles = profiles.map((p, i) => {
     const base = newProfile(t("profiles.newName", { n: i + 1 }), p?.id || `p${i}`);
     const merged = { ...base, ...p };
-    return { ...merged, fuel: migrateFuel(merged.fuel), alerts: Array.isArray(merged.alerts) ? merged.alerts : base.alerts };
+    return {
+      ...merged,
+      fuel: migrateFuel(merged.fuel),
+      alerts: Array.isArray(merged.alerts) ? merged.alerts : base.alerts,
+      fills: Array.isArray(merged.fills) ? merged.fills : [],
+      mafFactor: Number.isFinite(merged.mafFactor) && merged.mafFactor > 0 ? merged.mafFactor : 1,
+    };
   });
   const active = profiles.some((p) => p.id === stored.activeProfile) ? stored.activeProfile! : profiles[0].id;
   return {

@@ -1,9 +1,10 @@
 // Settings: language, theme, vehicle profiles, units, connection, alerts, about.
-import { getLang, LANGS, setLang, t } from "../i18n";
+import { fmtNum, getLang, LANGS, setLang, t } from "../i18n";
 import { emit, on, state } from "../store";
 import { applyTheme, getTheme, THEME_SWATCH, THEMES, type Theme } from "../theme";
 import { baseUnitOf, button, clear, h, infoTip, section, toast, unitOf } from "../ui";
-import { DEFAULT_ALERTS, newProfile, prefs, profile, savePrefs, saveProfile, setActiveProfile, type AlertRule, type FuelType } from "../prefs";
+import { DEFAULT_ALERTS, newProfile, prefs, profile, savePrefs, saveProfile, setActiveProfile, type AlertRule, type FuelType, type Profile } from "../prefs";
+import { calibratedFills, resetCalibration } from "../trip";
 import { fromDisplay, saveUnits, toDisplay, UNIT_CHOICES, UNIT_PRESETS, units, type UnitPrefs } from "../units";
 import { pidText } from "../i18n";
 import type { PriceKey } from "../cost";
@@ -11,6 +12,45 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 
 const REPO_URL = "https://github.com/samuvieceli/obd2-scanner";
 const FUELS: FuelType[] = ["auto", "gasoline", "gasoline_premium", "ethanol", "diesel", "gasoline_pure"];
+
+type NumField = (label: string, help: string, value: number, step: number, min: number, max: number, set: (v: number) => void) => HTMLElement;
+
+/**
+ * How this car's consumption is calculated, and only the engine data that
+ * calculation uses: displacement and volumetric efficiency for MAP-only cars,
+ * the MAF correction factor for cars with a MAF sensor.
+ */
+function engineFields(p: Profile, num: NumField): HTMLElement[] {
+  const m = p.fuelMethod;
+  const out: HTMLElement[] = [
+    h("div", { class: "kv-row" }, h("span", { class: "muted" }, t("profiles.method.label"), " ", infoTip(t("profiles.method.help"))), h("strong", null, t(`profiles.method.${m ?? "unknown"}`))),
+  ];
+  if (m === null) out.push(h("p", { class: "muted small" }, t("profiles.method.unknownHint")));
+  if (m === "map" || m === null) {
+    out.push(
+      h(
+        "div",
+        { class: "row" },
+        num(t("settings.displacement"), t("settings.displacementHelp"), p.displacementL, 0.1, 0.6, 8, (v) => saveProfile({ displacementL: v })),
+        m === "map" ? num(t("settings.efficiency"), t("settings.efficiencyHelp"), Math.round(p.volumetricEff * 100), 1, 50, 120, (v) => saveProfile({ volumetricEff: v / 100 })) : null,
+      ),
+    );
+  }
+  if (m === "map" || m === "maf") {
+    const n = calibratedFills(m);
+    out.push(
+      h(
+        "div",
+        { class: "row wrap calibration-row" },
+        h("span", { class: "muted" }, t(`profiles.correction.${m}`), " ", infoTip(t(`profiles.correction.${m}Help`))),
+        m === "maf" ? h("strong", null, `${fmtNum(p.mafFactor * 100, 0)}%`) : null,
+        h("span", { class: `badge ${n ? "badge-ok" : ""}` }, n ? t("refuel.calibrated", { n }) : t("refuel.notCalibrated")),
+        button(t("profiles.correction.reset"), () => resetCalibration(m), "ghost"),
+      ),
+    );
+  }
+  return out;
+}
 
 /** Vehicle profiles: one per car, with the data used by the calculations. */
 function profilesSection(offs: (() => void)[]): HTMLElement {
@@ -118,12 +158,7 @@ function profilesSection(offs: (() => void)[]): HTMLElement {
           FUELS.map((f) => h("option", { value: f, selected: f === p.fuel }, t(`settings.fuels.${f}`))),
         ),
       ),
-      h(
-        "div",
-        { class: "row" },
-        num(t("settings.displacement"), t("settings.displacementHelp"), p.displacementL, 0.1, 0.6, 8, (v) => saveProfile({ displacementL: v })),
-        num(t("settings.efficiency"), t("settings.efficiencyHelp"), Math.round(p.volumetricEff * 100), 1, 50, 120, (v) => saveProfile({ volumetricEff: v / 100 })),
-      ),
+      ...engineFields(p, num),
     );
   };
   let removeArmed = false;
