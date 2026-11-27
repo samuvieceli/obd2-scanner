@@ -231,11 +231,14 @@ flowchart LR
         presets["presets.ts<br/>painéis prontos"]
         share["share.ts<br/>cartão 'Copiar imagem'"]
         warmup["warmup.ts<br/>motor frio / pronto"]
+        summary["summary.ts + drive-summary.ts<br/>resumo ao desligar o motor"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup
     hud --> warmup
     diagnostics & charts --> share
+    dashboard --> summary
+    summary --> trip & cost & share
     performance --> perf
     guided --> battery & o2test & trims
     sessions --> playback

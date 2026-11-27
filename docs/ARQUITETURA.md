@@ -48,6 +48,7 @@
 - `src/trims.test.ts` (Vitest): mapa de correção (faixas, malha aberta ignorada, reserva pela temperatura, padrões de entrada de ar, falta de combustível, pobre em tudo, purga).
 - `src/presets.test.ts` e `src/warmup.test.ts` (Vitest): painéis prontos (só o que o carro informa, alternativas) e selo de motor frio/pronto.
 - `src/cost.test.ts` (Vitest): custo da viagem, comparação gasolina × etanol pela energia e preço da mistura no flex.
+- `src/summary.test.ts` (Vitest): resumo da viagem (tempo parado e em movimento, distância, picos, alertas, viagens curtas ignoradas, falhas de leitura, conexão encerrada).
 - `src/perf.test.ts` (Vitest): detecção dos testes de desempenho com perfis de velocidade simulados (arrancada, retomadas, frenagem, desistência, falha de leitura, adaptador lento).
 - CI (`.github/workflows/ci.yml`): testes no Linux e geração do instalador no Windows.
 

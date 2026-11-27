@@ -462,3 +462,8 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .first-steps { margin-bottom: 14px; }
 .first-steps ol { margin: 4px 0 10px; padding-left: 20px; display: grid; gap: 6px; }
 .first-steps li .btn-sm { margin-left: 4px; }
+
+/* Dialog over the whole window (post-trip summary). */
+.overlay { position: fixed; inset: 0; background: rgb(0 0 0 / 0.45); display: grid; place-items: center; z-index: 90; padding: 16px; }
+.sheet { width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto; }
+.sheet h2 { margin: 0; }
