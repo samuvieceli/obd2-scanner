@@ -15,7 +15,7 @@ function fmtEconomy(kmPerL: number): string {
   return `${fmtNum(v, 1)} ${unit}`;
 }
 import { meters, resetTrip, resetTripMeter, setTripRunning, trip } from "../trip";
-import { TRIP_IDS, average, type TripId } from "../trips";
+import { TRIP_IDS, average, averageSpeed, type TripId } from "../trips";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { lastDrive, showSummary } from "./drive-summary";
 import { tripCost } from "../cost";
@@ -431,6 +431,7 @@ export function mount(root: HTMLElement) {
       const min = Math.floor((s % 3600) / 60);
       return hrs ? `${hrs} h ${String(min).padStart(2, "0")} min` : `${min} min ${String(Math.floor(s % 60)).padStart(2, "0")} s`;
     };
+    const speedText = (v: number | undefined) => (v !== undefined ? `${fmtNum(toDisplay("km/h", v), 0)} ${displayUnit("km/h")}` : "—");
     if (!state.playback) {
       // Trip A and Trip B side by side, the instant consumption shared above.
       const m = meters();
@@ -455,6 +456,7 @@ export function mount(root: HTMLElement) {
               return a !== undefined ? fmtEconomy(a) : "—";
             }),
             line(t("trip.distance"), (id) => `${fmtNum(toDisplay("km", m[id].distanceKm), 1)} ${displayUnit("km")}`),
+            line(t("trip.avgSpeed"), (id) => speedText(averageSpeed(m[id]))),
             line(t("trip.fuel"), (id) => `${fmtNum(toDisplay("L", m[id].fuelL), 2)} ${displayUnit("L")}`),
             line(t("trip.time"), (id) => duration(m[id].timeS)),
             ...(cost(1) !== undefined ? [line(t("cost.trip"), (id) => money(cost(m[id].fuelL) ?? 0))] : []),
@@ -472,6 +474,7 @@ export function mount(root: HTMLElement) {
         row(t("trip.average"), avg !== undefined && trip.distanceKm > 0.1 ? fmtEconomy(avg) : "—"),
         row(t("trip.distance"), `${fmtNum(toDisplay("km", trip.distanceKm), 2)} ${displayUnit("km")}`),
         row(t("trip.fuel"), `${fmtNum(toDisplay("L", trip.fuelL), 2)} ${displayUnit("L")}`),
+        row(t("trip.avgSpeed"), speedText(averageSpeed(trip))),
         row(t("trip.time"), duration(trip.timeS)),
       );
       const c = tripCost(trip.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices);

@@ -237,6 +237,7 @@ const enUS: Messages = {
     addKeys: "Add parameters",
     instant: "Fuel use now",
     average: "Trip average",
+    avgSpeed: "Average speed",
     distance: "Distance",
     fuel: "Fuel used",
     time: "Time",
