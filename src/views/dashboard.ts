@@ -17,7 +17,7 @@ function fmtEconomy(kmPerL: number): string {
 import { resetTrip, trip } from "../trip";
 import { lastDrive, showSummary } from "./drive-summary";
 import { tripCost } from "../cost";
-import { prefs, profile } from "../prefs";
+import { prefs, profile, saveProfile } from "../prefs";
 import { PRESETS, matchPreset, presetAfterClick, presetKeys, type PresetId } from "../presets";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
@@ -292,7 +292,11 @@ export function mount(root: HTMLElement) {
   let actionsFor = "";
   const renderTripActions = (missing: string[]) => {
     const noPrice = tripCost(1, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices).cost === undefined;
-    const key = `${missing.join()}|${!!state.playback}|${lastDrive?.endedAt ?? ""}|${noPrice}|${getLang()}`;
+    // Most Brazilian flex cars do not report the ethanol share (PID 52): in
+    // "auto" the program would silently assume gasoline and show too low a
+    // consumption with ethanol in the tank. Ask instead, with one click.
+    const flexBlind = profile().fuel === "auto" && !!state.adapter && !state.playback && !isSupported("ethanol_percent");
+    const key = `${missing.join()}|${!!state.playback}|${lastDrive?.endedAt ?? ""}|${noPrice}|${flexBlind}|${getLang()}`;
     if (key === actionsFor) return;
     actionsFor = key;
     clear(tripActions);
@@ -303,6 +307,21 @@ export function mount(root: HTMLElement) {
           setLiveKeys(keys);
           api.setLive(keys, state.polling).catch((e) => toast(errorText(e), "error"));
         }, "ghost"),
+      );
+    }
+    if (flexBlind) {
+      const pick = (fuel: "gasoline" | "ethanol") => () => {
+        saveProfile({ fuel });
+        actionsFor = "";
+        renderTrip();
+      };
+      tripActions.append(
+        h(
+          "div",
+          { class: "alert small" },
+          h("p", null, t("trip.flexUnknown")),
+          h("div", { class: "row" }, button(t("trip.flexGasoline"), pick("gasoline"), "ghost"), button(t("trip.flexEthanol"), pick("ethanol"), "ghost")),
+        ),
       );
     }
     if (noPrice && !(missing.length && !state.playback)) {

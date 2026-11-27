@@ -127,6 +127,8 @@ const WMI: &[(&str, &str)] = &[
     ("988", "Jeep (Brasil)"),
     ("98R", "Chery (Brasil)"),
     ("99A", "Audi (Brasil)"),
+    ("93Z", "Iveco (Brasil)"),
+    ("95P", "CAOA (Brasil)"),
     ("8AP", "Fiat (Argentina)"),
     ("8AJ", "Toyota (Argentina)"),
     ("8AW", "Volkswagen (Argentina)"),

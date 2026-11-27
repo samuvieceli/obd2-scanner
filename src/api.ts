@@ -222,6 +222,8 @@ export const api = {
   scanEcus: () => invoke<EcuInfo[]>("scan_ecus"),
   readVehicleInfo: () => invoke<VehicleInfo>("read_vehicle_info"),
   sendRaw: (command: string, timeoutMs?: number) => invoke<string>("send_raw", { command, timeoutMs }),
+  /** Sets the adapter up again if the AT terminal changed it; true when it did. */
+  restoreAdapter: () => invoke<boolean>("restore_adapter"),
   startRecording: () => invoke<RecordingStatus>("start_recording"),
   stopRecording: () => invoke<RecordingStatus>("stop_recording"),
   addMark: () => invoke<RecordingStatus>("add_mark"),

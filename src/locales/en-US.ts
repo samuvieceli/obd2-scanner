@@ -220,6 +220,9 @@ const enUS: Messages = {
     title: "Trip computer",
     help: "Fuel use and trip data calculated by the program from the sensors (fuel rate, MAF or MAP). It is an estimate, usually within 5% to 15%. Set the fuel and engine size in Settings for better accuracy.",
     needs: "To calculate fuel use, add to the dashboard: {names}.",
+    flexUnknown: "This car does not report the ethanol share over OBD2, so consumption is calculated as if it were gasoline. Tell what is in the tank (you can change it later in Settings):",
+    flexGasoline: "Gasoline (E32)",
+    flexEthanol: "Hydrated ethanol",
     addKeys: "Add parameters",
     instant: "Fuel use now",
     average: "Trip average",
@@ -623,7 +626,7 @@ const enUS: Messages = {
     state: { complete: "Complete", incomplete: "Incomplete", not_supported: "Not supported" },
   },
   terminal: {
-    readOnly: "Read-only: commands that write to the car or the adapter are refused.",
+    readOnly: "Read-only: commands that write to the car or the adapter are refused. When you leave this screen, the program sets the adapter up again if a command changed its setup (ATZ, ATH1, ATSH...).",
     quickHelp: {
       ATI: "Adapter version",
       ATRV: "Battery voltage measured by the adapter",
