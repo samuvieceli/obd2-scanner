@@ -17,6 +17,7 @@ function fmtEconomy(kmPerL: number): string {
 import { resetTrip, trip } from "../trip";
 import { lastDrive, showSummary } from "./drive-summary";
 import { tripCost } from "../cost";
+import { normalize } from "../search";
 import { prefs, profile, saveProfile } from "../prefs";
 import { PRESETS, matchPreset, presetAfterClick, presetKeys, type PresetId } from "../presets";
 
@@ -129,8 +130,12 @@ export function mount(root: HTMLElement) {
     recBtn.className = `btn ${state.recording.recording ? "btn-danger" : "btn-secondary"}`;
   };
 
+  // Picker filter: kept while the picker is open and re-rendered.
+  let query = "";
+  let showUnsupported = false;
   const renderPicker = () => {
     clear(picker);
+    const list = h("div");
     const apply = async (keys: string[]) => {
       setLiveKeys(keys);
       try {
@@ -138,9 +143,65 @@ export function mount(root: HTMLElement) {
       } catch (e) {
         toast(errorText(e), "error");
       }
-      renderPicker();
+      renderList();
       renderCards();
     };
+    // With a car connected, what it cannot answer is hidden unless asked for.
+    const connected = !!state.adapter && !state.playback;
+    const renderList = () => {
+      clear(list);
+      const words = normalize(query).split(/\s+/).filter(Boolean);
+      const matches = (key: string, pid: number) => {
+        const p = pidText(key);
+        const text = normalize(`${p.name} ${p.short} ${key} ${pid.toString(16).padStart(2, "0")}`);
+        return words.every((w) => text.includes(w));
+      };
+      let shown = 0;
+      for (const cat of CATEGORY_ORDER) {
+        const items = state.catalog.filter(
+          (m) => m.category === cat && matches(m.key, m.pid) && (!connected || showUnsupported || isSupported(m.key) || state.liveKeys.includes(m.key)),
+        );
+        if (!items.length) continue;
+        shown += items.length;
+        list.append(
+          h(
+            "fieldset",
+            null,
+            h("legend", null, t(`categories.${cat}`)),
+            items.map((m) => {
+              const supported = isSupported(m.key);
+              return h(
+                "label",
+                { class: `check ${supported ? "" : "disabled"}`, title: supported ? pidText(m.key).desc : t("dashboard.notSupported") },
+                h("input", {
+                  type: "checkbox",
+                  disabled: !supported,
+                  checked: state.liveKeys.includes(m.key),
+                  onchange: (e: Event) => {
+                    const checked = (e.target as HTMLInputElement).checked;
+                    const keys = checked ? [...state.liveKeys, m.key] : state.liveKeys.filter((k) => k !== m.key);
+                    void apply(keys);
+                  },
+                }),
+                h("span", null, pidText(m.key).name),
+              );
+            }),
+          ),
+        );
+      }
+      if (!shown) list.append(h("p", { class: "muted small" }, t("dashboard.pickerNone")));
+    };
+    const search = h("input", {
+      type: "search",
+      class: "grow",
+      placeholder: t("dashboard.pickerSearch"),
+      "aria-label": t("dashboard.pickerSearch"),
+      value: query,
+      oninput: (e: Event) => {
+        query = (e.target as HTMLInputElement).value;
+        renderList();
+      },
+    });
     picker.append(
       h(
         "div",
@@ -150,36 +211,30 @@ export function mount(root: HTMLElement) {
         button(t("dashboard.selectAll"), () => apply(state.catalog.map((m) => m.key).filter(isSupported)), "ghost"),
         button(t("dashboard.selectNone"), () => apply([]), "ghost"),
       ),
-    );
-    for (const cat of CATEGORY_ORDER) {
-      const items = state.catalog.filter((m) => m.category === cat);
-      if (!items.length) continue;
-      picker.append(
-        h(
-          "fieldset",
-          null,
-          h("legend", null, t(`categories.${cat}`)),
-          items.map((m) => {
-            const supported = isSupported(m.key);
-            return h(
+      h(
+        "div",
+        { class: "row" },
+        search,
+        connected
+          ? h(
               "label",
-              { class: `check ${supported ? "" : "disabled"}`, title: supported ? pidText(m.key).desc : t("dashboard.notSupported") },
+              { class: "check" },
               h("input", {
                 type: "checkbox",
-                disabled: !supported,
-                checked: state.liveKeys.includes(m.key),
+                checked: showUnsupported,
                 onchange: (e: Event) => {
-                  const checked = (e.target as HTMLInputElement).checked;
-                  const keys = checked ? [...state.liveKeys, m.key] : state.liveKeys.filter((k) => k !== m.key);
-                  apply(keys);
+                  showUnsupported = (e.target as HTMLInputElement).checked;
+                  renderList();
                 },
               }),
-              h("span", null, pidText(m.key).name),
-            );
-          }),
-        ),
-      );
-    }
+              h("span", null, t("dashboard.pickerShowAll")),
+            )
+          : "",
+      ),
+      list,
+    );
+    renderList();
+    search.focus();
   };
 
   // Ready-made layouts: one click replaces the chosen parameters.
