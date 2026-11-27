@@ -9,6 +9,7 @@ import { copyCard, drawCard, type Line } from "../share";
 import { emit, on, state } from "../store";
 import { Drive, type DriveSummary } from "../summary";
 import { fuelFlow } from "../trip";
+import { isSeeking } from "../playback";
 import { button, fmtValue, h, unitOf } from "../ui";
 import { consumption, displayUnit, toDisplay } from "../units";
 
@@ -98,7 +99,8 @@ function finished(s: DriveSummary | undefined) {
   if (!s) return;
   lastDrive = s;
   emit("trip");
-  showSummary(s);
+  // A jump in a replay passes over old drives: keep them without a pop-up.
+  if (!isSeeking()) showSummary(s);
 }
 
 export function initDriveSummary() {

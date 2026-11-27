@@ -22,6 +22,12 @@ export interface Playback {
 }
 
 let timer = 0;
+let seeking = false;
+
+/** True while a jump re-sends the frames up to the new position. */
+export function isSeeking(): boolean {
+  return seeking;
+}
 let lastFindingsAt = 0;
 
 function rateOf(s: Session): number {
@@ -127,7 +133,12 @@ export function seek(ms: number) {
   p.posMs = Math.max(0, Math.min(p.durationMs, ms));
   // Totals (trip, fuel trim map, drive summary) are rebuilt from the start.
   emit("seek");
-  emitUpTo(p, p.posMs, rateOf(p.session));
+  seeking = true;
+  try {
+    emitUpTo(p, p.posMs, rateOf(p.session));
+  } finally {
+    seeking = false;
+  }
   void refreshFindings(p);
   emit("playback");
 }

@@ -254,8 +254,11 @@ function alertsSection(offs: (() => void)[]): HTMLElement {
         placeholder: "—",
         "aria-label": t(`settings.alert${which === "below" ? "Below" : "Above"}`),
         onchange: (e: Event) => {
-          const raw = (e.target as HTMLInputElement).value.trim();
-          update(i, { [which]: raw === "" ? null : fromDisplay(base, Number(raw)) });
+          const raw = (e.target as HTMLInputElement).value.trim().replace(",", ".");
+          const n = Number(raw);
+          // Ignore what is not a number instead of saving it as a limit.
+          if (raw !== "" && !Number.isFinite(n)) return;
+          update(i, { [which]: raw === "" ? null : fromDisplay(base, n) });
         },
       });
     };

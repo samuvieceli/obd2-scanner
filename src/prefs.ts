@@ -71,7 +71,8 @@ type Stored = Partial<Prefs> & Partial<Omit<Profile, "id" | "name" | "vin">>;
 function load(): Prefs {
   let stored: Stored = {};
   try {
-    stored = JSON.parse(localStorage.getItem("prefs") ?? "{}") as Stored;
+    const v: unknown = JSON.parse(localStorage.getItem("prefs") ?? "{}");
+    stored = v && typeof v === "object" ? (v as Stored) : {};
   } catch {
     stored = {};
   }
@@ -84,7 +85,12 @@ function load(): Prefs {
     if (stored.alerts) first.alerts = stored.alerts;
     profiles = [first];
   }
-  for (const p of profiles) p.fuel = migrateFuel(p.fuel);
+  // Fill fields an older or damaged file lacks, so no screen meets "undefined".
+  profiles = profiles.map((p, i) => {
+    const base = newProfile(t("profiles.newName", { n: i + 1 }), p?.id || `p${i}`);
+    const merged = { ...base, ...p };
+    return { ...merged, fuel: migrateFuel(merged.fuel), alerts: Array.isArray(merged.alerts) ? merged.alerts : base.alerts };
+  });
   const active = profiles.some((p) => p.id === stored.activeProfile) ? stored.activeProfile! : profiles[0].id;
   return {
     alertsEnabled: stored.alertsEnabled ?? true,
