@@ -10,9 +10,9 @@
 
 use serde::Serialize;
 
+use crate::Result;
 use crate::elm327::Elm327;
 use crate::response::clean_lines;
-use crate::Result;
 
 /// `(ELM327 version that introduced the command, command)`.
 pub const PROBES: &[(&str, &str)] = &[

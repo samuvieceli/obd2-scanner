@@ -145,51 +145,59 @@ impl Interpreter {
             }
         }
 
-        if let (Some(r), Some(sp), true) = (rpm, self.latest("speed"), warm) {
-            if sp < 1.0 && self.latest("throttle").is_none_or(|t| t < 20.0) && r > 1150.0 {
-                out.push(finding("idle_high", Info, &[("value", r)]));
-            }
+        if let (Some(r), Some(sp), true) = (rpm, self.latest("speed"), warm)
+            && sp < 1.0
+            && self.latest("throttle").is_none_or(|t| t < 20.0)
+            && r > 1150.0
+        {
+            out.push(finding("idle_high", Info, &[("value", r)]));
         }
 
-        if let Some(iat) = self.latest("intake_temp") {
-            if iat > 65.0 {
-                out.push(finding("intake_hot", Warning, &[("value", iat)]));
-            }
+        if let Some(iat) = self.latest("intake_temp")
+            && iat > 65.0
+        {
+            out.push(finding("intake_hot", Warning, &[("value", iat)]));
         }
 
-        if let Some(cat) = self.latest("catalyst_temp_b1s1") {
-            if cat > 900.0 {
-                out.push(finding("catalyst_overheat", Critical, &[("value", cat)]));
-            }
+        if let Some(cat) = self.latest("catalyst_temp_b1s1")
+            && cat > 900.0
+        {
+            out.push(finding("catalyst_overheat", Critical, &[("value", cat)]));
         }
 
         // Upstream O2 sensor should switch between lean (<0.3 V) and rich (>0.6 V).
-        if let Some((dt, lo, hi)) = self.span("o2_b1s1") {
-            if running && warm && dt >= 8.0 && hi - lo < 0.3 {
-                out.push(finding(
-                    "o2_not_switching",
-                    Warning,
-                    &[("min", lo), ("max", hi)],
-                ));
-            }
+        if let Some((dt, lo, hi)) = self.span("o2_b1s1")
+            && running
+            && warm
+            && dt >= 8.0
+            && hi - lo < 0.3
+        {
+            out.push(finding(
+                "o2_not_switching",
+                Warning,
+                &[("min", lo), ("max", hi)],
+            ));
         }
         // Downstream sensor switching as much as the upstream one = tired catalyst.
         if let (Some((dt, lo1, hi1)), Some((_, lo2, hi2))) =
             (self.span("o2_b1s1"), self.span("o2_b1s2"))
+            && running
+            && warm
+            && dt >= 8.0
+            && hi1 - lo1 > 0.4
+            && (hi2 - lo2) > 0.7 * (hi1 - lo1)
         {
-            if running && warm && dt >= 8.0 && hi1 - lo1 > 0.4 && (hi2 - lo2) > 0.7 * (hi1 - lo1) {
-                out.push(finding(
-                    "catalyst_efficiency_suspect",
-                    Warning,
-                    &[("up", hi1 - lo1), ("down", hi2 - lo2)],
-                ));
-            }
+            out.push(finding(
+                "catalyst_efficiency_suspect",
+                Warning,
+                &[("up", hi1 - lo1), ("down", hi2 - lo2)],
+            ));
         }
 
-        if let Some(f) = self.latest("fuel_level") {
-            if f < 10.0 {
-                out.push(finding("fuel_low", Info, &[("value", f)]));
-            }
+        if let Some(f) = self.latest("fuel_level")
+            && f < 10.0
+        {
+            out.push(finding("fuel_low", Info, &[("value", f)]));
         }
 
         out.sort_by_key(|f| std::cmp::Reverse(f.severity));
@@ -231,7 +239,9 @@ mod tests {
 
     #[test]
     fn charging_depends_on_engine_running() {
-        assert!(eval(&[("rpm", 800.0), ("battery_voltage", 12.4)]).contains(&"charging_low".into()));
+        assert!(
+            eval(&[("rpm", 800.0), ("battery_voltage", 12.4)]).contains(&"charging_low".into())
+        );
         assert!(eval(&[("rpm", 0.0), ("battery_voltage", 12.6)]).contains(&"battery_ok".into()));
         assert!(eval(&[("battery_voltage", 11.8)]).contains(&"battery_low".into()));
     }

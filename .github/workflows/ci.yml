@@ -11,14 +11,14 @@ jobs:
     name: Testes do núcleo (Linux)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: sudo apt-get update && sudo apt-get install -y libudev-dev libdbus-1-dev pkg-config
       - run: cargo test -p obd-core --all-features
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: npm run typecheck
@@ -28,17 +28,17 @@ jobs:
     name: Instalador Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: cargo test -p obd-core --all-features
       - run: npm run tauri build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: obd2-scanner-windows-instalador
           path: |
@@ -51,7 +51,7 @@ jobs:
           mkdir -p portable
           cp target/release/obd2-scanner.exe portable/OBD2-Scanner.exe
           cp packaging/portable.txt LICENSE portable/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: obd2-scanner-windows-portatil
           path: portable/

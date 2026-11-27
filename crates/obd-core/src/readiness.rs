@@ -181,9 +181,10 @@ mod tests {
     fn decodes_diesel() {
         let r = decode_readiness(&[0x00, 0x0F, 0xC0, 0x40]).unwrap();
         assert!(r.compression_ignition);
-        assert!(r
-            .monitors
-            .iter()
-            .any(|m| m.key == "pm_filter" && m.state == MonitorState::Incomplete));
+        assert!(
+            r.monitors
+                .iter()
+                .any(|m| m.key == "pm_filter" && m.state == MonitorState::Incomplete)
+        );
     }
 }

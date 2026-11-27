@@ -39,8 +39,8 @@ const SPP: &str = "{00001101-0000-1000-8000-00805f9b34fb}";
 /// Every Bluetooth COM port Windows knows, with its direction and device name.
 #[cfg(windows)]
 pub fn bluetooth_ports() -> Vec<BtPort> {
-    use winreg::enums::HKEY_LOCAL_MACHINE;
     use winreg::RegKey;
+    use winreg::enums::HKEY_LOCAL_MACHINE;
 
     let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
     let Ok(bthenum) = hklm.open_subkey(r"SYSTEM\CurrentControlSet\Enum\BTHENUM") else {

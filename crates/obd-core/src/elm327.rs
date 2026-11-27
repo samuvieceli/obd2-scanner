@@ -10,9 +10,9 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
-use crate::dtc::{decode_dtc_response, Dtc};
-use crate::pid::{decode_supported, PidValue, PIDS};
-use crate::readiness::{decode_readiness, Readiness};
+use crate::dtc::{Dtc, decode_dtc_response};
+use crate::pid::{PIDS, PidValue, decode_supported};
+use crate::readiness::{Readiness, decode_readiness};
 use crate::response::{assemble_messages, check_errors, clean_lines, filter_responses};
 use crate::transport::Transport;
 use crate::vin::assemble_mode09_string;
@@ -293,10 +293,10 @@ impl Elm327 {
         for cmd in ["ATE0", "ATL0", "ATS1", "ATH0", "ATAT1"] {
             self.at_optional(cmd)?;
         }
-        if let Ok(lines) = self.command("ATI") {
-            if let Some(v) = lines.into_iter().find(|l| !l.trim().is_empty() && l != "?") {
-                self.info.version = v;
-            }
+        if let Ok(lines) = self.command("ATI")
+            && let Some(v) = lines.into_iter().find(|l| !l.trim().is_empty() && l != "?")
+        {
+            self.info.version = v;
         }
         self.info.likely_clone = looks_like_clone(&self.info.version);
         if !self.config.elm_timeout_hex.is_empty() {
@@ -371,11 +371,11 @@ impl Elm327 {
         self.log(LogDirection::Info, "adapter not responding, recovering");
         let mut alive = false;
         for wait_ms in [1_000, 2_000] {
-            if let Ok(raw) = self.raw_command("ATI", Duration::from_millis(wait_ms)) {
-                if raw.contains('>') || raw.to_ascii_uppercase().contains("ELM") {
-                    alive = true;
-                    break;
-                }
+            if let Ok(raw) = self.raw_command("ATI", Duration::from_millis(wait_ms))
+                && (raw.contains('>') || raw.to_ascii_uppercase().contains("ELM"))
+            {
+                alive = true;
+                break;
             }
             if self.link_lost {
                 break;

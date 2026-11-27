@@ -231,11 +231,7 @@ pub fn assemble_mode09_string(messages: &[Vec<u8>], can: bool) -> Option<String>
         .filter(|b| b.is_ascii_graphic())
         .map(|b| b as char)
         .collect();
-    if text.is_empty() {
-        None
-    } else {
-        Some(text)
-    }
+    if text.is_empty() { None } else { Some(text) }
 }
 
 #[cfg(test)]
@@ -287,11 +283,13 @@ mod tests {
 
     #[test]
     fn mode09_can_and_legacy() {
-        let can = vec![[0x49, 0x02, 0x01]
-            .iter()
-            .copied()
-            .chain(*b"1HGCM82633A004352")
-            .collect()];
+        let can = vec![
+            [0x49, 0x02, 0x01]
+                .iter()
+                .copied()
+                .chain(*b"1HGCM82633A004352")
+                .collect(),
+        ];
         assert_eq!(
             assemble_mode09_string(&can, true).as_deref(),
             Some("1HGCM82633A004352")

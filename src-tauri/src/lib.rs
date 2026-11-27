@@ -11,16 +11,16 @@ mod worker;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use obd_core::dtc::{brand_from_manufacturer, describe_for, DtcInfo};
+use obd_core::ObdError;
+use obd_core::dtc::{DtcInfo, brand_from_manufacturer, describe_for};
 use obd_core::elm327::{AdapterInfo, Elm327, ElmConfig, LogDirection, VehicleIdentity};
 use obd_core::pid::{self, PidMeta};
 use obd_core::readiness::Readiness;
 use obd_core::session::{CsvStyle, Session};
 use obd_core::simulator::{Simulator, SimulatorOptions};
 use obd_core::transport::tcp::TcpTransport;
-use obd_core::transport::{ConnectionTarget, PortInfo, Transport, COMMON_BAUD_RATES};
-use obd_core::vin::{decode_vin, VinInfo};
-use obd_core::ObdError;
+use obd_core::transport::{COMMON_BAUD_RATES, ConnectionTarget, PortInfo, Transport};
+use obd_core::vin::{VinInfo, decode_vin};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -301,16 +301,14 @@ async fn connect(
 /// found by trying several speeds is reopened directly at the speed that
 /// worked, and the protocol found is reused (no slow search).
 fn reopener(mut req: ConnectRequest, found: &AdapterInfo, app: AppHandle) -> worker::Reopen {
-    if let ConnectionTarget::Serial { baud_rate, .. } = &mut req.target {
-        if *baud_rate == 0 {
-            if let Some(rate) = found
-                .transport
-                .rsplit_once('@')
-                .and_then(|(_, r)| r.trim().parse().ok())
-            {
-                *baud_rate = rate;
-            }
-        }
+    if let ConnectionTarget::Serial { baud_rate, .. } = &mut req.target
+        && *baud_rate == 0
+        && let Some(rate) = found
+            .transport
+            .rsplit_once('@')
+            .and_then(|(_, r)| r.trim().parse().ok())
+    {
+        *baud_rate = rate;
     }
     let known = found.protocol_number.trim_start_matches('A');
     if !known.is_empty() {

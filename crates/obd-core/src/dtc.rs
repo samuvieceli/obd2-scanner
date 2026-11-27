@@ -222,30 +222,33 @@ pub fn describe_for(code: &str, lang: &str, brand: Option<&str>) -> DtcInfo {
     let mut translated = true;
     let mut used_brand = None;
     let mut found: Option<String> = None;
-    if !generic {
-        if let Some(b) = brand {
-            if let Some(text) = brand_db().get(b).and_then(|t| t.get(&code_up)) {
-                found = Some(text.clone());
-                used_brand = Some(b.to_string());
-                translated = !pt;
-            }
-        }
+    if !generic
+        && let Some(b) = brand
+        && let Some(text) = brand_db().get(b).and_then(|t| t.get(&code_up))
+    {
+        found = Some(text.clone());
+        used_brand = Some(b.to_string());
+        translated = !pt;
     }
-    if found.is_none() {
-        if let Some(entry) = db().get(&code_up) {
-            let wanted = entry.get(if pt { "pt" } else { "en" });
-            found = wanted.or_else(|| entry.get("en")).cloned();
-            translated = wanted.is_some();
-        }
+    if found.is_none()
+        && let Some(entry) = db().get(&code_up)
+    {
+        let wanted = entry.get(if pt { "pt" } else { "en" });
+        found = wanted.or_else(|| entry.get("en")).cloned();
+        translated = wanted.is_some();
     }
     let (description, known) = match found {
         Some(text) => (text, true),
         None => {
             let text = match (pt, generic) {
                 (true, true) => format!("Código genérico sem descrição na base. Sistema: {system}"),
-                (true, false) => format!("Código específico do fabricante. Sistema: {system}. Consulte o manual de serviço do veículo."),
+                (true, false) => format!(
+                    "Código específico do fabricante. Sistema: {system}. Consulte o manual de serviço do veículo."
+                ),
                 (false, true) => format!("Generic code not in the database. System: {system}"),
-                (false, false) => format!("Manufacturer-specific code. System: {system}. Check the vehicle service manual."),
+                (false, false) => format!(
+                    "Manufacturer-specific code. System: {system}. Check the vehicle service manual."
+                ),
             };
             (text, false)
         }
@@ -332,8 +335,10 @@ mod tests {
         assert_eq!(d.brand.as_deref(), Some("honda"));
         assert!(d.description.contains("VTEC"));
         // Generic codes never use the brand table.
-        assert!(describe_for("P0301", "en-US", Some("honda"))
-            .brand
-            .is_none());
+        assert!(
+            describe_for("P0301", "en-US", Some("honda"))
+                .brand
+                .is_none()
+        );
     }
 }
