@@ -187,6 +187,9 @@ Diferenças em relação ao instalador: não aparece no menu Iniciar (crie um at
 
 Enquanto grava, o programa também guarda uma **cópia de segurança** no disco, atualizada pelo menos a cada minuto, no arquivo `gravacao-em-andamento.jsonl` da pasta de dados (na versão portátil, em `OBD2-Scanner-dados`). Se o programa ou o computador desligar no meio da gravação, na próxima abertura ela volta como "última gravação", pronta para exportar em **Gravações e relatórios**. A próxima gravação substitui essa cópia.
 
+**Marcar evento:** enquanto grava, aperte o botão vermelho **Marcar evento** (no Painel e no HUD) ou a tecla **Espaço** no momento em que notar um tranco, falha ou barulho. Nos **Gráficos** de uma gravação aberta, cada marca aparece como uma linha vermelha tracejada (★1, ★2...) e um botão que aproxima os gráficos daquele momento. Na reprodução, **Próximo marcador** pula para 5 segundos antes do evento. No CSV, a coluna `mark` vale 1 na primeira leitura depois de cada marca.
+
+- **Copiar imagem** (telas **Códigos de falha** e **Gráficos**): monta um cartão claro com o carro, a data, os códigos (e o quadro congelado, se lido) ou os gráficos com mínimo e máximo, e copia para a área de transferência. Cole com **Ctrl+V** no WhatsApp, Telegram ou e-mail para mandar a um mecânico. Se o Windows não aceitar a cópia, a imagem é salva como PNG.
 - **Planilha CSV (Excel em português)**: separador `;` e vírgula decimal. Abre com dois cliques no Excel brasileiro.
 - **CSV padrão**: separador `,` e ponto decimal.
 - **JSON**: gravação completa, pode ser reaberta e reproduzida no programa (*Gravações → Abrir gravação*).

@@ -23,7 +23,7 @@ flowchart TB
     subgraph APP["Casca: src-tauri/ (Rust)"]
         cmds["Comandos<br/>lib.rs"]
         worker["Trabalhador da conexão<br/>worker.rs"]
-        rec["Gravação<br/>recorder.rs"]
+        rec["Gravação e marcas de evento<br/>recorder.rs"]
         port["Início, versão portátil<br/>e tela acesa<br/>portable.rs"]
     end
     subgraph CORE["Motor: crates/obd-core/ (Rust)"]
@@ -229,11 +229,13 @@ flowchart LR
         gauge["gauge.ts<br/>mostradores"]
         theme["theme.ts<br/>temas e botão dia/noite"]
         presets["presets.ts<br/>painéis prontos"]
+        share["share.ts<br/>cartão 'Copiar imagem'"]
         warmup["warmup.ts<br/>motor frio / pronto"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup
     hud --> warmup
+    diagnostics & charts --> share
     performance --> perf
     guided --> battery & o2test & trims
     sessions --> playback

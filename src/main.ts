@@ -16,6 +16,7 @@ import { fmtNum } from "./i18n";
 
 import * as connection from "./views/connection";
 import * as dashboard from "./views/dashboard";
+import { markEvent } from "./views/dashboard";
 import * as charts from "./views/charts";
 import * as hud from "./views/hud";
 import * as performance from "./views/performance";
@@ -239,6 +240,25 @@ function renderPlayer() {
       slider,
       posLabel,
       speedSel,
+      p.session.marks?.length
+        ? h(
+            "button",
+            {
+              type: "button",
+              class: "btn btn-ghost btn-sm",
+              title: t("marks.nextHelp"),
+              onclick: () => {
+                const cur = state.playback;
+                if (!cur) return;
+                const marks = [...(cur.session.marks ?? [])].sort((a, b) => a - b);
+                // A few seconds before the mark, to see what led to it.
+                const next = marks.find((m) => m - 5000 > cur.posMs + 500) ?? marks[0];
+                seek(next - 5000);
+              },
+            },
+            t("marks.next", { n: p.session.marks.length }),
+          )
+        : "",
       h("button", { type: "button", class: "btn btn-ghost btn-sm", onclick: () => stopPlayback() }, t("playback.close")),
     );
   }
@@ -395,6 +415,14 @@ async function boot() {
     }
   });
   window.addEventListener("themechange", renderDayNight);
+  // Space marks an event while recording (not while typing or on a button).
+  document.addEventListener("keydown", (e) => {
+    if (e.code !== "Space" || e.repeat || !state.recording.recording) return;
+    const el = e.target as HTMLElement | null;
+    if (el && el.closest("input, textarea, select, button, [contenteditable]")) return;
+    e.preventDefault();
+    void markEvent();
+  });
   onLangChange(layout);
   window.addEventListener("hashchange", renderView);
   layout();

@@ -27,6 +27,10 @@ pub struct Session {
     pub vehicle: VehicleIdentity,
     pub pids: Vec<PidMeta>,
     pub frames: Vec<Frame>,
+    /// Moments the driver marked during the recording (milliseconds since
+    /// the start), e.g. "the engine stumbled here". Missing in older files.
+    #[serde(default)]
+    pub marks: Vec<u64>,
 }
 
 /// CSV flavour. Excel in Brazil expects `;` as separator and `,` as decimal mark.
@@ -86,6 +90,17 @@ impl Session {
             }
         };
         let cols = self.columns();
+        // A mark goes on the first row at or after its time.
+        let marked: Vec<usize> = self
+            .marks
+            .iter()
+            .map(|m| {
+                self.frames
+                    .iter()
+                    .position(|f| f.t_ms >= *m)
+                    .unwrap_or(self.frames.len().saturating_sub(1))
+            })
+            .collect();
         let mut out = String::new();
         out.push_str("time_s");
         for (key, unit) in &cols {
@@ -96,13 +111,24 @@ impl Session {
                 out.push_str(&format!("{key} ({unit})"));
             }
         }
+        if !self.marks.is_empty() {
+            out.push(sep);
+            out.push_str("mark");
+        }
         out.push_str("\r\n");
-        for f in &self.frames {
+        for (i, f) in self.frames.iter().enumerate() {
             out.push_str(&fmt(f.t_ms as f64 / 1000.0));
             for (key, _) in &cols {
                 out.push(sep);
                 if let Some(v) = f.values.get(key) {
                     out.push_str(&fmt(*v));
+                }
+            }
+            if !self.marks.is_empty() {
+                out.push(sep);
+                let n = marked.iter().filter(|m| **m == i).count();
+                if n > 0 {
+                    out.push_str(&n.to_string());
                 }
             }
             out.push_str("\r\n");
@@ -162,8 +188,24 @@ mod tests {
 
     #[test]
     fn json_roundtrip() {
-        let s = sample();
+        let mut s = sample();
+        s.marks.push(900);
         let back = Session::from_json(&s.to_json()).unwrap();
         assert_eq!(back.frames, s.frames);
+        assert_eq!(back.marks, vec![900]);
+        // Files from older versions have no marks.
+        let old = r#"{"format_version":1,"app_version":"","started_at_unix_ms":0,"adapter":"","protocol":"","vehicle":{},"pids":[],"frames":[]}"#;
+        assert!(Session::from_json(old).unwrap().marks.is_empty());
+    }
+
+    #[test]
+    fn csv_marks_column() {
+        let mut s = sample();
+        s.marks.push(900);
+        let csv = s.to_csv(CsvStyle::Standard);
+        let lines: Vec<&str> = csv.lines().collect();
+        assert_eq!(lines[0], "time_s,rpm (rpm),speed (km/h),mark");
+        assert_eq!(lines[1], "0,812.5,0,");
+        assert_eq!(lines[2], "1.25,1500,,1");
     }
 }

@@ -67,7 +67,7 @@ export const state = {
   minmax: {} as Record<string, [number, number]>,
   history: new Map<string, Series>(),
   findings: [] as Finding[],
-  recording: { recording: false, frames: 0, lastFrames: 0, lastDurationS: 0 } as RecordingStatus,
+  recording: { recording: false, frames: 0, marks: 0, lastFrames: 0, lastDurationS: 0 } as RecordingStatus,
   logs: [] as { t: number; dir: LogEvent["dir"]; text: string }[],
   // Cached diagnostic reads, used by the report.
   dtcs: null as DtcReport | null,

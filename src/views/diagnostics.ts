@@ -3,6 +3,7 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { api, type DtcInfo, type TestResult } from "../api";
 import { fmtNum, getLang, pidText, t } from "../i18n";
 import { state } from "../store";
+import { copyCard, drawCard, type Line } from "../share";
 import { busy, button, clear, errorText, fmtValue, h, infoTip, notConnected, pidTip, section, toast, unitOf } from "../ui";
 
 function dtcItem(d: DtcInfo): HTMLElement {
@@ -125,6 +126,30 @@ export function mount(root: HTMLElement) {
     );
   };
 
+  // Picture of the codes (and the freeze frame, if read) for a mechanic.
+  const shareBtn = button(t("share.copy"), async () => {
+    const r = state.dtcs;
+    if (!r) {
+      toast(t("share.readFirst"), "info");
+      return;
+    }
+    const lines: Line[] = [];
+    const block = (title: string, items: DtcInfo[]) => {
+      lines.push({ text: `${title}: ${items.length}`, bold: true, gap: true });
+      for (const d of items) lines.push({ tag: d.code, text: d.description });
+    };
+    block(t("dtc.stored"), r.stored);
+    block(t("dtc.pending"), r.pending);
+    if (r.permanent.length) block(t("dtc.permanent"), r.permanent);
+    const f = state.freeze;
+    if (f?.dtc) {
+      lines.push({ text: `${t("dtc.freezeFrame")} (${f.dtc.code})`, bold: true, gap: true });
+      for (const v of f.values.slice(0, 8)) lines.push({ text: `${pidText(v.key).name}: ${fmtValue(v.key, v.value)} ${unitOf(v.key)}` });
+    }
+    lines.push({ text: t("share.dtcNote"), muted: true, gap: true });
+    await copyCard(drawCard(t("dtc.title"), lines), "obd2-codigos");
+  }, "ghost", { title: t("share.help") });
+
   const readBtn = button(t("dtc.readCodes"), async () => {
     const r = await busy(readBtn, () => api.readDtcs(getLang()));
     if (r) {
@@ -231,7 +256,7 @@ export function mount(root: HTMLElement) {
   m06Btn.disabled = !isCan;
 
   page.append(
-    h("div", { class: "toolbar" }, readBtn, clearBtn),
+    h("div", { class: "toolbar" }, readBtn, clearBtn, shareBtn),
     lists,
     section(t("dtc.freezeFrame"), h("p", { class: "muted small" }, t("dtc.freezeFrameDesc")), ffBtn, freezeBox),
     section(
