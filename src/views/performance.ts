@@ -4,7 +4,7 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { fmtNum, getLang, t } from "../i18n";
 import { freshValue, hasLiveSource, on, readKeys, state } from "../store";
-import { PERF_TESTS, PerfDetector, type PerfResult, type PerfTestId } from "../perf";
+import { PERF_TESTS, PerfDetector, chosenTest, type PerfResult, type PerfTestId } from "../perf";
 import { button, clear, errorText, h, leaveOnDisconnect, notConnected, toast } from "../ui";
 import { FIRST_PROFILE, profile, saveProfile } from "../prefs";
 import { displayUnit, toDisplay } from "../units";
@@ -48,9 +48,9 @@ export function mount(root: HTMLElement) {
   }
 
   const me = profile();
-  // Tests the driver chose to watch (all by default), kept per car.
-  const armed = new Set<PerfTestId>(me.perfTests ?? PERF_TESTS.map((d) => d.id));
-  const makeDetector = () => new PerfDetector(PERF_TESTS.filter((d) => armed.has(d.id)));
+  // One test at a time: the one the driver picked (kept per car).
+  let chosen = chosenTest(me.perfTest);
+  const makeDetector = () => new PerfDetector(PERF_TESTS.filter((d) => d.id === chosen));
   let detector = makeDetector();
   // Every car keeps its own results; the others stay saved untouched.
   const others = loadHistory().filter((r) => (r.profileId ?? FIRST_PROFILE) !== me.id);
@@ -88,18 +88,18 @@ export function mount(root: HTMLElement) {
       "label",
       { class: "check" },
       h("input", {
-        type: "checkbox",
-        checked: armed.has(def.id),
-        onchange: (e: Event) => {
-          if ((e.target as HTMLInputElement).checked) armed.add(def.id);
-          else armed.delete(def.id);
-          saveProfile({ perfTests: PERF_TESTS.filter((d) => armed.has(d.id)).map((d) => d.id) }, me.id);
-          // A run in progress is dropped: start clean with the new choice.
+        type: "radio",
+        name: "perf-test",
+        checked: def.id === chosen,
+        onchange: () => {
+          chosen = def.id;
+          saveProfile({ perfTest: chosen }, me.id);
+          // A run in progress is dropped: start clean with the new test.
           detector = makeDetector();
           renderCards();
         },
       }),
-      h("span", null, t("perf.watch")),
+      h("span", null, t("perf.choose")),
     );
     const el = h("article", { class: "card perf-card" }, h("h2", null, testLabel(def.from, def.to)), h("p", { class: "muted small" }, t(`perf.tests.${def.id}`)), last, best, status, toggle);
     grid.append(el);

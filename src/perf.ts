@@ -2,8 +2,8 @@
 // detection of the real start and end of each run.
 //
 // Pure logic, no DOM: it receives speed samples `(t seconds, v km/h)` and
-// returns finished results. All tests are watched at the same time, so the
-// driver just drives; whatever run happens is recognized.
+// returns finished results. The screen watches one test at a time, the one
+// the driver picked; the detector itself can watch any list of tests.
 //
 // How "real" start/end is found:
 // - Standing start (0–100): the car must be stopped (< 1 km/h) for at least
@@ -42,6 +42,14 @@ export const PERF_TESTS: PerfTestDef[] = [
   { id: "40-80", from: 40, to: 80 },
   { id: "80-120", from: 80, to: 120 },
 ];
+
+/** The test measured when none was chosen yet (or a saved one is unknown). */
+export const DEFAULT_TEST: PerfTestId = "0-100";
+
+/** The saved choice if it is a known test, otherwise the default. */
+export function chosenTest(saved: string | undefined): PerfTestId {
+  return PERF_TESTS.find((d) => d.id === saved)?.id ?? DEFAULT_TEST;
+}
 
 export interface PerfResult {
   test: PerfTestId;

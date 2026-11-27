@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PERF_TESTS, PerfDetector, type PerfResult } from "./perf";
+import { DEFAULT_TEST, PERF_TESTS, PerfDetector, chosenTest, type PerfResult } from "./perf";
 
 /** Feeds a speed profile `v(t)` sampled at `hz` from `t0` to `t1` seconds. */
 function drive(d: PerfDetector, v: (t: number) => number, t0: number, t1: number, hz = 5): PerfResult[] {
@@ -87,6 +87,18 @@ describe("PerfDetector", () => {
     const v = (t: number) => (t < 3 ? 35 : 35 + (t - 3) * 5);
     expect(drive(d, v, 0, 14, 10)).toHaveLength(0);
     expect(d.status().map((x) => x.test)).toEqual(["0-100"]);
+  });
+
+  it("one test at a time: a 0-100 pull is ignored while 40-80 is the chosen test", () => {
+    const d = new PerfDetector(PERF_TESTS.filter((x) => x.id === "40-80"));
+    const v = (t: number) => (t < 2 ? 0 : Math.min(130, (t - 2) * 10));
+    expect(drive(d, v, 0, 16, 10)).toHaveLength(0);
+  });
+
+  it("keeps the chosen test, falling back to 0-100", () => {
+    expect(chosenTest("80-120")).toBe("80-120");
+    expect(chosenTest(undefined)).toBe(DEFAULT_TEST);
+    expect(chosenTest("0-200")).toBe("0-100");
   });
 
   it("is ready for a rolling test only while cruising near its start speed", () => {
