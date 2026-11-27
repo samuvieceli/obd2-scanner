@@ -92,7 +92,9 @@ pub fn check_terminal_command(cmd: &str) -> Result<(), Blocked> {
 /// AT commands that only read: identification, voltage, protocol, status.
 /// Anything else may change how the adapter talks to the car (headers,
 /// spaces, protocol, a reset), so the program sets it up again afterwards.
-const AT_READ_ONLY: &[&str] = &["", "I", "@1", "@2", "RV", "DP", "DPN", "PPS", "CS", "IGN", "RD"];
+const AT_READ_ONLY: &[&str] = &[
+    "", "I", "@1", "@2", "RV", "DP", "DPN", "PPS", "CS", "IGN", "RD",
+];
 
 /// True when an allowed terminal command may leave the adapter set up
 /// differently from what the program expects (see [`AT_READ_ONLY`]).
@@ -108,10 +110,14 @@ mod tests {
 
     #[test]
     fn setup_changes_are_detected() {
-        for c in ["ATZ", "ATH1", "AT S0", "ATSH7E0", "ATTP6", "ATSP0", "ATE1", "ATMA"] {
+        for c in [
+            "ATZ", "ATH1", "AT S0", "ATSH7E0", "ATTP6", "ATSP0", "ATE1", "ATMA",
+        ] {
             assert!(changes_adapter_setup(c), "{c}");
         }
-        for c in ["ATI", "ATRV", "at dp", "ATDPN", "ATPPS", "0100", "03", "0902"] {
+        for c in [
+            "ATI", "ATRV", "at dp", "ATDPN", "ATPPS", "0100", "03", "0902",
+        ] {
             assert!(!changes_adapter_setup(c), "{c}");
         }
     }
