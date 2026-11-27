@@ -1,4 +1,5 @@
 // Small DOM helpers shared by the screens.
+import { warmState } from "./warmup";
 import { fmtNum, pidText, t } from "./i18n";
 import type { CmdError } from "./api";
 import { meta } from "./store";
@@ -218,4 +219,14 @@ export function timestampForFile(): string {
 
 export function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+/** Badge "engine cold / warming up / ready" from the newest temperatures. */
+export function warmBadge(el: HTMLElement, state_: { latest: Record<string, number> }) {
+  const st = warmState(state_.latest.coolant_temp, state_.latest.oil_temp);
+  el.hidden = !st;
+  if (!st) return;
+  el.className = `warm-badge warm-${st}`;
+  el.textContent = t(`warmup.${st}`);
+  el.title = t(`warmup.${st}Help`);
 }

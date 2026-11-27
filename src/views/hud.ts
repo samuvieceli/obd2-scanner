@@ -3,7 +3,7 @@
 // tablet lies on the dashboard and reflects on the windshield.
 import { pidText, t } from "../i18n";
 import { displayKeys, hasLiveSource, on, state } from "../store";
-import { button, clear, fmtValue, h, notConnected, toast, errorText, unitOf } from "../ui";
+import { warmBadge, button, clear, fmtValue, h, notConnected, toast, errorText, unitOf } from "../ui";
 import { startPolling } from "./dashboard";
 
 const MAX = 4;
@@ -55,6 +55,7 @@ export function mount(root: HTMLElement) {
   const screen = h("div", { class: "hud-screen", tabindex: "0", "aria-live": "off" });
   const chips = h("div", { class: "chips" });
   const cells = new Map<string, HTMLElement>();
+  const warmEl = h("span", { class: "warm-badge hud-warm", hidden: true });
 
   const pollBtn = button("", async () => {
     try {
@@ -125,6 +126,7 @@ export function mount(root: HTMLElement) {
   const renderScreen = () => {
     clear(screen);
     cells.clear();
+    screen.append(warmEl);
     screen.dataset.count = String(keys.length);
     if (!keys.length) {
       screen.append(h("p", { class: "hud-empty" }, t("hud.pick")));
@@ -147,6 +149,7 @@ export function mount(root: HTMLElement) {
 
   const update = () => {
     for (const [k, el] of cells) el.textContent = fmtValue(k, state.latest[k]);
+    warmBadge(warmEl, state);
   };
 
   renderToolbar();

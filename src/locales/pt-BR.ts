@@ -39,6 +39,21 @@ const ptBR = {
     copy: "Copiar",
     learnMore: "Ver no glossário",
   },
+  daynight: {
+    label: "Modo dia ou noite",
+    contrast: "Modo dia: alto contraste, para enxergar sob sol forte. Clique de novo para voltar ao tema escolhido.",
+    night: "Modo noite: tons vermelhos escuros que não ofuscam ao dirigir. Clique de novo para voltar ao tema escolhido.",
+    contrastShort: "Dia",
+    nightShort: "Noite",
+  },
+  warmup: {
+    cold: "Motor frio",
+    warming: "Aquecendo",
+    ready: "Motor pronto",
+    coldHelp: "Líquido de arrefecimento abaixo de 60 °C. Dirija com calma: óleo frio protege menos, evite acelerar forte e rotação alta.",
+    warmingHelp: "O motor está chegando à temperatura de trabalho (80 °C no líquido e 70 °C no óleo, quando o carro informa). Ainda evite exigir muito.",
+    readyHelp: "Motor na temperatura de trabalho: pode usar normalmente.",
+  },
   status: {
     reconnecting: "Reconectando...",
     recovering: "Recuperando o adaptador...",
@@ -358,6 +373,13 @@ const ptBR = {
     max: "No máximo {n} valores ao mesmo tempo.",
   },
   dashboard: {
+    presets: "Painéis prontos:",
+    preset: {
+      daily: { name: "Uso diário", help: "Velocidade, rotação, temperatura do motor, tensão da bateria, combustível e o que o computador de bordo precisa para o consumo." },
+      trip: { name: "Viagem", help: "Velocidade, combustível, carga do motor e temperatura, mais o necessário para consumo médio, distância e combustível gasto." },
+      injection: { name: "Injeção", help: "Correções de combustível, sondas lambda, avanço de ignição, pressão do coletor (MAP) ou fluxo de ar (MAF), rotação e carga." },
+      turbo: { name: "Turbo / desempenho", help: "Pressão do turbo (ou do coletor), temperatura do ar admitido, avanço de ignição, borboleta, rotação, carga e velocidade." },
+    },
     style: "Estilo do painel",
     styleCards: "Cartões",
     styleGauges: "Mostradores",

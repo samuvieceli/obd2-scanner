@@ -37,6 +37,8 @@ Na tela **Head-up display (HUD)**, escolha até 4 parâmetros (eles vêm da list
 ## 6. Computador de bordo, alertas e mostradores
 
 - No **Painel ao vivo**, o botão **Cartões / Mostradores** troca entre números grandes e mostradores com ponteiro.
+- **Painéis prontos**: um clique escolhe os parâmetros para cada situação. **Uso diário** (velocidade, rotação, temperatura, bateria, combustível), **Viagem** (combustível, carga do motor e o que o computador de bordo precisa), **Injeção** (correções de combustível, sondas lambda, avanço, MAP ou MAF) e **Turbo / desempenho** (pressão do turbo ou do coletor, temperatura do ar, avanço, borboleta). Parâmetros que o carro não informa ficam de fora sozinhos; **Escolher parâmetros** continua valendo para montar o seu.
+- Ao lado do título aparece o selo **Motor frio** (líquido abaixo de 60 °C), **Aquecendo** (60 a 80 °C, ou óleo abaixo de 70 °C quando o carro informa) ou **Motor pronto**. Com o motor frio, evite acelerar forte. O mesmo selo aparece no canto do HUD.
 - O quadro **Computador de bordo** mostra o consumo agora e a média da viagem em km/L. Ele usa a vazão de combustível, o sensor MAF ou, em carros só com sensor MAP (comum no Brasil), uma estimativa pela cilindrada. Para melhorar a precisão, informe o combustível e a cilindrada do perfil do carro em **Configurações → Veículos (perfis)**.
 - Combustíveis disponíveis, com as misturas em vigor em novembro de 2026: **gasolina comum ou aditivada** (32% de etanol), **gasolina premium** (25% de etanol), **etanol comum ou aditivado**, **diesel S10 ou S500** (15% de biodiesel) e **flex automático**. O flex automático usa a porcentagem de etanol informada pelo carro e, se o carro não informar, considera gasolina comum. Aditivos não mudam o cálculo.
 - **Alertas** (em **Configurações**): avisam com mensagem e som quando, por exemplo, a temperatura passa de 110 °C ou a bateria fica abaixo de 11,8 V com o motor ligado. Você pode mudar os limites e incluir outros parâmetros.
@@ -106,7 +108,7 @@ Salve a gravação em **JSON** e depois use **Gravações → Reproduzir gravaç
 
 ## 9. Temas
 
-Em **Configurações** há 8 temas. O **Noturno** (vermelho no preto) não ofusca dirigindo à noite; o **Alto contraste** ajuda sob sol forte ou com baixa visão.
+Em **Configurações** há 8 temas. O **Noturno** (vermelho no preto) não ofusca dirigindo à noite; o **Alto contraste** ajuda sob sol forte ou com baixa visão. Os botões **☀ Dia** e **☾ Noite** no canto de cima de todas as telas trocam para esses dois temas com um clique; clicar de novo no botão ativo volta ao tema escolhido nas Configurações.
 
 ## 10. Vários carros (perfis)
 

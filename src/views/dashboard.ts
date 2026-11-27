@@ -2,7 +2,7 @@
 import { api } from "../api";
 import { pidText, t } from "../i18n";
 import { DEFAULT_KEYS, displayKeys, emit, hasLiveSource, isSupported, on, setLiveKeys, state } from "../store";
-import { busy, button, clear, displayValue, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
+import { warmBadge, busy, button, clear, displayValue, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
 import type { Category } from "../api";
 import { findingList } from "./findings";
 import { makeGauge } from "../gauge";
@@ -15,6 +15,7 @@ function fmtEconomy(kmPerL: number): string {
   return `${fmtNum(v, 1)} ${unit}`;
 }
 import { resetTrip, trip } from "../trip";
+import { PRESETS, matchPreset, presetKeys, type PresetId } from "../presets";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
 
@@ -69,6 +70,7 @@ export function mount(root: HTMLElement) {
     ),
   );
   const styleSeg = h("div", { class: "seg", role: "group", "aria-label": t("dashboard.style") }, styleBtns);
+  const warmEl = h("span", { class: "warm-badge", hidden: true, role: "status" });
   const findingsBox = h("div");
   const tripBox = h("div");
   const picker = h("div", { class: "picker", hidden: true });
@@ -141,6 +143,38 @@ export function mount(root: HTMLElement) {
               h("span", null, pidText(m.key).name),
             );
           }),
+        ),
+      );
+    }
+  };
+
+  // Ready-made layouts: one click replaces the chosen parameters.
+  const presetRow = h("div", { class: "chips preset-row", role: "group", "aria-label": t("dashboard.presets") });
+  const renderPresets = () => {
+    clear(presetRow);
+    const active = matchPreset(state.liveKeys, isSupported);
+    presetRow.append(h("span", { class: "muted small" }, t("dashboard.presets")));
+    for (const id of Object.keys(PRESETS) as PresetId[]) {
+      presetRow.append(
+        h(
+          "button",
+          {
+            type: "button",
+            class: `chip ${id === active ? "on" : ""}`,
+            "aria-pressed": String(id === active),
+            title: t(`dashboard.preset.${id}.help`),
+            onclick: async () => {
+              const keys = presetKeys(id, isSupported);
+              setLiveKeys(keys);
+              try {
+                await api.setLive(keys, state.polling);
+              } catch (e) {
+                toast(errorText(e), "error");
+              }
+              if (!picker.hidden) renderPicker();
+            },
+          },
+          t(`dashboard.preset.${id}.name`),
         ),
       );
     }
@@ -255,7 +289,8 @@ export function mount(root: HTMLElement) {
 
   renderToolbar();
   page.append(
-    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title")), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [chooseBtn, recBtn, pollBtn])),
+    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title"), " ", warmEl), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [chooseBtn, recBtn, pollBtn])),
+    state.playback ? "" : presetRow,
     picker,
     h(
       "div",
@@ -273,13 +308,15 @@ export function mount(root: HTMLElement) {
     ),
   );
   renderCards();
+  warmBadge(warmEl, state);
+  renderPresets();
   renderFindings();
   renderTrip();
 
   let raf = 0;
   const offs = [
     on("frame", () => {
-      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip()));
+      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip(), warmBadge(warmEl, state)));
     }),
     on("trip", () => {
       if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip()));
@@ -288,6 +325,7 @@ export function mount(root: HTMLElement) {
     on("alerts", updateValues),
     on("live-keys", renderTrip),
     on("live-keys", renderCards),
+    on("live-keys", renderPresets),
     on("recording", renderToolbar),
     on("connection", renderToolbar),
   ];
