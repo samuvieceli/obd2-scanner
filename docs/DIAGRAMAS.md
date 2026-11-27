@@ -24,6 +24,7 @@ flowchart TB
         cmds["Comandos<br/>lib.rs"]
         worker["Trabalhador da conexão<br/>worker.rs"]
         rec["Gravação<br/>recorder.rs"]
+        port["Início e versão portátil<br/>portable.rs"]
     end
     subgraph CORE["Motor: crates/obd-core/ (Rust)"]
         elm["Conversa com o ELM327<br/>elm327.rs"]
@@ -257,6 +258,17 @@ flowchart LR
     csv & json & png & html --> files
 ```
 
+Na **versão portátil** (arquivo `portable.txt` ao lado do programa), a memória do programa fica na pasta `OBD2-Scanner-dados`, ao lado do `.exe`, em vez da pasta do usuário no Windows:
+
+```mermaid
+flowchart LR
+    start(["Abrir o programa"]) --> wv{"WebView2<br/>instalado?"}
+    wv -- não --> msg["Aviso com o link<br/>para baixar"]
+    wv -- sim --> mk{"portable.txt ao lado<br/>e pasta gravável?"}
+    mk -- sim --> here[("OBD2-Scanner-dados<br/>ao lado do programa")]
+    mk -- não --> win[("Pasta do usuário<br/>no Windows")]
+```
+
 Nada é enviado para a internet.
 
 ---
@@ -272,11 +284,11 @@ flowchart LR
         core["cargo test<br/>(motor + simulador)"] --> ts["npm run typecheck<br/>+ npm test"]
     end
     subgraph windows["Windows"]
-        wtest["cargo test"] --> build["npm run tauri build"] --> nsis["Instalador .exe<br/>em Artifacts"]
+        wtest["cargo test"] --> build["npm run tauri build"] --> nsis["Instalador .exe e<br/>versão portátil em Artifacts"]
     end
     tag["Tag de versão<br/>(v1.0.0)"] --> rel
     subgraph rel["Release (release.yml, Windows)"]
-        rtest["testes"] --> rbuild["instalador .exe e .msi"] --> draft["Rascunho em Releases<br/>+ notas pt-BR / en-US"]
+        rtest["testes"] --> rbuild["instalador .exe, .msi<br/>e portátil .zip"] --> draft["Rascunho em Releases<br/>+ notas pt-BR / en-US"]
     end
     draft --> pub(["Você clica em<br/>Publish release"])
 ```

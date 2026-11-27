@@ -101,6 +101,17 @@ Se o adaptador responde mas o carro não (ignição desligada), o programa avisa
 
 No **modo demonstração**, a tela Conexão tem **Simular falhas de adaptador clone**: botões que fazem o adaptador virtual travar, reiniciar, congelar ou perder o Bluetooth, para você ver a recuperação funcionando.
 
+## Versão portátil (sem instalar)
+
+O arquivo `OBD2-Scanner-...-Windows-portatil.zip` traz o programa pronto para usar, sem instalação:
+
+1. Descompacte o `.zip` numa pasta qualquer, até num pendrive.
+2. Abra `OBD2-Scanner.exe`. O Windows pode mostrar o mesmo aviso de "editor desconhecido": **Mais informações → Executar assim mesmo**.
+
+Enquanto o arquivo `portable.txt` estiver ao lado do programa, as configurações, perfis e resultados ficam na pasta `OBD2-Scanner-dados`, ali mesmo; em **Configurações → Sobre** aparece o caminho. Apague o `portable.txt` para usar a pasta normal do Windows. As gravações e relatórios continuam sendo salvos onde você escolher.
+
+Diferenças em relação ao instalador: não aparece no menu Iniciar (crie um atalho se quiser) e não há desinstalação, basta apagar a pasta. O programa precisa do **Microsoft Edge WebView2**, que já vem no Windows 10 e 11; o instalador o coloca sozinho quando falta, a versão portátil apenas avisa e mostra o link para baixar. Se a pasta não permitir gravação (por exemplo, dentro de "Arquivos de Programas"), o programa usa a pasta normal do Windows.
+
 ## Problemas comuns
 
 | Sintoma | O que fazer |
@@ -112,6 +123,7 @@ No **modo demonstração**, a tela Conexão tem **Simular falhas de adaptador cl
 | Valores pulando ou travando com adaptador clone | Em *Opções avançadas*, desligue a **leitura rápida** e aumente o tempo de espera por comando. |
 | Consumo calculado muito diferente do real | Confira o combustível e a cilindrada em **Configurações → Veículos (perfis)** e ajuste a eficiência volumétrica. |
 | Um parâmetro some do painel | O carro parou de responder a ele; o programa o retira automaticamente. |
+| Aviso "precisa do Microsoft Edge WebView2" | Instale o *WebView2 Runtime* pelo link do aviso, ou use o instalador em vez da versão portátil. |
 | Dados estranhos | Veja o **Registro de comunicação** na tela Conexão ou use o **Terminal AT** (ex.: `ATI`, `ATRV`, `0100`). |
 
 ## Arquivos exportados

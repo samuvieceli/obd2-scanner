@@ -9,7 +9,7 @@
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
-│ recorder.rs: gravação                                                               │
+│ recorder.rs: gravação · portable.rs: versão portátil e aviso de WebView2            │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ┌──────────────────────── Núcleo (crates/obd-core, Rust, sem interface) ──────────────┐
 │ interpret · session (CSV/JSON) · health (travamento e queda da conexão)            │

@@ -1,0 +1,21 @@
+OBD2 Scanner - versão portátil
+==============================
+
+Enquanto este arquivo estiver ao lado do OBD2-Scanner.exe, o programa guarda
+as configurações e dados (perfis, unidades, tema, resultados de desempenho)
+na pasta "OBD2-Scanner-dados", aqui mesmo. Assim dá para levar a pasta
+inteira num pendrive.
+
+Apague este arquivo para o programa usar a pasta normal do Windows.
+As gravações (CSV/JSON) e relatórios são salvos onde você escolher.
+
+Precisa do Microsoft Edge WebView2, que já vem no Windows 10 e 11.
+
+---
+
+OBD2 Scanner - portable version
+
+While this file sits next to OBD2-Scanner.exe, settings and data are kept in
+the "OBD2-Scanner-dados" folder right here, so the whole folder can travel on
+a USB stick. Delete this file to use the normal Windows folder instead.
+Requires Microsoft Edge WebView2 (included in Windows 10 and 11).

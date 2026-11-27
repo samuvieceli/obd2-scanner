@@ -48,6 +48,10 @@ jobs:
           mkdir dist-release
           cp target/release/bundle/nsis/*.exe "dist-release/OBD2-Scanner-${V}-Windows-instalador.exe"
           cp target/release/bundle/msi/*.msi "dist-release/OBD2-Scanner-${V}-Windows.msi"
+          mkdir portable
+          cp target/release/obd2-scanner.exe portable/OBD2-Scanner.exe
+          cp packaging/portable.txt LICENSE portable/
+          (cd portable && 7z a -tzip "../dist-release/OBD2-Scanner-${V}-Windows-portatil.zip" .)
           cd dist-release && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
       - name: Criar rascunho da versão
         shell: bash

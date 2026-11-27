@@ -26,12 +26,14 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 
 **[⬇ Baixar a versão mais recente](https://github.com/samuvieceli/obd2-scanner/releases/latest)**: na página que abrir, clique em `OBD2-Scanner-...-Windows-instalador.exe` (em *Assets*) e execute o arquivo baixado. O Windows pode avisar que o programa é de um editor desconhecido (o instalador ainda não é assinado digitalmente): clique em **Mais informações → Executar assim mesmo**.
 
+**Sem instalar (versão portátil):** baixe `OBD2-Scanner-...-Windows-portatil.zip`, descompacte numa pasta (pode ser um pendrive) e abra `OBD2-Scanner.exe`. As configurações ficam na pasta `OBD2-Scanner-dados`, ao lado do programa. Precisa do Microsoft Edge WebView2, que já vem no Windows 10 e 11; se faltar, o programa avisa e mostra onde baixar.
+
 <details>
 <summary>Versão de teste, antes do lançamento (para quem acompanha o desenvolvimento)</summary>
 
 1. Abra a aba **Actions** deste repositório no GitHub e clique na execução mais recente do **CI** com sinal verde.
 2. No fim da página, em **Artifacts**, baixe `obd2-scanner-windows-instalador`.
-3. Descompacte o `.zip` e execute o instalador `OBD2 Scanner_..._x64-setup.exe`.
+3. Descompacte o `.zip` e execute o instalador `OBD2 Scanner_..._x64-setup.exe`. A versão portátil está em `obd2-scanner-windows-portatil`.
 
 </details>
 
@@ -74,5 +76,5 @@ It shows live data as cards or dials with
 explanations, automatic interpretation, alerts, a trip computer, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h) and a head-up display; charts; trouble codes (read/clear,
 freeze frame, 10 brand tables); Mode 06 test results; readiness monitors; VIN decoding; an AT terminal; recording,
 playback and export to CSV/JSON/PNG plus a printable report. UI in Brazilian Portuguese and US English with 8 themes.
-Download the Windows installer from [Releases](https://github.com/samuvieceli/obd2-scanner/releases/latest).
+Download the Windows installer from [Releases](https://github.com/samuvieceli/obd2-scanner/releases/latest), or the portable zip (`...-Windows-portatil.zip`) to run without installing; it keeps its settings in a folder next to the program.
 See `docs/ARQUITETURA.md` (Portuguese) for the design.
