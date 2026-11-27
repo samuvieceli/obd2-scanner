@@ -63,6 +63,9 @@ export const state = {
   /** Parameters chosen on the Charts screen; null = follow the dashboard. */
   chartKeys: loadKeys("chartKeys"),
   polling: false,
+  /** The user pressed "Pause reading": opening the Live dashboard or the HUD
+   *  does not start reading again until "Resume reading" (reset on connect). */
+  readingPaused: false,
   rateHz: 0,
   latest: {} as Record<string, number>,
   /** Time of the last live frame, in seconds. */

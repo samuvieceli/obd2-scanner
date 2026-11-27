@@ -4,7 +4,7 @@
 import { pidText, t } from "../i18n";
 import { displayKeys, hasLiveSource, on, state } from "../store";
 import { warmBadge, button, clear, fmtValue, h, notConnected, toast, errorText, unitOf } from "../ui";
-import { markButton, startPolling } from "./dashboard";
+import { autoStartReading, markButton, readingLabel, startPolling } from "./dashboard";
 import { enterMini } from "./mini";
 
 const MAX = 4;
@@ -83,7 +83,7 @@ export function mount(root: HTMLElement) {
   }, "secondary");
 
   const renderToolbar = () => {
-    pollBtn.textContent = state.polling ? t("dashboard.stopReading") : t("dashboard.startReading");
+    pollBtn.textContent = readingLabel();
     pollBtn.className = `btn ${state.polling ? "btn-secondary" : "btn-primary"}`;
     mirrorBtn.textContent = mirror ? t("hud.mirrorOn") : t("hud.mirrorOff");
     mirrorBtn.setAttribute("aria-pressed", String(mirror));
@@ -182,6 +182,7 @@ export function mount(root: HTMLElement) {
     }),
     on("connection", renderToolbar),
   ];
+  void autoStartReading();
   return () => {
     offs.forEach((f) => f());
     cancelAnimationFrame(raf);

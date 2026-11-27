@@ -435,6 +435,7 @@ export function mount(root: HTMLElement) {
     if (res) {
       resetLiveData();
       state.demoEngineOff = false;
+      state.readingPaused = false;
       state.connection = "connected";
       state.adapter = res.adapter;
       state.vehicleError = res.vehicleError;

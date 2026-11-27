@@ -28,7 +28,25 @@ const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emi
 export async function startPolling(on_: boolean) {
   await api.setLive(readKeys(), on_);
   state.polling = on_;
+  state.readingPaused = !on_;
   emit("connection");
+}
+
+/** Opening the Live dashboard or the HUD starts reading, unless the user
+ *  paused it. Reading then goes on in other screens (charts, trip computer). */
+export async function autoStartReading() {
+  if (state.connection !== "connected" || state.playback || state.polling || state.readingPaused) return;
+  try {
+    await startPolling(true);
+  } catch (e) {
+    toast(errorText(e), "error");
+  }
+}
+
+/** Text of the reading button: "Pause", "Resume" (after a pause) or "Start". */
+export function readingLabel(): string {
+  if (state.polling) return t("dashboard.stopReading");
+  return t(state.readingPaused ? "dashboard.resumeReading" : "dashboard.startReading");
 }
 
 export async function toggleRecording() {
@@ -126,7 +144,7 @@ export function mount(root: HTMLElement) {
   }, "ghost");
 
   const renderToolbar = () => {
-    pollBtn.textContent = state.polling ? t("dashboard.stopReading") : t("dashboard.startReading");
+    pollBtn.textContent = readingLabel();
     pollBtn.className = `btn ${state.polling ? "btn-secondary" : "btn-primary"}`;
     recBtn.textContent = state.recording.recording ? t("dashboard.stopRecord") : t("dashboard.record");
     recBtn.className = `btn ${state.recording.recording ? "btn-danger" : "btn-secondary"}`;
@@ -542,6 +560,7 @@ export function mount(root: HTMLElement) {
     on("recording", renderToolbar),
     on("connection", renderToolbar),
   ];
+  void autoStartReading();
   return () => {
     offs.forEach((f) => f());
     cancelAnimationFrame(raf);

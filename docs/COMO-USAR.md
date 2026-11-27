@@ -4,7 +4,7 @@
 
 1. Abra o programa. A tela **Conexão** já vem com **Demonstração** selecionada.
 2. Clique em **Conectar**.
-3. Vá em **Painel ao vivo** e clique em **Iniciar leitura**. Os valores de um carro virtual começam a aparecer.
+3. Vá em **Painel ao vivo**. A leitura começa sozinha e os valores de um carro virtual aparecem.
 4. Explore **Gráficos**, **Códigos de falha** (o carro virtual tem falhas de propósito) e **Veículo e prontidão**.
 
 O quadro **Primeiros passos**, no alto da tela Conexão, resume esse caminho com botões que levam a cada tela. Clique em **Entendi, esconder** quando não precisar mais; o link **Mostrar os primeiros passos** traz o quadro de volta.
@@ -12,6 +12,12 @@ O quadro **Primeiros passos**, no alto da tela Conexão, resume esse caminho com
 **Busca:** aperte **Ctrl+F** (ou **Ctrl+K**, ou o botão **Buscar** no alto) em qualquer tela e digite parte de um nome: uma tela ("gráficos"), um parâmetro ("temperatura", "sonda"), um termo do glossário ("malha fechada") ou um código de falha ("P0301"). Acentos não importam. Use ↑ ↓ e **Enter** para abrir; **Esc** fecha. Parâmetros e termos abrem no Glossário; códigos abrem a consulta na tela Códigos de falha, mesmo sem carro conectado.
 
 A opção *Simular adaptador clone com defeitos* imita um adaptador barato que responde de forma bagunçada. Serve para testar.
+
+### Quando a leitura começa e como pausar
+
+Conectar só abre a conversa com o adaptador; o programa ainda não fica pedindo valores ao carro. A **leitura ao vivo** (pedir os valores várias vezes por segundo) começa quando você abre o **Painel ao vivo** ou o **HUD**. Nessas duas telas fica o botão **Pausar leitura**; depois de pausar, ele vira **Retomar leitura**. Enquanto estiver pausada, abrir o Painel ou o HUD de novo não volta a ler sozinho: só o botão Retomar (ou uma nova conexão).
+
+Depois de começar, a leitura continua ao trocar de tela, para que os **Gráficos**, o **Computador de bordo** (Trip A e Trip B), os alertas e a gravação continuem recebendo dados. Algumas funções ligam a leitura sozinhas porque não funcionam sem ela: **Gravar**, a **Mini janela**, os **Testes guiados** e os **Testes de desempenho** (estes dois devolvem a leitura como estava ao sair da tela). O Computador de bordo só conta enquanto há leitura: com a leitura pausada, as viagens também ficam paradas.
 
 ## 2. Com o carro e um adaptador Bluetooth clássico
 

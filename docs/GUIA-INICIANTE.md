@@ -76,7 +76,7 @@ No VS Code, instale também as extensões **rust-analyzer** e **Tauri** (ícone 
    npm run tauri dev
    ```
    A primeira vez demora alguns minutos, porque o Rust compila tudo. Depois, fica rápido.
-4. A janela abre. Para testar **sem carro**, deixe **Demonstração** selecionada, clique em **Conectar**, vá em **Painel ao vivo** e clique em **Iniciar leitura**. O carro virtual tem falhas de propósito, para você testar os códigos de falha, o Modo 06 e o resto.
+4. A janela abre. Para testar **sem carro**, deixe **Demonstração** selecionada, clique em **Conectar**, vá em **Painel ao vivo** (a leitura começa sozinha; o botão **Pausar leitura** para e, depois, vira **Retomar leitura**). O carro virtual tem falhas de propósito, para você testar os códigos de falha, o Modo 06 e o resto.
 5. Para fechar, feche a janela ou aperte `Ctrl+C` no terminal.
 
 Enquanto o programa está aberto, **mudanças na interface aparecem na hora** quando você salva (`Ctrl+S`). Mudanças no Rust (`crates/` ou `src-tauri/`) fazem o programa recompilar e reabrir sozinho.

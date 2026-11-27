@@ -270,6 +270,24 @@ flowchart LR
     cost --> prefs
 ```
 
+### Quando a leitura ao vivo liga e desliga
+
+Conectar não liga a leitura. Ela começa ao abrir o Painel ao vivo ou o HUD e continua ao trocar de tela, para os gráficos, o computador de bordo e a gravação seguirem recebendo dados. O botão **Pausar leitura** desliga; depois ele vira **Retomar leitura**, e o Painel e o HUD não religam sozinhos até você retomar ou conectar de novo. Quem decide é `autoStartReading` em `views/dashboard.ts`, com a marca `readingPaused` em `store.ts`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Conectado: Conectar
+    Conectado --> Lendo: abrir Painel ao vivo ou HUD
+    Conectado --> Lendo: Gravar, Mini janela,<br/>teste guiado ou de desempenho
+    Lendo --> Lendo: trocar de tela<br/>(gráficos e trips seguem)
+    Lendo --> Pausado: botão "Pausar leitura"
+    Pausado --> Pausado: abrir Painel ou HUD<br/>(não religa sozinho)
+    Pausado --> Lendo: "Retomar leitura",<br/>Gravar ou Mini janela
+    Pausado --> Lendo: teste guiado ou de desempenho<br/>(volta a Pausado ao sair)
+    Lendo --> [*]: Desconectar
+    Pausado --> [*]: Desconectar
+```
+
 ---
 
 ## 7. Perfis de veículos e unidades
