@@ -38,6 +38,7 @@ Na tela **Head-up display (HUD)**, escolha até 4 parâmetros (eles vêm da list
 
 - No **Painel ao vivo**, o botão **Cartões / Mostradores** troca entre números grandes e mostradores com ponteiro.
 - O quadro **Computador de bordo** mostra o consumo agora e a média da viagem em km/L. Ele usa a vazão de combustível, o sensor MAF ou, em carros só com sensor MAP (comum no Brasil), uma estimativa pela cilindrada. Para melhorar a precisão, informe o combustível e a cilindrada do perfil do carro em **Configurações → Veículos (perfis)**.
+- Combustíveis disponíveis, com as misturas em vigor em novembro de 2026: **gasolina comum ou aditivada** (32% de etanol), **gasolina premium** (25% de etanol), **etanol comum ou aditivado**, **diesel S10 ou S500** (15% de biodiesel) e **flex automático**. O flex automático usa a porcentagem de etanol informada pelo carro e, se o carro não informar, considera gasolina comum. Aditivos não mudam o cálculo.
 - **Alertas** (em **Configurações**): avisam com mensagem e som quando, por exemplo, a temperatura passa de 110 °C ou a bateria fica abaixo de 11,8 V com o motor ligado. Você pode mudar os limites e incluir outros parâmetros.
 
 ## 6b. Testes de desempenho
