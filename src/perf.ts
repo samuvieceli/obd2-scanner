@@ -11,10 +11,16 @@
 //   samples give the initial acceleration, extrapolated back to zero speed
 //   (never before the last stopped sample). This excludes the driver's
 //   reaction time.
-// - Rolling start (40–80, 80–120): the start is the instant the speed crosses
-//   the lower limit going up, interpolated between samples. The run is only
-//   valid if the car was really accelerating when it crossed (at least
-//   2 km/h per second, not cruising or drifting past 40).
+// - Rolling start (40–80, 80–120): like a real overtaking, the car must
+//   first cruise at a steady speed near the start speed (between 8 km/h below
+//   and 2 km/h above it, varying at most 4 km/h for 2 s), and only then
+//   accelerate hard ("the kick", at least 2 km/h per second). Speed only
+//   passing through 40 or 80 during an acceleration that was already going
+//   on does not count: the engine would already be in a lower gear, at high
+//   RPM and, on turbo engines, with boost built up, which makes the time
+//   unrealistically short. The start is the crossing of the start speed
+//   (interpolated), or the kick itself when cruising at or just above it.
+//   The start speed must be reached within 6 s of the kick.
 // - Braking (100–0): the start is the crossing of 100 km/h going down while
 //   decelerating; the end is the moment the car stops (0.5 km/h).
 // - End: crossing of the target, interpolated between samples.
@@ -74,6 +80,15 @@ const STALL_S = 3;
 /** Gaps longer than this (s) mean data was lost: abort running tests. */
 const MAX_GAP_S = 2;
 const G = 9.80665;
+/** Rolling start: steady cruise needed before the kick (s). */
+export const CRUISE_S = 2;
+/** "Steady": the speed varies at most this much (km/h) during the cruise. */
+const CRUISE_BAND_KMH = 4;
+/** Cruise speed allowed below / above the start speed (km/h). */
+export const CRUISE_BELOW_KMH = 8;
+export const CRUISE_ABOVE_KMH = 2;
+/** After the kick the start speed must be reached within this time (s). */
+const KICK_MAX_S = 6;
 
 interface Run {
   startT: number;
@@ -99,6 +114,10 @@ export class PerfDetector {
   /** Speed trend of the previous step (km/h per s), to tell accelerating from cruising. */
   private trend = 0;
   private runs = new Map<PerfTestId, Run>();
+  /** Recent samples, to check the steady cruise before a rolling start. */
+  private recent: { t: number; v: number }[] = [];
+  /** Rolling tests: hard acceleration after a cruise, start speed not reached yet. */
+  private kicks = new Map<PerfTestId, { t: number; v: number }>();
 
   constructor(private readonly tests: PerfTestDef[] = PERF_TESTS) {}
 
@@ -107,6 +126,18 @@ export class PerfDetector {
     this.stillSince = null;
     this.trend = 0;
     this.runs.clear();
+    this.recent = [];
+    this.kicks.clear();
+  }
+
+  /** Steady cruise near the start speed of `def` during the `CRUISE_S` seconds before `t`. */
+  private cruising(def: PerfTestDef, t: number): boolean {
+    const s = this.recent.filter((x) => x.t <= t && x.t >= t - CRUISE_S - 1e-9);
+    if (s.length < 2 || s[0].t > t - CRUISE_S * 0.9) return false;
+    const vs = s.map((x) => x.v);
+    const lo = Math.min(...vs);
+    const hi = Math.max(...vs);
+    return hi - lo <= CRUISE_BAND_KMH && lo >= def.from - CRUISE_BELOW_KMH && hi <= def.from + CRUISE_ABOVE_KMH;
   }
 
   status(): PerfStatus[] {
@@ -123,7 +154,7 @@ export class PerfDetector {
     const v = this.last.v;
     if (def.from === 0) return this.stillSince !== null && this.last.t - this.stillSince >= STILL_MIN_S;
     if (def.to < def.from) return v > def.from;
-    return v < def.from && v > def.from - 30;
+    return this.cruising(def, this.last.t);
   }
 
   /** Feeds one speed sample; returns the runs that finished with it. */
@@ -134,12 +165,16 @@ export class PerfDetector {
     if (!prev || t <= prev.t) {
       // First sample, or time went back (a replayed recording was rewound).
       this.runs.clear();
+      this.kicks.clear();
+      this.recent = [{ t, v }];
       this.stillSince = v < STILL_KMH ? t : null;
       return done;
     }
     const dt = t - prev.t;
     if (dt > MAX_GAP_S) {
       this.runs.clear();
+      this.kicks.clear();
+      this.recent = [{ t, v }];
       this.stillSince = v < STILL_KMH ? t : null;
       this.trend = 0;
       return done;
@@ -213,13 +248,31 @@ export class PerfDetector {
           const startT = crossing(prev.t, prev.v, t, v, def.from);
           this.runs.set(def.id, { startT, extreme: v, progressT: t, distanceM: ((def.from + v) / 2 / 3.6) * (t - startT), samples: 1 });
         }
-      } else if (prev.v < def.from && v >= def.from && slope >= MIN_SLOPE && this.trend >= 0) {
-        const startT = crossing(prev.t, prev.v, t, v, def.from);
-        this.runs.set(def.id, { startT, extreme: v, progressT: t, distanceM: ((def.from + v) / 2 / 3.6) * (t - startT), samples: 1 });
+      } else {
+        let kick = this.kicks.get(def.id);
+        if (!kick && slope >= MIN_SLOPE && this.cruising(def, prev.t)) {
+          kick = { t: prev.t, v: prev.v };
+          this.kicks.set(def.id, kick);
+        }
+        if (!kick) continue;
+        if (v < prev.v - 1 || t - kick.t > KICK_MAX_S) {
+          // Lifted off, or never got there: wait for a new cruise.
+          this.kicks.delete(def.id);
+        } else if (kick.v >= def.from) {
+          // Cruising at (or just above) the start speed: the kick is the start.
+          this.kicks.delete(def.id);
+          this.runs.set(def.id, { startT: kick.t, extreme: v, progressT: t, distanceM: stepM, samples: 1 });
+        } else if (prev.v < def.from && v >= def.from) {
+          this.kicks.delete(def.id);
+          const startT = crossing(prev.t, prev.v, t, v, def.from);
+          this.runs.set(def.id, { startT, extreme: v, progressT: t, distanceM: ((def.from + v) / 2 / 3.6) * (t - startT), samples: 1 });
+        }
       }
     }
 
     this.trend = slope;
+    this.recent.push({ t, v });
+    while (this.recent.length && this.recent[0].t < t - CRUISE_S - 1) this.recent.shift();
     if (v < STILL_KMH) this.stillSince ??= t;
     else this.stillSince = null;
     return done;

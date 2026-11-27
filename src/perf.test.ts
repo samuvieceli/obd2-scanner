@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PerfDetector, type PerfResult } from "./perf";
+import { PERF_TESTS, PerfDetector, type PerfResult } from "./perf";
 
 /** Feeds a speed profile `v(t)` sampled at `hz` from `t0` to `t1` seconds. */
 function drive(d: PerfDetector, v: (t: number) => number, t0: number, t1: number, hz = 5): PerfResult[] {
@@ -31,24 +31,69 @@ describe("PerfDetector", () => {
     expect(Math.abs(r[0].timeS - 100 / 12)).toBeLessThan(0.1);
   });
 
-  it("detects 40-80 and 80-120 in the same pull", () => {
+  it("times 40-80 after a steady cruise and a kick", () => {
     const d = new PerfDetector();
-    // Cruise at 30, then accelerate 5 km/h per second.
-    const v = (t: number) => (t < 2 ? 30 : 30 + (t - 2) * 5);
-    const r = drive(d, v, 0, 22, 10);
-    const by = Object.fromEntries(r.map((x) => [x.test, x.timeS]));
-    expect(by["40-80"]).toBeCloseTo(8, 1);
-    expect(by["80-120"]).toBeCloseTo(8, 1);
-    expect(by["0-100"]).toBeUndefined();
+    // Cruise at 35 km/h for 3 s, then 5 km/h per second → 40 at t = 4, 80 at t = 12.
+    const v = (t: number) => (t < 3 ? 35 : 35 + (t - 3) * 5);
+    const r = drive(d, v, 0, 14, 10).filter((x) => x.test === "40-80");
+    expect(r).toHaveLength(1);
+    expect(r[0].timeS).toBeCloseTo(8, 1);
   });
 
-  it("does not start a rolling test when merely cruising across the limit", () => {
+  it("starts at the kick when cruising right at the start speed", () => {
     const d = new PerfDetector();
-    // Slowly drifting 39 → 41, then cruising: no 40-80 should complete or run.
-    const v = (t: number) => (t < 4 ? 39 + t * 0.5 : 41);
-    drive(d, v, 0, 10, 5);
-    const s = d.status().find((x) => x.test === "40-80");
-    expect(s?.phase).not.toBe("running");
+    const v = (t: number) => (t < 3 ? 40 : 40 + (t - 3) * 5);
+    const r = drive(d, v, 0, 13, 10).filter((x) => x.test === "40-80");
+    expect(r).toHaveLength(1);
+    expect(r[0].timeS).toBeCloseTo(8, 1);
+  });
+
+  it("ignores speeds passed through during an acceleration already going on", () => {
+    // Samuel's point: from a lower speed, at 80 the car is already in a low
+    // gear with the turbo spooled, so that 80-120 is not a real overtaking.
+    const d = new PerfDetector();
+    const v = (t: number) => (t < 2 ? 35 : 35 + (t - 2) * 5);
+    const r = drive(d, v, 0, 22, 10);
+    expect(r.map((x) => x.test)).toEqual(["40-80"]);
+    // Cruising far below the start speed does not count either.
+    const d2 = new PerfDetector();
+    expect(drive(d2, (t) => (t < 3 ? 20 : 20 + (t - 3) * 5), 0, 18, 10).filter((x) => x.test === "40-80")).toHaveLength(0);
+  });
+
+  it("needs a steady cruise, not a wavering speed", () => {
+    const d = new PerfDetector();
+    // Speed swinging ±4 km/h around 36 before the kick.
+    const v = (t: number) => (t < 3 ? 36 + 4 * Math.sin(t * 6) : 36 + (t - 3) * 5);
+    expect(drive(d, v, 0, 14, 10).filter((x) => x.test === "40-80")).toHaveLength(0);
+  });
+
+  it("works with a slow adapter (2 readings per second)", () => {
+    const d = new PerfDetector();
+    const v = (t: number) => (t < 4 ? 76 : 76 + (t - 4) * 4);
+    const r = drive(d, v, 0, 20, 2).filter((x) => x.test === "80-120");
+    expect(r).toHaveLength(1);
+    expect(Math.abs(r[0].timeS - 10)).toBeLessThan(0.3);
+  });
+
+  it("drops the kick when the driver lifts off before the start speed", () => {
+    const d = new PerfDetector();
+    const v = (t: number) => (t < 3 ? 34 : t < 4 ? 34 + (t - 3) * 4 : t < 6 ? 38 - (t - 4) * 2 : 34 + (t - 6) * 0.1);
+    drive(d, v, 0, 10, 10);
+    expect(d.status().find((x) => x.test === "40-80")?.phase).not.toBe("running");
+  });
+
+  it("only watches the chosen tests", () => {
+    const d = new PerfDetector(PERF_TESTS.filter((x) => x.id === "0-100"));
+    const v = (t: number) => (t < 3 ? 35 : 35 + (t - 3) * 5);
+    expect(drive(d, v, 0, 14, 10)).toHaveLength(0);
+    expect(d.status().map((x) => x.test)).toEqual(["0-100"]);
+  });
+
+  it("is ready for a rolling test only while cruising near its start speed", () => {
+    const d = new PerfDetector();
+    drive(d, () => 37, 0, 3, 5);
+    expect(d.status().find((x) => x.test === "40-80")?.phase).toBe("ready");
+    expect(d.status().find((x) => x.test === "80-120")?.phase).toBe("waiting");
   });
 
   it("measures 100-0 braking time and distance", () => {
