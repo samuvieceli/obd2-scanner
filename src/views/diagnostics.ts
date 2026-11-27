@@ -147,10 +147,15 @@ export function mount(root: HTMLElement) {
       return true;
     });
     if (res) {
-      toast(t("dtc.cleared"), "ok");
       state.dtcs = null;
       state.freeze = null;
       state.mode06 = null;
+      // Read again to show whether the codes are really gone. Permanent
+      // codes stay by design: the ECU erases them after a few clean drives.
+      const after = await api.readDtcs(getLang()).catch(() => null);
+      state.dtcs = after;
+      const back = after ? after.stored.length + after.pending.length : 0;
+      toast(!after ? t("dtc.cleared") : back ? t("dtc.clearedSomeBack", { count: back }) : t("dtc.clearedConfirmed"), back ? "info" : "ok");
       renderLists();
       renderFreeze();
       renderMode06();

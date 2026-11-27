@@ -586,7 +586,7 @@ impl Elm327 {
     /// Clears trouble codes and turns the MIL off (mode 04).
     /// Clears trouble codes (mode 04), only with the engine stopped and the
     /// car standing still: refused with [`ObdError::Refused`]`("engine_running")`
-    /// otherwise. Cars that do not report RPM/speed are trusted.
+    /// otherwise, or when the car does not say (see [`Self::engine_running`]).
     pub fn clear_dtcs(&mut self) -> Result<()> {
         if self.engine_running()? {
             return Err(ObdError::Refused("engine_running"));
@@ -601,19 +601,27 @@ impl Elm327 {
     }
 
     /// True when the engine turns (RPM ≥ 50) or the car moves (speed > 0),
-    /// asked to the car right now.
+    /// asked to the car right now. When the car answers neither question
+    /// (key in accessory position, ECU asleep) the state is unknown:
+    /// [`ObdError::Refused`]`("engine_unknown")`, never "stopped".
     pub fn engine_running(&mut self) -> Result<bool> {
+        let mut answered = false;
         for (pid, running) in [
             (0x0C, (|v: f64| v >= 50.0) as fn(f64) -> bool),
             (0x0D, |v| v > 0.0),
         ] {
             match self.read_pid(pid) {
                 Ok(v) if running(v.value) => return Ok(true),
-                Ok(_) | Err(ObdError::NoData | ObdError::NegativeResponse(_)) => {}
+                Ok(_) => answered = true,
+                Err(ObdError::NoData | ObdError::NegativeResponse(_)) => {}
                 Err(e) => return Err(e),
             }
         }
-        Ok(false)
+        if answered {
+            Ok(false)
+        } else {
+            Err(ObdError::Refused("engine_unknown"))
+        }
     }
 
     /// Monitor status since DTCs cleared (mode 01 PID 01).

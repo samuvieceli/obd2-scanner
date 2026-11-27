@@ -433,7 +433,7 @@ export function mount(root: HTMLElement) {
         }
       }, "primary");
       card.append(
-        h("div", { class: "alert alert-warning" }, h("p", null, t("connection.vehicleNoResponse")), h("p", { class: "small muted" }, errorText(state.vehicleError)), retry),
+        h("div", { class: "alert alert-warning" }, h("p", null, t("connection.vehicleNoResponse")), h("p", { class: "small muted" }, errorText(state.vehicleError)), h("p", { class: "small" }, t("connection.kLineHint")), retry),
       );
     }
     const disc = button(t("common.disconnect"), async () => {
