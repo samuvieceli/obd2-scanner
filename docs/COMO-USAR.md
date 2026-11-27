@@ -67,6 +67,21 @@ A tela **Testes guiados** faz verificações passo a passo e mostra o resultado 
 
 A tensão vem do próprio adaptador (comando `ATRV`, medida no pino 16, ligado direto na bateria). Durante o teste o programa lê só a tensão (e a rotação na etapa 3), para ter o máximo de leituras por segundo. Muitos adaptadores simples reiniciam na partida porque a tensão cai também para eles: nesse caso a etapa 2 fica sem valor e o programa explica o motivo. Adaptadores diferem em 0,1 a 0,3 V, então use o resultado como indicação; para um laudo, faça um teste de carga num eletricista. No modo de demonstração, botões na própria tela desligam e dão partida no motor virtual.
 
+**Sondas e catalisador** (funciona também com uma gravação reproduzida):
+
+1. Rode uns 10 minutos para o catalisador esquentar e pare o carro em lugar aberto.
+2. Com o motor acima de 80 °C, acelere e segure entre 2.000 e 3.000 rpm por 20 segundos. Em marcha lenta até uma sonda boa oscila devagar, por isso o teste é feito mais alto.
+3. O gráfico mostra as duas sondas sobrepostas e o resultado aparece sozinho.
+
+| O que o programa vê | Indicação |
+| --- | --- |
+| Sonda da frente oscila entre pobre e rico; a de trás fica estável | Catalisador funcionando |
+| A sonda de trás oscila quase tanto quanto a da frente (copia a da frente) | Catalisador com baixa eficiência (o caso do código P0420) |
+| Sonda da frente quase parada (pobre, rica ou no meio) | Problema de mistura ou sonda; aí o catalisador não pode ser avaliado |
+| Sonda de trás baixa e parada | Vazamento no escapamento ou sonda com defeito, não necessariamente o catalisador |
+
+O programa conta quantas vezes cada sonda cruza o meio da escala (com uma margem, para o ruído não contar) e compara o tamanho da oscilação das duas, em vez de exigir uma faixa fixa de tensão. Carros com sonda de banda larga na frente (lê o fator lambda, perto de 1,00) têm só a sonda de trás avaliada. Embaixo, a tela mostra o **monitor do catalisador** e os **km desde que os códigos foram apagados**: são o melhor sinal de que alguém apagou um defeito antes de vender o carro. Os testes da própria central (Modo 06) são mais confiáveis que o gráfico, porque a sonda responde em milissegundos, mais rápido do que o adaptador consegue ler.
+
 ## 7. Testes da central (Modo 06)
 
 Em **Códigos de falha → Testes da central**, clique em **Ler testes**. Cada linha é um autoteste da central com o valor medido e os limites aceitos. Um teste **reprovado** costuma indicar o componente com problema antes mesmo de aparecer um código de falha. Disponível em carros com rede CAN (a maioria a partir de 2008–2010).

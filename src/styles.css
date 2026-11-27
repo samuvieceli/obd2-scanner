@@ -437,4 +437,6 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .guided-step h3 { margin: 2px 0 4px; font-size: 1rem; }
 .guided-step progress { width: 100%; max-width: 280px; margin-top: 6px; }
 .guided-reading { margin-top: 6px; }
-[role="tabpanel"] > .alert:first-child { margin-top: 0; margin-bottom: 12px; }
+[role="tabpanel"] { display: grid; gap: 12px; }
+[role="tabpanel"] > * { margin-top: 0; margin-bottom: 0; }
+[role="tabpanel"] .chart-card { min-width: 0; }
