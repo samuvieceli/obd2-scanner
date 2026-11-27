@@ -214,6 +214,16 @@ Com a opção **Reconectar automaticamente se a conexão cair** ligada (na tela 
 - **Teste de compatibilidade do adaptador** (tela **Conexão**, com o adaptador conectado): descobre até qual versão do ELM327 o adaptador funciona de verdade. Clones costumam dizer "v2.1" e funcionar como v1.3. Só usa comandos que leem algo ou que o reinício desfaz; nada é gravado no adaptador.
 - **Centrais eletrônicas** (tela **Veículo e prontidão**): lista as centrais que respondem pelo OBD (motor, câmbio, sistema híbrido) e lê a identificação de cada uma (nome, número da peça, fornecedor, versão do software), quando o carro informa. Só leitura. ABS, airbag e carroceria usam endereços próprios de cada fabricante e não aparecem.
 
+## 13a. Norma OBD, combustível e chassi
+
+Na tela **Veículo e prontidão**, depois de **Ler informações**, aparecem também:
+
+- **Norma OBD declarada**: o que a central diz seguir. Carros brasileiros costumam mostrar **OBDBr-1** (2007 a 2010), **OBDBr-2** (a partir de 2010/2011) ou **OBDBr-3** (a partir de 2022). Importados podem mostrar EOBD (Europa) ou OBD-II (EUA). Tudo funciona igual.
+- **Combustível informado**: o que a central diz usar. A norma não tem código para carro flex, então um flex pode aparecer como gasolina, etanol ou bicombustível.
+- **Dígito verificador** do chassi: só aparece em chassis da América do Norte e da China, onde ele existe. No Brasil a 9ª posição do chassi é um caractere comum.
+
+Detalhes sobre a base de códigos e as particularidades brasileiras: [CARROS-BRASILEIROS.md](CARROS-BRASILEIROS.md).
+
 ## 13b. Tela acesa durante a leitura
 
 Enquanto a leitura ao vivo estiver ligada, uma gravação estiver em andamento ou a tela **HUD** estiver aberta, o programa pede ao Windows para não apagar a tela nem suspender o computador. Ao parar, o Windows volta ao normal. Assim a conexão não cai no meio de uma viagem.

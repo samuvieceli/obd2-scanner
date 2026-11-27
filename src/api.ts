@@ -110,6 +110,10 @@ export interface VehicleIdentity {
   vin: string | null;
   calibration_id: string | null;
   ecu_name: string | null;
+  /** PID 1C code (e.g. 29 = OBDBr-2), when the car answers it. */
+  obd_standard?: number | null;
+  /** PID 51 code (e.g. 9 = bifuel running gasoline), when the car answers it. */
+  fuel_type?: number | null;
 }
 
 export interface VinInfo {

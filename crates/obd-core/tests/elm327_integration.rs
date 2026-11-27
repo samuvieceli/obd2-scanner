@@ -57,7 +57,10 @@ fn full_session_against_simulator() {
         let ident = elm.read_vehicle_identity();
         assert_eq!(ident.vin.as_deref(), Some(DEMO_VIN));
         assert_eq!(ident.calibration_id.as_deref(), Some("SIMCAL-0001"));
-        assert_eq!(decode_vin(DEMO_VIN, 2026).check_digit_ok, Some(true));
+        assert_eq!(ident.obd_standard, Some(0x1D));
+        assert_eq!(ident.fuel_type, Some(0x09));
+        // Brazilian VIN: position 9 is not a check digit, so it is not judged.
+        assert_eq!(decode_vin(DEMO_VIN, 2026).check_digit_ok, None);
 
         assert_eq!(
             elm.read_freeze_frame_dtc().unwrap(),

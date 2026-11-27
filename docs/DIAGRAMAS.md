@@ -113,7 +113,7 @@ flowchart TB
         health["health.rs<br/>percebe travamento<br/>e queda da conexão"]
         pid["pid.rs<br/>fórmulas dos sensores"]
         dtc["dtc.rs + data/*.json<br/>códigos de falha"]
-        vin["vin.rs<br/>chassi: fabricante, ano, país"]
+        vin["vin.rs<br/>chassi: fabricante (foco no Brasil),<br/>ano, país"]
         readiness["readiness.rs<br/>monitores de prontidão"]
         mode06["mode06.rs<br/>resultados dos autotestes"]
         interpret["interpret.rs<br/>interpretação automática (indícios)"]

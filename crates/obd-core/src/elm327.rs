@@ -138,12 +138,21 @@ pub enum LogDirection {
 
 pub type Logger = Box<dyn FnMut(LogDirection, &str) + Send>;
 
-/// Vehicle identification read through mode 09.
+/// Vehicle identification read through mode 09, plus two mode 01 PIDs that
+/// describe the car rather than measure it.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct VehicleIdentity {
     pub vin: Option<String>,
     pub calibration_id: Option<String>,
     pub ecu_name: Option<String>,
+    /// PID 1C: OBD standard the car declares (e.g. 0x1D = OBDBr-2). The UI
+    /// names the codes (SAE J1979 table).
+    #[serde(default)]
+    pub obd_standard: Option<u8>,
+    /// PID 51: fuel type (e.g. 0x01 gasoline, 0x03 ethanol, 0x09 bifuel
+    /// gasoline). Many flex cars do not support it.
+    #[serde(default)]
+    pub fuel_type: Option<u8>,
 }
 
 pub struct Elm327 {
@@ -776,10 +785,17 @@ impl Elm327 {
                 .ok()
                 .and_then(|m| assemble_mode09_string(&m, can))
         };
+        // First data byte of a mode 01 answer (`41 PID A`).
+        let byte = |me: &mut Self, pid: u8| -> Option<u8> {
+            let msgs = me.request(0x01, &[pid]).ok()?;
+            msgs.iter().find_map(|m| m.get(2).copied())
+        };
         VehicleIdentity {
             vin: read(self, 0x02),
             calibration_id: read(self, 0x04),
             ecu_name: read(self, 0x0A),
+            obd_standard: byte(self, 0x1C),
+            fuel_type: byte(self, 0x51),
         }
     }
 
