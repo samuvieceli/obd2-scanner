@@ -23,6 +23,7 @@ export function mount(root: HTMLElement) {
     const r = await busy(recBtn, () => (state.recording.recording ? api.stopRecording() : api.startRecording()));
     if (r) {
       state.recording = r;
+      state.recoveredFrames = null;
       emit("recording");
     }
   }, "primary");
@@ -35,6 +36,7 @@ export function mount(root: HTMLElement) {
     recBtn.className = `btn ${r.recording ? "btn-danger" : "btn-primary"}`;
     if (r.recording) statusBox.append(h("p", { class: "rec-text" }, t("sessions.recording", { frames: r.frames })));
     if (r.recording && !state.polling) statusBox.append(h("p", { class: "muted small" }, t("sessions.needLive")));
+    if (state.recoveredFrames && !r.recording) statusBox.append(h("div", { class: "alert alert-warning" }, t("sessions.recoveredHint", { frames: state.recoveredFrames })));
     statusBox.append(
       h("p", { class: "muted" }, r.lastFrames ? t("sessions.last", { frames: r.lastFrames, duration: duration(r.lastDurationS) }) : t("sessions.none")),
     );

@@ -271,6 +271,13 @@ async function boot() {
     const info = await api.appInfo();
     state.appVersion = info.version;
     state.portableData = info.portableData;
+    // A recording interrupted last time (program closed or crashed while
+    // recording) comes back as the last recording, ready to export.
+    state.recoveredFrames = await api.recoveredRecording().catch(() => null);
+    if (state.recoveredFrames) {
+      state.recording = await api.recordingStatus();
+      toast(t("sessions.recovered", { frames: state.recoveredFrames }), "info");
+    }
   } catch (e) {
     toast(errorText(e), "error");
   }

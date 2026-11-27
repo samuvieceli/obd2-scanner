@@ -362,6 +362,8 @@ const enUS: Messages = {
     showLive: "Show live reading traffic",
   },
   sessions: {
+    recovered: "The recording interrupted last time was recovered ({frames} readings). Export it in Recordings & reports.",
+    recoveredHint: "This is the recording that was running when the program closed ({frames} readings). Export it now: the next recording replaces it.",
     title: "Recordings & reports",
     recordingTitle: "Data recording",
     recordingIntro: "Records the values read on the Live dashboard to analyze later or open in spreadsheets.",

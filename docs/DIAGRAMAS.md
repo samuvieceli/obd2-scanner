@@ -271,6 +271,7 @@ flowchart LR
     perfres["Resultados de desempenho<br/>(por perfil)"] --> ls
     conn["Última conexão usada"] --> ls
     rec["Gravação"] --> csv["CSV (Excel)"] & json["JSON (abre de novo<br/>no programa)"]
+    rec -- "a cada minuto" --> backup[("Cópia de segurança<br/>gravacao-em-andamento.jsonl<br/>(recuperada se o programa fechar)")]
     chart["Gráfico"] --> png["PNG"]
     report["Relatório de diagnóstico"] --> html["HTML / PDF"]
     csv & json & png & html --> files

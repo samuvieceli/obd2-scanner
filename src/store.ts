@@ -83,6 +83,8 @@ export const state = {
   appVersion: "",
   /** Data folder beside the program (portable version), or null. */
   portableData: null as string | null,
+  /** Frames of a recording recovered at start-up (interrupted last time). */
+  recoveredFrames: null as number | null,
 };
 
 const subs = new Map<Topic, Set<() => void>>();

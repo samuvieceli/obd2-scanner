@@ -360,6 +360,8 @@ const ptBR = {
     showLive: "Mostrar tráfego da leitura ao vivo",
   },
   sessions: {
+    recovered: "A gravação interrompida da última vez foi recuperada ({frames} leituras). Exporte em Gravações e relatórios.",
+    recoveredHint: "Esta é a gravação que estava em andamento quando o programa fechou ({frames} leituras). Exporte agora: ela será substituída pela próxima gravação.",
     title: "Gravações e relatórios",
     recordingTitle: "Gravação de dados",
     recordingIntro: "Grava os valores lidos no Painel ao vivo para analisar depois ou abrir em planilhas.",
