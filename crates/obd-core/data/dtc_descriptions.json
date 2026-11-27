@@ -1,0 +1,590 @@
+{
+ "B0001": {
+  "en": "Driver frontal stage 1 deployment control (airbag)",
+  "pt": "Controle de acionamento estágio 1 do airbag frontal do motorista"
+ },
+ "C0035": {
+  "en": "Left front wheel speed sensor circuit",
+  "pt": "Circuito do sensor de velocidade da roda dianteira esquerda"
+ },
+ "C0040": {
+  "en": "Right front wheel speed sensor circuit",
+  "pt": "Circuito do sensor de velocidade da roda dianteira direita"
+ },
+ "C0045": {
+  "en": "Left rear wheel speed sensor circuit",
+  "pt": "Circuito do sensor de velocidade da roda traseira esquerda"
+ },
+ "C0050": {
+  "en": "Right rear wheel speed sensor circuit",
+  "pt": "Circuito do sensor de velocidade da roda traseira direita"
+ },
+ "P0010": {
+  "en": "Intake camshaft position actuator circuit (bank 1)",
+  "pt": "Circuito do atuador de posição do comando de admissão (banco 1)"
+ },
+ "P0011": {
+  "en": "Intake camshaft timing over-advanced or system performance (bank 1)",
+  "pt": "Sincronismo do comando de admissão adiantado demais ou desempenho do sistema (banco 1)"
+ },
+ "P0012": {
+  "en": "Intake camshaft timing over-retarded (bank 1)",
+  "pt": "Sincronismo do comando de admissão atrasado demais (banco 1)"
+ },
+ "P0013": {
+  "en": "Exhaust camshaft position actuator circuit (bank 1)",
+  "pt": "Circuito do atuador de posição do comando de escape (banco 1)"
+ },
+ "P0014": {
+  "en": "Exhaust camshaft timing over-advanced or system performance (bank 1)",
+  "pt": "Sincronismo do comando de escape adiantado demais ou desempenho do sistema (banco 1)"
+ },
+ "P0016": {
+  "en": "Crankshaft/camshaft position correlation (bank 1 sensor A)",
+  "pt": "Correlação entre posição do virabrequim e do comando (banco 1 sensor A)"
+ },
+ "P0030": {
+  "en": "Oxygen sensor heater control circuit (bank 1 sensor 1)",
+  "pt": "Circuito de controle do aquecedor da sonda lambda (banco 1 sensor 1)"
+ },
+ "P0036": {
+  "en": "Oxygen sensor heater control circuit (bank 1 sensor 2)",
+  "pt": "Circuito de controle do aquecedor da sonda lambda (banco 1 sensor 2)"
+ },
+ "P0087": {
+  "en": "Fuel rail/system pressure too low",
+  "pt": "Pressão do tubo/sistema de combustível muito baixa"
+ },
+ "P0088": {
+  "en": "Fuel rail/system pressure too high",
+  "pt": "Pressão do tubo/sistema de combustível muito alta"
+ },
+ "P0100": {
+  "en": "Mass air flow (MAF) circuit malfunction",
+  "pt": "Falha no circuito do sensor de fluxo de massa de ar (MAF)"
+ },
+ "P0101": {
+  "en": "Mass air flow (MAF) circuit range/performance",
+  "pt": "Sensor de fluxo de massa de ar (MAF) fora da faixa/desempenho"
+ },
+ "P0102": {
+  "en": "Mass air flow (MAF) circuit low input",
+  "pt": "Sinal baixo no circuito do sensor de fluxo de massa de ar (MAF)"
+ },
+ "P0103": {
+  "en": "Mass air flow (MAF) circuit high input",
+  "pt": "Sinal alto no circuito do sensor de fluxo de massa de ar (MAF)"
+ },
+ "P0105": {
+  "en": "Manifold absolute pressure (MAP) circuit malfunction",
+  "pt": "Falha no circuito do sensor de pressão absoluta do coletor (MAP)"
+ },
+ "P0106": {
+  "en": "Manifold absolute pressure (MAP) circuit range/performance",
+  "pt": "Sensor de pressão do coletor (MAP) fora da faixa/desempenho"
+ },
+ "P0107": {
+  "en": "Manifold absolute pressure (MAP) circuit low input",
+  "pt": "Sinal baixo no circuito do sensor de pressão do coletor (MAP)"
+ },
+ "P0108": {
+  "en": "Manifold absolute pressure (MAP) circuit high input",
+  "pt": "Sinal alto no circuito do sensor de pressão do coletor (MAP)"
+ },
+ "P0110": {
+  "en": "Intake air temperature (IAT) circuit malfunction",
+  "pt": "Falha no circuito do sensor de temperatura do ar admitido (IAT)"
+ },
+ "P0112": {
+  "en": "Intake air temperature (IAT) circuit low input",
+  "pt": "Sinal baixo no sensor de temperatura do ar admitido (IAT)"
+ },
+ "P0113": {
+  "en": "Intake air temperature (IAT) circuit high input",
+  "pt": "Sinal alto no sensor de temperatura do ar admitido (IAT)"
+ },
+ "P0115": {
+  "en": "Engine coolant temperature (ECT) circuit malfunction",
+  "pt": "Falha no circuito do sensor de temperatura do líquido de arrefecimento (ECT)"
+ },
+ "P0116": {
+  "en": "Engine coolant temperature (ECT) circuit range/performance",
+  "pt": "Sensor de temperatura do arrefecimento (ECT) fora da faixa/desempenho"
+ },
+ "P0117": {
+  "en": "Engine coolant temperature (ECT) circuit low input",
+  "pt": "Sinal baixo no sensor de temperatura do arrefecimento (ECT)"
+ },
+ "P0118": {
+  "en": "Engine coolant temperature (ECT) circuit high input",
+  "pt": "Sinal alto no sensor de temperatura do arrefecimento (ECT)"
+ },
+ "P0120": {
+  "en": "Throttle position sensor (TPS) A circuit malfunction",
+  "pt": "Falha no circuito do sensor de posição da borboleta (TPS) A"
+ },
+ "P0121": {
+  "en": "Throttle position sensor (TPS) A range/performance",
+  "pt": "Sensor de posição da borboleta (TPS) A fora da faixa/desempenho"
+ },
+ "P0122": {
+  "en": "Throttle position sensor (TPS) A circuit low input",
+  "pt": "Sinal baixo no sensor de posição da borboleta (TPS) A"
+ },
+ "P0123": {
+  "en": "Throttle position sensor (TPS) A circuit high input",
+  "pt": "Sinal alto no sensor de posição da borboleta (TPS) A"
+ },
+ "P0125": {
+  "en": "Insufficient coolant temperature for closed loop fuel control",
+  "pt": "Temperatura do arrefecimento insuficiente para controle de mistura em malha fechada"
+ },
+ "P0128": {
+  "en": "Coolant thermostat (coolant temperature below regulating temperature)",
+  "pt": "Válvula termostática (temperatura do arrefecimento abaixo da temperatura de regulagem)"
+ },
+ "P0130": {
+  "en": "O2 sensor circuit malfunction (bank 1 sensor 1)",
+  "pt": "Falha no circuito da sonda lambda (banco 1 sensor 1)"
+ },
+ "P0131": {
+  "en": "O2 sensor circuit low voltage (bank 1 sensor 1)",
+  "pt": "Tensão baixa no circuito da sonda lambda (banco 1 sensor 1)"
+ },
+ "P0132": {
+  "en": "O2 sensor circuit high voltage (bank 1 sensor 1)",
+  "pt": "Tensão alta no circuito da sonda lambda (banco 1 sensor 1)"
+ },
+ "P0133": {
+  "en": "O2 sensor circuit slow response (bank 1 sensor 1)",
+  "pt": "Resposta lenta da sonda lambda (banco 1 sensor 1)"
+ },
+ "P0134": {
+  "en": "O2 sensor circuit no activity detected (bank 1 sensor 1)",
+  "pt": "Nenhuma atividade detectada na sonda lambda (banco 1 sensor 1)"
+ },
+ "P0135": {
+  "en": "O2 sensor heater circuit malfunction (bank 1 sensor 1)",
+  "pt": "Falha no circuito do aquecedor da sonda lambda (banco 1 sensor 1)"
+ },
+ "P0136": {
+  "en": "O2 sensor circuit malfunction (bank 1 sensor 2)",
+  "pt": "Falha no circuito da sonda lambda (banco 1 sensor 2)"
+ },
+ "P0137": {
+  "en": "O2 sensor circuit low voltage (bank 1 sensor 2)",
+  "pt": "Tensão baixa no circuito da sonda lambda (banco 1 sensor 2)"
+ },
+ "P0138": {
+  "en": "O2 sensor circuit high voltage (bank 1 sensor 2)",
+  "pt": "Tensão alta no circuito da sonda lambda (banco 1 sensor 2)"
+ },
+ "P0140": {
+  "en": "O2 sensor circuit no activity detected (bank 1 sensor 2)",
+  "pt": "Nenhuma atividade detectada na sonda lambda (banco 1 sensor 2)"
+ },
+ "P0141": {
+  "en": "O2 sensor heater circuit malfunction (bank 1 sensor 2)",
+  "pt": "Falha no circuito do aquecedor da sonda lambda (banco 1 sensor 2)"
+ },
+ "P0150": {
+  "en": "O2 sensor circuit malfunction (bank 2 sensor 1)",
+  "pt": "Falha no circuito da sonda lambda (banco 2 sensor 1)"
+ },
+ "P0155": {
+  "en": "O2 sensor heater circuit malfunction (bank 2 sensor 1)",
+  "pt": "Falha no circuito do aquecedor da sonda lambda (banco 2 sensor 1)"
+ },
+ "P0171": {
+  "en": "System too lean (bank 1)",
+  "pt": "Mistura muito pobre (banco 1)"
+ },
+ "P0172": {
+  "en": "System too rich (bank 1)",
+  "pt": "Mistura muito rica (banco 1)"
+ },
+ "P0174": {
+  "en": "System too lean (bank 2)",
+  "pt": "Mistura muito pobre (banco 2)"
+ },
+ "P0175": {
+  "en": "System too rich (bank 2)",
+  "pt": "Mistura muito rica (banco 2)"
+ },
+ "P0181": {
+  "en": "Fuel temperature sensor A circuit range/performance",
+  "pt": "Sensor de temperatura do combustível A fora da faixa/desempenho"
+ },
+ "P0190": {
+  "en": "Fuel rail pressure sensor circuit malfunction",
+  "pt": "Falha no circuito do sensor de pressão do tubo de combustível"
+ },
+ "P0201": {
+  "en": "Injector circuit malfunction - cylinder 1",
+  "pt": "Falha no circuito do injetor - cilindro 1"
+ },
+ "P0202": {
+  "en": "Injector circuit malfunction - cylinder 2",
+  "pt": "Falha no circuito do injetor - cilindro 2"
+ },
+ "P0203": {
+  "en": "Injector circuit malfunction - cylinder 3",
+  "pt": "Falha no circuito do injetor - cilindro 3"
+ },
+ "P0204": {
+  "en": "Injector circuit malfunction - cylinder 4",
+  "pt": "Falha no circuito do injetor - cilindro 4"
+ },
+ "P0217": {
+  "en": "Engine overtemperature condition",
+  "pt": "Condição de superaquecimento do motor"
+ },
+ "P0219": {
+  "en": "Engine overspeed condition",
+  "pt": "Condição de rotação excessiva do motor"
+ },
+ "P0220": {
+  "en": "Throttle position sensor (TPS) B circuit malfunction",
+  "pt": "Falha no circuito do sensor de posição da borboleta (TPS) B"
+ },
+ "P0230": {
+  "en": "Fuel pump primary circuit malfunction",
+  "pt": "Falha no circuito primário da bomba de combustível"
+ },
+ "P0234": {
+  "en": "Turbo/supercharger overboost condition",
+  "pt": "Pressão excessiva do turbo/compressor (overboost)"
+ },
+ "P0261": {
+  "en": "Cylinder 1 injector circuit low",
+  "pt": "Circuito do injetor do cilindro 1 baixo"
+ },
+ "P0299": {
+  "en": "Turbo/supercharger underboost condition",
+  "pt": "Pressão insuficiente do turbo/compressor (underboost)"
+ },
+ "P0300": {
+  "en": "Random/multiple cylinder misfire detected",
+  "pt": "Falha de combustão (misfire) aleatória ou em vários cilindros"
+ },
+ "P0301": {
+  "en": "Cylinder 1 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 1"
+ },
+ "P0302": {
+  "en": "Cylinder 2 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 2"
+ },
+ "P0303": {
+  "en": "Cylinder 3 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 3"
+ },
+ "P0304": {
+  "en": "Cylinder 4 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 4"
+ },
+ "P0305": {
+  "en": "Cylinder 5 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 5"
+ },
+ "P0306": {
+  "en": "Cylinder 6 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 6"
+ },
+ "P0307": {
+  "en": "Cylinder 7 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 7"
+ },
+ "P0308": {
+  "en": "Cylinder 8 misfire detected",
+  "pt": "Falha de combustão (misfire) no cilindro 8"
+ },
+ "P0315": {
+  "en": "Crankshaft position system variation not learned",
+  "pt": "Variação do sistema de posição do virabrequim não aprendida"
+ },
+ "P0320": {
+  "en": "Ignition/distributor engine speed input circuit malfunction",
+  "pt": "Falha no circuito de entrada de rotação da ignição/distribuidor"
+ },
+ "P0325": {
+  "en": "Knock sensor 1 circuit malfunction (bank 1)",
+  "pt": "Falha no circuito do sensor de detonação 1 (banco 1)"
+ },
+ "P0327": {
+  "en": "Knock sensor 1 circuit low input (bank 1)",
+  "pt": "Sinal baixo no sensor de detonação 1 (banco 1)"
+ },
+ "P0328": {
+  "en": "Knock sensor 1 circuit high input (bank 1)",
+  "pt": "Sinal alto no sensor de detonação 1 (banco 1)"
+ },
+ "P0335": {
+  "en": "Crankshaft position sensor A circuit malfunction",
+  "pt": "Falha no circuito do sensor de rotação/posição do virabrequim A"
+ },
+ "P0336": {
+  "en": "Crankshaft position sensor A circuit range/performance",
+  "pt": "Sensor de posição do virabrequim A fora da faixa/desempenho"
+ },
+ "P0340": {
+  "en": "Camshaft position sensor A circuit malfunction (bank 1)",
+  "pt": "Falha no circuito do sensor de fase/posição do comando A (banco 1)"
+ },
+ "P0341": {
+  "en": "Camshaft position sensor A circuit range/performance (bank 1)",
+  "pt": "Sensor de fase/posição do comando A fora da faixa/desempenho (banco 1)"
+ },
+ "P0351": {
+  "en": "Ignition coil A primary/secondary circuit malfunction",
+  "pt": "Falha no circuito primário/secundário da bobina de ignição A"
+ },
+ "P0352": {
+  "en": "Ignition coil B primary/secondary circuit malfunction",
+  "pt": "Falha no circuito primário/secundário da bobina de ignição B"
+ },
+ "P0353": {
+  "en": "Ignition coil C primary/secondary circuit malfunction",
+  "pt": "Falha no circuito primário/secundário da bobina de ignição C"
+ },
+ "P0354": {
+  "en": "Ignition coil D primary/secondary circuit malfunction",
+  "pt": "Falha no circuito primário/secundário da bobina de ignição D"
+ },
+ "P0400": {
+  "en": "Exhaust gas recirculation (EGR) flow malfunction",
+  "pt": "Falha no fluxo de recirculação dos gases de escape (EGR)"
+ },
+ "P0401": {
+  "en": "Exhaust gas recirculation (EGR) flow insufficient",
+  "pt": "Fluxo de recirculação dos gases de escape (EGR) insuficiente"
+ },
+ "P0402": {
+  "en": "Exhaust gas recirculation (EGR) flow excessive",
+  "pt": "Fluxo de recirculação dos gases de escape (EGR) excessivo"
+ },
+ "P0403": {
+  "en": "Exhaust gas recirculation (EGR) circuit malfunction",
+  "pt": "Falha no circuito de recirculação dos gases de escape (EGR)"
+ },
+ "P0420": {
+  "en": "Catalyst system efficiency below threshold (bank 1)",
+  "pt": "Eficiência do catalisador abaixo do limite (banco 1)"
+ },
+ "P0430": {
+  "en": "Catalyst system efficiency below threshold (bank 2)",
+  "pt": "Eficiência do catalisador abaixo do limite (banco 2)"
+ },
+ "P0440": {
+  "en": "Evaporative emission (EVAP) control system malfunction",
+  "pt": "Falha no sistema de controle de emissões evaporativas (EVAP/cânister)"
+ },
+ "P0441": {
+  "en": "Evaporative emission (EVAP) system incorrect purge flow",
+  "pt": "Fluxo de purga incorreto no sistema EVAP (cânister)"
+ },
+ "P0442": {
+  "en": "Evaporative emission (EVAP) system leak detected (small leak)",
+  "pt": "Vazamento pequeno detectado no sistema EVAP"
+ },
+ "P0443": {
+  "en": "Evaporative emission (EVAP) purge control valve circuit",
+  "pt": "Circuito da válvula de purga do cânister (EVAP)"
+ },
+ "P0446": {
+  "en": "Evaporative emission (EVAP) vent control circuit malfunction",
+  "pt": "Falha no circuito de controle de ventilação do sistema EVAP"
+ },
+ "P0455": {
+  "en": "Evaporative emission (EVAP) system leak detected (large leak)",
+  "pt": "Vazamento grande detectado no sistema EVAP (verifique a tampa do tanque)"
+ },
+ "P0456": {
+  "en": "Evaporative emission (EVAP) system leak detected (very small leak)",
+  "pt": "Vazamento muito pequeno detectado no sistema EVAP"
+ },
+ "P0457": {
+  "en": "Evaporative emission (EVAP) leak detected (fuel cap loose/off)",
+  "pt": "Vazamento no sistema EVAP (tampa do tanque solta ou ausente)"
+ },
+ "P0460": {
+  "en": "Fuel level sensor circuit malfunction",
+  "pt": "Falha no circuito do sensor de nível de combustível"
+ },
+ "P0480": {
+  "en": "Cooling fan 1 control circuit malfunction",
+  "pt": "Falha no circuito de controle do eletroventilador 1"
+ },
+ "P0500": {
+  "en": "Vehicle speed sensor (VSS) malfunction",
+  "pt": "Falha no sensor de velocidade do veículo (VSS)"
+ },
+ "P0505": {
+  "en": "Idle air control (IAC) system malfunction",
+  "pt": "Falha no sistema de controle da marcha lenta (atuador de marcha lenta)"
+ },
+ "P0506": {
+  "en": "Idle control system RPM lower than expected",
+  "pt": "Rotação da marcha lenta abaixo do esperado"
+ },
+ "P0507": {
+  "en": "Idle control system RPM higher than expected",
+  "pt": "Rotação da marcha lenta acima do esperado"
+ },
+ "P0520": {
+  "en": "Engine oil pressure sensor/switch circuit malfunction",
+  "pt": "Falha no circuito do sensor/interruptor de pressão do óleo"
+ },
+ "P0560": {
+  "en": "System voltage malfunction",
+  "pt": "Falha na tensão do sistema elétrico"
+ },
+ "P0562": {
+  "en": "System voltage low",
+  "pt": "Tensão do sistema elétrico baixa"
+ },
+ "P0563": {
+  "en": "System voltage high",
+  "pt": "Tensão do sistema elétrico alta"
+ },
+ "P0571": {
+  "en": "Brake switch A circuit malfunction",
+  "pt": "Falha no circuito do interruptor de freio A"
+ },
+ "P0600": {
+  "en": "Serial communication link malfunction",
+  "pt": "Falha no link de comunicação serial"
+ },
+ "P0601": {
+  "en": "Internal control module memory checksum error",
+  "pt": "Erro de checksum na memória interna do módulo de controle"
+ },
+ "P0602": {
+  "en": "Control module programming error",
+  "pt": "Erro de programação do módulo de controle"
+ },
+ "P0603": {
+  "en": "Internal control module keep alive memory (KAM) error",
+  "pt": "Erro na memória de manutenção (KAM) do módulo de controle"
+ },
+ "P0604": {
+  "en": "Internal control module random access memory (RAM) error",
+  "pt": "Erro na memória RAM interna do módulo de controle"
+ },
+ "P0605": {
+  "en": "Internal control module read only memory (ROM) error",
+  "pt": "Erro na memória ROM interna do módulo de controle"
+ },
+ "P0606": {
+  "en": "Control module processor fault",
+  "pt": "Falha no processador do módulo de controle (ECU)"
+ },
+ "P0627": {
+  "en": "Fuel pump A control circuit open",
+  "pt": "Circuito de controle da bomba de combustível A aberto"
+ },
+ "P0700": {
+  "en": "Transmission control system malfunction (check TCM codes)",
+  "pt": "Falha no sistema de controle da transmissão (verifique códigos do módulo do câmbio)"
+ },
+ "P0705": {
+  "en": "Transmission range sensor circuit malfunction",
+  "pt": "Falha no circuito do sensor de posição da alavanca do câmbio"
+ },
+ "P0715": {
+  "en": "Input/turbine speed sensor circuit malfunction",
+  "pt": "Falha no circuito do sensor de rotação de entrada/turbina do câmbio"
+ },
+ "P0720": {
+  "en": "Output speed sensor circuit malfunction",
+  "pt": "Falha no circuito do sensor de rotação de saída do câmbio"
+ },
+ "P0730": {
+  "en": "Incorrect gear ratio",
+  "pt": "Relação de marcha incorreta"
+ },
+ "P0740": {
+  "en": "Torque converter clutch circuit malfunction",
+  "pt": "Falha no circuito da embreagem do conversor de torque"
+ },
+ "P0750": {
+  "en": "Shift solenoid A malfunction",
+  "pt": "Falha no solenoide de troca de marcha A"
+ },
+ "P1000": {
+  "en": "OBD systems readiness test not complete (manufacturer)",
+  "pt": "Testes de prontidão OBD não concluídos (específico do fabricante)"
+ },
+ "P2096": {
+  "en": "Post catalyst fuel trim system too lean (bank 1)",
+  "pt": "Correção de combustível pós-catalisador muito pobre (banco 1)"
+ },
+ "P2097": {
+  "en": "Post catalyst fuel trim system too rich (bank 1)",
+  "pt": "Correção de combustível pós-catalisador muito rica (banco 1)"
+ },
+ "P2101": {
+  "en": "Throttle actuator control motor circuit range/performance",
+  "pt": "Motor do corpo de borboleta eletrônico fora da faixa/desempenho"
+ },
+ "P2135": {
+  "en": "Throttle/pedal position sensor A/B voltage correlation",
+  "pt": "Correlação de tensão entre sensores de posição da borboleta/pedal A/B"
+ },
+ "P2138": {
+  "en": "Throttle/pedal position sensor D/E voltage correlation",
+  "pt": "Correlação de tensão entre sensores de posição do pedal D/E"
+ },
+ "P2187": {
+  "en": "System too lean at idle (bank 1)",
+  "pt": "Mistura muito pobre em marcha lenta (banco 1)"
+ },
+ "P2188": {
+  "en": "System too rich at idle (bank 1)",
+  "pt": "Mistura muito rica em marcha lenta (banco 1)"
+ },
+ "P2195": {
+  "en": "O2 sensor signal stuck lean (bank 1 sensor 1)",
+  "pt": "Sinal da sonda lambda travado em pobre (banco 1 sensor 1)"
+ },
+ "P2196": {
+  "en": "O2 sensor signal stuck rich (bank 1 sensor 1)",
+  "pt": "Sinal da sonda lambda travado em rico (banco 1 sensor 1)"
+ },
+ "P2270": {
+  "en": "O2 sensor signal stuck lean (bank 1 sensor 2)",
+  "pt": "Sinal da sonda lambda travado em pobre (banco 1 sensor 2)"
+ },
+ "P2271": {
+  "en": "O2 sensor signal stuck rich (bank 1 sensor 2)",
+  "pt": "Sinal da sonda lambda travado em rico (banco 1 sensor 2)"
+ },
+ "U0001": {
+  "en": "High speed CAN communication bus",
+  "pt": "Barramento de comunicação CAN de alta velocidade"
+ },
+ "U0073": {
+  "en": "Control module communication bus A off",
+  "pt": "Barramento de comunicação A dos módulos desligado"
+ },
+ "U0100": {
+  "en": "Lost communication with ECM/PCM",
+  "pt": "Comunicação perdida com o módulo de injeção (ECM/PCM)"
+ },
+ "U0101": {
+  "en": "Lost communication with TCM",
+  "pt": "Comunicação perdida com o módulo do câmbio (TCM)"
+ },
+ "U0121": {
+  "en": "Lost communication with anti-lock brake system (ABS) module",
+  "pt": "Comunicação perdida com o módulo do ABS"
+ },
+ "U0140": {
+  "en": "Lost communication with body control module (BCM)",
+  "pt": "Comunicação perdida com o módulo da carroceria (BCM)"
+ },
+ "U0155": {
+  "en": "Lost communication with instrument panel cluster (IPC)",
+  "pt": "Comunicação perdida com o painel de instrumentos"
+ }
+}

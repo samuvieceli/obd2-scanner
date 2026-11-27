@@ -1,0 +1,17 @@
+[package]
+name = "obd-core"
+description = "ELM327 / OBD-II core: transports, protocol, decoders, simulator and export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+default = ["serial"]
+serial = ["dep:serialport"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+serialport = { version = "4.10", optional = true }

@@ -1,0 +1,23 @@
+{
+  "name": "obd2-scanner",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.12.0",
+    "@tauri-apps/plugin-dialog": "^2.8.0",
+    "uplot": "^1.6.32"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.0"
+  }
+}
