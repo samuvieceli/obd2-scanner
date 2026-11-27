@@ -458,6 +458,53 @@ impl Elm327 {
         decode_readiness(&msgs[0][2..])
     }
 
+    /// Mode 06: on-board test results (CAN vehicles only). Returns every
+    /// record of every supported monitor; monitors that fail to answer are
+    /// skipped.
+    pub fn read_mode06(&mut self) -> Result<Vec<crate::mode06::TestResult>> {
+        if !self.info.is_can() {
+            return Err(ObdError::Parse(
+                "mode 06 is only supported on CAN vehicles".into(),
+            ));
+        }
+        let mut mids = Vec::new();
+        let mut base = 0u8;
+        loop {
+            let msgs = self.request(0x06, &[base])?;
+            let mut more = false;
+            for m in &msgs {
+                if m.len() < 6 {
+                    continue;
+                }
+                for mid in crate::pid::decode_supported(base, &m[2..6]) {
+                    if mid.is_multiple_of(0x20) {
+                        more |= mid == base.wrapping_add(0x20);
+                    } else if !mids.contains(&mid) {
+                        mids.push(mid);
+                    }
+                }
+            }
+            if !more || base >= 0xE0 {
+                break;
+            }
+            base += 0x20;
+        }
+        mids.sort_unstable();
+        let mut out = Vec::new();
+        for mid in mids {
+            match self.request(0x06, &[mid]) {
+                Ok(msgs) => {
+                    for m in msgs {
+                        out.extend(crate::mode06::decode_records(&m[1..]));
+                    }
+                }
+                Err(ObdError::NoData) | Err(ObdError::NegativeResponse(_)) => continue,
+                Err(e) => return Err(e),
+            }
+        }
+        Ok(out)
+    }
+
     /// The DTC that caused the freeze frame (mode 02 PID 02).
     pub fn read_freeze_frame_dtc(&mut self) -> Result<Option<Dtc>> {
         let msgs = self.request(0x02, &[0x02, 0x00])?;

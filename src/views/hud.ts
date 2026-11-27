@@ -2,7 +2,7 @@
 // driving. "Mirror" flips the image so it reads correctly when the phone or
 // tablet lies on the dashboard and reflects on the windshield.
 import { pidText, t } from "../i18n";
-import { isSupported, on, state } from "../store";
+import { displayKeys, hasLiveSource, on, state } from "../store";
 import { button, clear, fmtValue, h, notConnected, toast, errorText, unitOf } from "../ui";
 import { startPolling } from "./dashboard";
 
@@ -25,7 +25,7 @@ function save(key: string, value: string) {
 }
 
 function available(): string[] {
-  return state.liveKeys.filter(isSupported);
+  return displayKeys();
 }
 
 function initialKeys(): string[] {
@@ -45,7 +45,7 @@ function initialKeys(): string[] {
 export function mount(root: HTMLElement) {
   const page = h("div", { class: "page" });
   root.append(page);
-  if (state.connection !== "connected") {
+  if (!hasLiveSource()) {
     page.append(h("h1", null, t("hud.title")), notConnected());
     return;
   }
@@ -155,7 +155,7 @@ export function mount(root: HTMLElement) {
       "div",
       { class: "page-head" },
       h("h1", null, t("hud.title")),
-      h("div", { class: "toolbar" }, mirrorBtn, fullBtn, pollBtn),
+      h("div", { class: "toolbar" }, mirrorBtn, fullBtn, state.playback ? null : pollBtn),
     ),
     h("p", { class: "muted small" }, t("hud.help")),
     chips,

@@ -3,7 +3,7 @@ import uPlot from "uplot";
 import { save } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { pidText, t } from "../i18n";
-import { on, state, type Series } from "../store";
+import { hasLiveSource, on, state, type Series } from "../store";
 import { cssVar } from "../theme";
 import { button, clear, decimalsFor, errorText, h, timestampForFile, toast, unitOf } from "../ui";
 import { fmtNum } from "../i18n";
@@ -31,7 +31,7 @@ export function mount(root: HTMLElement) {
     }
   }
   const source = () => (viewing ? sessionSeries : state.history);
-  const available = () => (viewing ? [...sessionSeries.keys()] : [...state.liveKeys]);
+  const available = () => (viewing ? [...sessionSeries.keys()] : state.playback ? [...state.playback.keys] : [...state.liveKeys]);
 
   let paused = false;
   const plots = new Map<string, uPlot>();
@@ -224,7 +224,7 @@ export function mount(root: HTMLElement) {
         }, "ghost"),
       ),
     );
-  } else if (state.connection !== "connected" && !state.history.size) {
+  } else if (!hasLiveSource() && !state.history.size) {
     page.append(h("p", { class: "muted" }, t("charts.empty")));
   }
   page.append(h("div", { class: "field" }, h("span", { class: "label" }, t("charts.params")), chips), chartBox);
@@ -241,6 +241,10 @@ export function mount(root: HTMLElement) {
   window.addEventListener("themechange", onTheme);
   const offs = [
     on("frame", () => {
+      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), refresh()));
+    }),
+    // Seeking a replayed recording rebuilds the history from scratch.
+    on("playback", () => {
       if (!raf) raf = requestAnimationFrame(() => ((raf = 0), refresh()));
     }),
     on("live-keys", () => {

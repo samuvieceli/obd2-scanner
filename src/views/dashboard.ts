@@ -1,10 +1,11 @@
 // Live dashboard: value cards for the selected parameters + interpretation.
 import { api } from "../api";
 import { pidText, t } from "../i18n";
-import { DEFAULT_KEYS, emit, isSupported, on, setLiveKeys, state } from "../store";
+import { DEFAULT_KEYS, displayKeys, emit, hasLiveSource, isSupported, on, setLiveKeys, state } from "../store";
 import { busy, button, clear, errorText, fmtValue, h, notConnected, pidTip, toast, unitOf } from "../ui";
 import type { Category } from "../api";
 import { findingList } from "./findings";
+import { makeGauge } from "../gauge";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
 
@@ -22,13 +23,40 @@ export async function toggleRecording() {
 export function mount(root: HTMLElement) {
   const page = h("div", { class: "page" });
   root.append(page);
-  if (state.connection !== "connected") {
+  if (!hasLiveSource()) {
     page.append(h("h1", null, t("dashboard.title")), notConnected());
     return;
   }
 
-  const cards = new Map<string, { value: HTMLElement; range: HTMLElement; bar: HTMLElement }>();
+  const cards = new Map<string, { value: HTMLElement; range: HTMLElement; bar: HTMLElement | null; gauge?: (v: number | undefined) => void }>();
   const grid = h("div", { class: "value-grid" });
+  let style: "cards" | "gauges" = "cards";
+  try {
+    if (localStorage.getItem("dashStyle") === "gauges") style = "gauges";
+  } catch {
+    /* default */
+  }
+  const styleBtns = (["cards", "gauges"] as const).map((s) =>
+    h(
+      "button",
+      {
+        type: "button",
+        "aria-pressed": String(s === style),
+        onclick: () => {
+          style = s;
+          try {
+            localStorage.setItem("dashStyle", s);
+          } catch {
+            /* not remembered */
+          }
+          styleBtns.forEach((b, i) => b.setAttribute("aria-pressed", String((["cards", "gauges"] as const)[i] === style)));
+          renderCards();
+        },
+      },
+      t(s === "cards" ? "dashboard.styleCards" : "dashboard.styleGauges"),
+    ),
+  );
+  const styleSeg = h("div", { class: "seg", role: "group", "aria-label": t("dashboard.style") }, styleBtns);
   const findingsBox = h("div");
   const picker = h("div", { class: "picker", hidden: true });
 
@@ -108,14 +136,33 @@ export function mount(root: HTMLElement) {
   const renderCards = () => {
     clear(grid);
     cards.clear();
-    const keys = state.liveKeys.filter(isSupported);
+    const keys = displayKeys();
     if (!keys.length) {
       grid.append(h("p", { class: "muted" }, t("dashboard.empty")));
       return;
     }
+    grid.className = style === "gauges" ? "value-grid gauge-grid" : "value-grid";
     for (const key of keys) {
       const txt = pidText(key);
       const value = h("span", { class: "value" });
+      if (style === "gauges") {
+        const m = state.catalog.find((x) => x.key === key);
+        const g = makeGauge(key, m?.min ?? 0, m?.max ?? (key === "battery_voltage" ? 16 : 100));
+        g.svg.setAttribute("aria-label", txt.name);
+        const range = h("span", { class: "range" });
+        grid.append(
+          h(
+            "article",
+            { class: "value-card gauge-card" },
+            h("header", null, h("span", { class: "name", title: txt.name }, txt.short), pidTip(key)),
+            g.svg,
+            h("div", { class: "value-line gauge-readout" }, value, h("span", { class: "unit" }, unitOf(key))),
+            range,
+          ),
+        );
+        cards.set(key, { value, range, bar: null, gauge: g.set });
+        continue;
+      }
       const range = h("span", { class: "range" });
       const bar = h("span", { class: "bar-fill" });
       grid.append(
@@ -143,7 +190,8 @@ export function mount(root: HTMLElement) {
       const lo = m?.min ?? 0;
       const hi = m?.max ?? (key === "battery_voltage" ? 16 : 100);
       const pct = v === undefined ? 0 : Math.max(0, Math.min(100, ((v - lo) / (hi - lo)) * 100));
-      c.bar.style.width = `${pct}%`;
+      if (c.bar) c.bar.style.width = `${pct}%`;
+      c.gauge?.(v);
     }
   };
 
@@ -153,13 +201,13 @@ export function mount(root: HTMLElement) {
   };
 
   // First visit after connecting: keep only what this car supports.
-  if (state.adapter && state.liveKeys.every((k) => !isSupported(k) || k === "battery_voltage")) {
+  if (!state.playback && state.adapter && state.liveKeys.every((k) => !isSupported(k) || k === "battery_voltage")) {
     setLiveKeys(DEFAULT_KEYS.filter(isSupported));
   }
 
   renderToolbar();
   page.append(
-    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title")), h("div", { class: "toolbar" }, chooseBtn, recBtn, pollBtn)),
+    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title")), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [chooseBtn, recBtn, pollBtn])),
     picker,
     h(
       "div",

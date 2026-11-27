@@ -287,3 +287,39 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .hud-screen[data-count="1"] .hud-value { font-size: clamp(4rem, 22cqw, 22rem); }
 .hud-label { margin-top: 8px; font-size: clamp(1rem, 2.4vw, 2rem); color: #bfc7d1; }
 .hud-empty { color: #bfc7d1; text-align: center; font-size: 1.2rem; }
+
+/* Recording playback bar */
+.player { display: flex; align-items: center; gap: 10px; padding: 8px 24px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); flex-wrap: wrap; }
+.player[hidden] { display: none; }
+.player-name { font-weight: 600; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player input[type="range"] { min-width: 160px; accent-color: var(--accent); }
+
+/* Analog dials */
+.gauge-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.gauge-card { align-items: stretch; }
+.gauge { width: 100%; max-width: 210px; align-self: center; display: block; }
+.gauge-track { fill: none; stroke: var(--surface-2); stroke-width: 10; stroke-linecap: round; }
+.gauge-red { fill: none; stroke: color-mix(in srgb, var(--danger, #ef4444) 70%, transparent); stroke-width: 10; }
+.gauge-fill { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; }
+.gauge.in-red .gauge-fill { stroke: var(--danger, #ef4444); }
+.gauge-tick { stroke: var(--muted); stroke-width: 1; }
+.gauge-tick.major { stroke-width: 2; stroke: var(--text); }
+.gauge-label { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.gauge-needle { transform-origin: 100px 100px; transition: transform 0.2s ease-out; }
+.gauge-needle path, .gauge-needle circle { fill: var(--warn, #f59e0b); }
+.gauge-readout { justify-content: center; margin-top: -18px; position: relative; }
+.gauge-card .range { text-align: center; }
+.gauge-readout .value { font-size: 1.6rem; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); color: var(--muted); padding: 6px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); font-weight: 600; }
+
+/* Mode 06 table */
+.warn-text { color: var(--warn); font-weight: 600; }
+.table-wrap { overflow-x: auto; }
+.row-fail td { background: color-mix(in srgb, var(--danger) 8%, transparent); }
+
+/* Bluetooth LE device list */
+.ble-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.ble-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; flex-wrap: wrap; }
+.ble-item.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }

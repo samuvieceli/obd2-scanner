@@ -113,6 +113,13 @@ fn list_ports() -> Vec<PortInfo> {
     obd_core::transport::serial::list_ports()
 }
 
+/// Scans for Bluetooth LE devices for a few seconds.
+#[tauri::command]
+async fn scan_ble(seconds: Option<u64>) -> CmdResult<Vec<obd_core::transport::ble::BleDevice>> {
+    let secs = seconds.unwrap_or(5).clamp(2, 20);
+    blocking(move || Ok(obd_core::transport::ble::scan(Duration::from_secs(secs))?)).await
+}
+
 #[tauri::command]
 fn pid_catalog() -> Vec<PidMeta> {
     pid::catalog()
@@ -193,6 +200,10 @@ fn open_adapter(req: &ConnectRequest, app: &AppHandle) -> CmdResult<Elm327> {
         }
         ConnectionTarget::Tcp { host, port } => {
             let t = TcpTransport::connect(host, *port, Duration::from_secs(5))?;
+            Ok(setup(Box::new(t))?)
+        }
+        ConnectionTarget::Ble { id, name } => {
+            let t = obd_core::transport::ble::BleTransport::open(id, name)?;
             Ok(setup(Box::new(t))?)
         }
         ConnectionTarget::Serial { port, baud_rate } => {
@@ -362,6 +373,12 @@ async fn read_readiness(state: State<'_, AppState>) -> CmdResult<Readiness> {
     on_worker(&state, |elm| elm.read_readiness()).await
 }
 
+/// Mode 06 on-board test results.
+#[tauri::command]
+async fn read_mode06(state: State<'_, AppState>) -> CmdResult<Vec<obd_core::mode06::TestResult>> {
+    on_worker(&state, |elm| elm.read_mode06()).await
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct VehicleInfo {
@@ -498,6 +515,20 @@ async fn load_session(path: String) -> CmdResult<Session> {
     .await
 }
 
+/// Interprets a window of recorded frames (used while replaying a recording,
+/// when there is no live worker computing findings).
+#[tauri::command]
+fn interpret_frames(frames: Vec<obd_core::session::Frame>) -> Vec<obd_core::interpret::Finding> {
+    let mut interpreter = obd_core::interpret::Interpreter::new();
+    for f in &frames {
+        let t = f.t_ms as f64 / 1000.0;
+        for (k, v) in &f.values {
+            interpreter.push(k, t, *v);
+        }
+    }
+    interpreter.evaluate()
+}
+
 /// Saves bytes produced by the UI (PNG charts, reports).
 #[tauri::command]
 async fn save_file(path: String, data: Vec<u8>) -> CmdResult<()> {
@@ -518,6 +549,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             app_info,
             list_ports,
+            scan_ble,
             pid_catalog,
             describe_dtc,
             connect,
@@ -528,6 +560,7 @@ pub fn run() {
             clear_dtcs,
             read_freeze_frame,
             read_readiness,
+            read_mode06,
             read_vehicle_info,
             send_raw,
             start_recording,
@@ -535,6 +568,7 @@ pub fn run() {
             get_recording_status,
             export_session,
             load_session,
+            interpret_frames,
             save_file,
             save_text,
         ])

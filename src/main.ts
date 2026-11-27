@@ -7,6 +7,8 @@ import { getLang, onLangChange, setLang, t } from "./i18n";
 import { emit, on, pushFrame, pushLog, state } from "./store";
 import { clear, h, toast, errorText } from "./ui";
 import { applyTheme } from "./theme";
+import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
+import { fmtNum } from "./i18n";
 
 import * as connection from "./views/connection";
 import * as dashboard from "./views/dashboard";
@@ -49,6 +51,7 @@ const app = document.getElementById("app")!;
 const content = h("main", { class: "content", id: "content" });
 const nav = h("nav", { class: "nav" });
 const statusEl = h("div", { class: "status" });
+const playerEl = h("div", { class: "player", hidden: true });
 let cleanup: (() => void) | void;
 
 function currentRoute(): string {
@@ -75,7 +78,10 @@ function renderStatus() {
   clear(statusEl);
   let label = t("status.disconnected");
   let cls = "off";
-  if (state.connection === "connecting") {
+  if (state.playback) {
+    label = t("playback.status");
+    cls = "on";
+  } else if (state.connection === "connecting") {
     label = t("status.connecting");
     cls = "wait";
   } else if (state.connection === "connected") {
@@ -97,6 +103,61 @@ function renderStatus() {
   if (state.recording.recording) {
     statusEl.append(h("span", { class: "pill pill-rec" }, h("span", { class: "dot" }), t("status.recording")));
   }
+}
+
+function clock(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+let slider: HTMLInputElement | null = null;
+let posLabel: HTMLElement | null = null;
+let playBtn: HTMLButtonElement | null = null;
+let dragging = false;
+
+/** Bar with play/pause, speed and position while a recording is replayed. */
+function renderPlayer() {
+  const p = state.playback;
+  playerEl.hidden = !p;
+  if (!p) {
+    clear(playerEl);
+    slider = posLabel = playBtn = null;
+    return;
+  }
+  if (!slider) {
+    clear(playerEl);
+    playBtn = h("button", { type: "button", class: "btn btn-primary btn-sm", onclick: () => togglePlay() });
+    slider = h("input", {
+      type: "range",
+      min: "0",
+      step: "100",
+      class: "grow",
+      "aria-label": t("playback.position"),
+      oninput: () => (dragging = true),
+      onchange: (e: Event) => {
+        dragging = false;
+        seek(Number((e.target as HTMLInputElement).value));
+      },
+    });
+    posLabel = h("span", { class: "muted small mono" });
+    const speedSel = h(
+      "select",
+      { "aria-label": t("playback.speed"), onchange: (e: Event) => setSpeed(Number((e.target as HTMLSelectElement).value)) },
+      SPEEDS.map((v) => h("option", { value: String(v), selected: v === p.speed }, `${fmtNum(v, v < 1 ? 1 : 0)}×`)),
+    );
+    playerEl.append(
+      h("span", { class: "player-name", title: p.name }, t("playback.title", { name: p.name })),
+      playBtn,
+      slider,
+      posLabel,
+      speedSel,
+      h("button", { type: "button", class: "btn btn-ghost btn-sm", onclick: () => stopPlayback() }, t("playback.close")),
+    );
+  }
+  slider.max = String(p.durationMs);
+  if (!dragging) slider.value = String(p.posMs);
+  posLabel!.textContent = `${clock(p.posMs)} / ${clock(p.durationMs)}`;
+  playBtn!.textContent = p.playing ? t("playback.pause") : t("playback.play");
 }
 
 function renderView() {
@@ -133,9 +194,11 @@ function layout() {
       nav,
       h("div", { class: "sidebar-foot" }, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}` : "")),
     ),
-    h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl), content),
+    h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl), playerEl, content),
   );
   content.tabIndex = -1;
+  slider = null;
+  renderPlayer();
   renderStatus();
   renderView();
 }
@@ -154,6 +217,7 @@ async function boot() {
     toast(errorText(e), "error");
   }
   await events.liveFrame((f) => {
+    if (state.playback) return;
     pushFrame(f);
     if (f.dropped.length) {
       const names = f.dropped.join(", ");
@@ -163,6 +227,7 @@ async function boot() {
     }
   });
   await events.findings((list) => {
+    if (state.playback) return;
     state.findings = list;
     emit("findings");
   });
@@ -176,6 +241,16 @@ async function boot() {
   });
 
   on("connection", renderStatus);
+  let wasPlaying = false;
+  on("playback", () => {
+    renderPlayer();
+    // Entering or leaving playback changes what every screen can show.
+    if (wasPlaying !== !!state.playback) {
+      wasPlaying = !!state.playback;
+      renderStatus();
+      renderView();
+    }
+  });
   on("recording", renderStatus);
   let lastRate = 0;
   on("frame", () => {

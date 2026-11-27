@@ -11,10 +11,11 @@ import type {
   Readiness,
   RecordingStatus,
   Session,
+  TestResult,
   VehicleInfo,
 } from "./api";
 
-export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session";
+export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback";
 
 export interface Series {
   t: number[];
@@ -66,9 +67,12 @@ export const state = {
   dtcs: null as DtcReport | null,
   freeze: null as FreezeFrame | null,
   readiness: null as Readiness | null,
+  mode06: null as TestResult[] | null,
   vehicle: null as VehicleInfo | null,
   /** A recording opened from disk, shown on the Charts screen. */
   viewSession: null as { name: string; session: Session } | null,
+  /** A recording being replayed as if it were live (see playback.ts). */
+  playback: null as import("./playback").Playback | null,
   appVersion: "",
 };
 
@@ -96,9 +100,20 @@ export function meta(key: string): PidMeta | undefined {
 
 /** Keys the connected vehicle supports (battery voltage is read from the adapter). */
 export function isSupported(key: string): boolean {
+  if (state.playback) return state.playback.keys.includes(key);
   if (key === "battery_voltage") return true;
   const m = meta(key);
   return !!m && !!state.adapter && state.adapter.supported_pids.includes(m.pid);
+}
+
+/** True when live values are available: a connection or a replayed recording. */
+export function hasLiveSource(): boolean {
+  return state.connection === "connected" || !!state.playback;
+}
+
+/** Keys shown on the dashboard and HUD right now. */
+export function displayKeys(): string[] {
+  return state.playback ? state.playback.keys : state.liveKeys.filter(isSupported);
 }
 
 export function setLiveKeys(keys: string[]) {
@@ -147,5 +162,6 @@ export function resetLiveData() {
   state.dtcs = null;
   state.freeze = null;
   state.readiness = null;
+  state.mode06 = null;
   state.vehicle = null;
 }

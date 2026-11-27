@@ -211,3 +211,25 @@ fn reads_high_range_pids_and_odometer() {
     assert_eq!(v[0].0, "odometer");
     assert!(v[0].1 > 48_000.0);
 }
+
+#[test]
+fn reads_mode06_test_results() {
+    for quirky in [false, true] {
+        let mut elm = demo(quirky);
+        let results = elm.read_mode06().expect("mode 06");
+        assert!(results.len() >= 12, "got {}", results.len());
+        let cat = results.iter().find(|r| r.mid == 0x21).expect("catalyst");
+        assert!(!cat.passed, "catalyst should fail like P0420");
+        let cyl1 = results
+            .iter()
+            .find(|r| r.mid == 0xA2 && r.tid == 0x0C)
+            .unwrap();
+        assert!(!cyl1.passed);
+        let o2 = results
+            .iter()
+            .find(|r| r.mid == 0x01 && r.tid == 0x01)
+            .unwrap();
+        assert_eq!(o2.unit, "mV");
+        assert!(o2.passed);
+    }
+}

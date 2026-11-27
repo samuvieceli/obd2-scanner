@@ -2,7 +2,7 @@
 //!
 //! Everything above this layer (ELM327 protocol, decoders, UI) does not know
 //! whether bytes travel over a USB cable, a Bluetooth COM port, Wi-Fi or the
-//! simulator. Adding a backend (e.g. BLE) means implementing [`Transport`].
+//! simulator. Adding a backend means implementing [`Transport`].
 
 use std::time::Duration;
 
@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::Result;
 
+#[cfg(feature = "ble")]
+pub mod ble;
 pub mod scripted;
 #[cfg(feature = "serial")]
 pub mod serial;
@@ -44,6 +46,8 @@ pub enum ConnectionTarget {
     Serial { port: String, baud_rate: u32 },
     /// Wi-Fi adapter (usually 192.168.0.10:35000).
     Tcp { host: String, port: u16 },
+    /// Bluetooth Low Energy adapter, `id` from a BLE scan.
+    Ble { id: String, name: String },
     /// Built-in virtual car, no hardware needed.
     Demo,
 }

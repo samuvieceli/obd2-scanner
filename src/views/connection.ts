@@ -1,5 +1,6 @@
 // Connection screen: choose transport, connect, show adapter information.
-import { api, type ConnectionTarget, type ElmConfig, type PortInfo } from "../api";
+import { stopPlayback } from "../playback";
+import { api, type BleDevice, type ConnectionTarget, type ElmConfig, type PortInfo } from "../api";
 import { t } from "../i18n";
 import { emit, on, resetLiveData, state } from "../store";
 import { busy, button, clear, errorText, h, infoTip, section, toast } from "../ui";
@@ -12,6 +13,8 @@ interface Form {
   baud: number;
   host: string;
   tcpPort: number;
+  bleId: string;
+  bleName: string;
   quirky: boolean;
   config: ElmConfig;
 }
@@ -22,6 +25,8 @@ const DEFAULT_FORM: Form = {
   baud: 0,
   host: "192.168.0.10",
   tcpPort: 35000,
+  bleId: "",
+  bleName: "",
   quirky: false,
   config: { command_timeout_ms: 2000, reset_timeout_ms: 5000, search_timeout_ms: 15000, protocol: "0", elm_timeout_hex: "", multi_pid: true },
 };
@@ -62,6 +67,9 @@ function saveForm(f: Form) {
 export function mount(root: HTMLElement) {
   const form = loadForm();
   let ports: PortInfo[] = [];
+  let bleDevices: BleDevice[] = [];
+  let scanning = false;
+  let showAllBle = false;
 
   const page = h("div", { class: "page" });
   root.append(page);
@@ -90,12 +98,12 @@ export function mount(root: HTMLElement) {
             role: "radio",
             "aria-checked": form.kind === k ? "true" : "false",
             class: `type-card ${form.kind === k ? "selected" : ""}`,
-            disabled: k === "ble",
             onclick: () => {
               form.kind = k;
               saveForm(form);
               render();
               if (k === "serial") refreshPorts();
+              if (k === "ble" && !bleDevices.length) scanBle();
             },
           },
           h("strong", null, t(`connection.types.${k}`)),
@@ -123,6 +131,20 @@ export function mount(root: HTMLElement) {
       ports = [];
     }
     if (form.kind === "serial") render();
+  };
+
+  const scanBle = async () => {
+    if (scanning) return;
+    scanning = true;
+    render();
+    try {
+      bleDevices = await api.scanBle(5);
+    } catch (e) {
+      toast(errorText(e), "error");
+      bleDevices = [];
+    }
+    scanning = false;
+    if (form.kind === "ble") render();
   };
 
   const numberField = (label: string, value: number, set: (v: number) => void, min = 100, max = 60000) =>
@@ -191,6 +213,58 @@ export function mount(root: HTMLElement) {
         h("label", { class: "field", for: "baud" }, h("span", null, t("connection.baud")), baud),
         h("details", { class: "help" }, h("summary", null, t("connection.btHelpTitle")), h("p", null, t("connection.btHelp"))),
       );
+    } else if (form.kind === "ble") {
+      const shown = showAllBle ? bleDevices : bleDevices.filter((d) => d.likely_obd || d.id === form.bleId);
+      const list = h(
+        "div",
+        { class: "ble-list", role: "radiogroup", "aria-label": t("connection.bleDevices") },
+        shown.map((d) =>
+          h(
+            "label",
+            { class: `ble-item ${d.id === form.bleId ? "selected" : ""}` },
+            h("input", {
+              type: "radio",
+              name: "ble",
+              checked: d.id === form.bleId,
+              onchange: () => {
+                form.bleId = d.id;
+                form.bleName = d.name;
+                saveForm(form);
+                render();
+              },
+            }),
+            h("strong", null, d.name || t("connection.bleNoName")),
+            h("span", { class: "muted small mono" }, d.id),
+            d.rssi !== null ? h("span", { class: "muted small" }, t("connection.bleSignal", { rssi: d.rssi })) : null,
+          ),
+        ),
+      );
+      card.append(
+        h(
+          "div",
+          { class: "row" },
+          h("p", { class: "grow muted small" }, scanning ? t("connection.bleScanning") : shown.length ? t("connection.bleChoose") : t("connection.bleNone")),
+          button(scanning ? t("connection.bleScanning") : t("connection.bleScan"), () => scanBle(), "ghost"),
+        ),
+        list,
+      );
+      if (bleDevices.length > shown.length || showAllBle)
+        card.append(
+          h(
+              "label",
+              { class: "check" },
+              h("input", {
+                type: "checkbox",
+                checked: showAllBle,
+                onchange: (e: Event) => {
+                  showAllBle = (e.target as HTMLInputElement).checked;
+                  render();
+                },
+              }),
+              h("span", null, t("connection.bleShowAll", { n: bleDevices.length })),
+          ),
+        );
+      card.append(h("details", { class: "help" }, h("summary", null, t("connection.bleHelpTitle")), h("p", null, t("connection.bleHelp"))));
     } else if (form.kind === "tcp") {
       card.append(
         h(
@@ -258,7 +332,8 @@ export function mount(root: HTMLElement) {
     );
 
     const connectBtn = button(t("common.connect"), () => doConnect(connectBtn), "primary", { class: "btn btn-primary btn-lg" });
-    connectBtn.disabled = (form.kind === "serial" && !form.port) || state.connection === "connecting";
+    connectBtn.disabled =
+      (form.kind === "serial" && !form.port) || (form.kind === "ble" && (!form.bleId || scanning)) || state.connection === "connecting";
     if (state.connection === "connecting") connectBtn.textContent = t("status.connecting");
     card.append(h("div", { class: "actions" }, connectBtn));
     return card;
@@ -268,7 +343,9 @@ export function mount(root: HTMLElement) {
     let target: ConnectionTarget;
     if (form.kind === "serial") target = { kind: "serial", port: form.port, baud_rate: form.baud };
     else if (form.kind === "tcp") target = { kind: "tcp", host: form.host, port: form.tcpPort };
+    else if (form.kind === "ble") target = { kind: "ble", id: form.bleId, name: form.bleName };
     else target = { kind: "demo" };
+    stopPlayback();
     state.connection = "connecting";
     emit("connection");
     const res = await busy(btn, () => api.connect(target, form.config, form.quirky));

@@ -35,7 +35,15 @@ export interface AdapterInfo {
 export type ConnectionTarget =
   | { kind: "serial"; port: string; baud_rate: number }
   | { kind: "tcp"; host: string; port: number }
+  | { kind: "ble"; id: string; name: string }
   | { kind: "demo" };
+
+export interface BleDevice {
+  id: string;
+  name: string;
+  rssi: number | null;
+  likely_obd: boolean;
+}
 
 export interface ElmConfig {
   command_timeout_ms: number;
@@ -73,6 +81,21 @@ export interface FreezeFrame {
 }
 
 export type MonitorState = "complete" | "incomplete" | "not_supported";
+
+export interface TestResult {
+  mid: number;
+  tid: number;
+  uas_id: number;
+  value: number;
+  min: number;
+  max: number;
+  unit: string;
+  scaled: boolean;
+  passed: boolean;
+  group: string;
+  index: number;
+  test: string | null;
+}
 
 export interface Readiness {
   mil_on: boolean;
@@ -150,6 +173,7 @@ export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS
 export const api = {
   appInfo: () => invoke<{ version: string }>("app_info"),
   listPorts: () => invoke<PortInfo[]>("list_ports"),
+  scanBle: (seconds?: number) => invoke<BleDevice[]>("scan_ble", { seconds }),
   pidCatalog: () => invoke<PidMeta[]>("pid_catalog"),
   describeDtc: (code: string, lang: string) => invoke<DtcInfo>("describe_dtc", { code, lang }),
   connect: (target: ConnectionTarget, config: ElmConfig, demoQuirky: boolean) =>
@@ -161,6 +185,7 @@ export const api = {
   clearDtcs: () => invoke<void>("clear_dtcs"),
   readFreezeFrame: (lang: string) => invoke<FreezeFrame>("read_freeze_frame", { lang }),
   readReadiness: () => invoke<Readiness>("read_readiness"),
+  readMode06: () => invoke<TestResult[]>("read_mode06"),
   readVehicleInfo: () => invoke<VehicleInfo>("read_vehicle_info"),
   sendRaw: (command: string, timeoutMs?: number) => invoke<string>("send_raw", { command, timeoutMs }),
   startRecording: () => invoke<RecordingStatus>("start_recording"),
@@ -169,6 +194,7 @@ export const api = {
   exportSession: (format: "csv" | "csv_br" | "json", path: string) =>
     invoke<void>("export_session", { format, path }),
   loadSession: (path: string) => invoke<Session>("load_session", { path }),
+  interpretFrames: (frames: Session["frames"]) => invoke<Finding[]>("interpret_frames", { frames }),
   saveFile: (path: string, data: number[]) => invoke<void>("save_file", { path, data }),
   saveText: (path: string, text: string) => invoke<void>("save_text", { path, text }),
 };

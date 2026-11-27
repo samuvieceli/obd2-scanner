@@ -11,7 +11,7 @@
 //!    tolerant to clone quirks (echo, missing `OK`, `SEARCHING...`, NULL bytes).
 //! 3. [`response`]: turns raw adapter text into OBD-II messages (incl. CAN
 //!    ISO-TP multi-frame responses).
-//! 4. Decoders: [`pid`], [`dtc`], [`vin`], [`readiness`].
+//! 4. Decoders: [`pid`], [`dtc`], [`vin`], [`readiness`], [`mode06`].
 //! 5. [`interpret`]: plain-language findings from live data.
 //! 6. [`session`]: recording and export (CSV, JSON).
 
@@ -19,6 +19,7 @@ pub mod dtc;
 pub mod elm327;
 pub mod error;
 pub mod interpret;
+pub mod mode06;
 pub mod pid;
 pub mod readiness;
 pub mod response;

@@ -234,6 +234,62 @@ impl Simulator {
         }
     }
 
+    /// Mode 06 test results: oxygen sensor, a catalyst outside its limit
+    /// (matches P0420), EVAP and misfire counts for cylinder 1 (P0301).
+    fn mode06(&self, mid: u8) -> Option<Vec<u8>> {
+        use crate::mode06::encode_record as r;
+        const MIDS: &[u8] = &[0x01, 0x02, 0x21, 0x3B, 0x41, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5];
+        if mid.is_multiple_of(0x20) {
+            return (mid <= 0xA0).then(|| {
+                let mut list: Vec<u8> = MIDS.to_vec();
+                list.extend([0x20, 0x40, 0x60, 0x80, 0xA0]);
+                [&[0x46, mid][..], &encode_supported(mid, &list)].concat()
+            });
+        }
+        let misfires = if self.cleared { 0 } else { 41 };
+        let records: Vec<[u8; 9]> = match mid {
+            0x01 => vec![
+                r(0x01, 0x01, 0x0A, 3690, 3280, 4100),
+                r(0x01, 0x02, 0x0A, 3690, 3280, 4100),
+                r(0x01, 0x05, 0x10, 62, 0, 150),
+                r(0x01, 0x06, 0x10, 58, 0, 150),
+            ],
+            0x02 => vec![
+                r(0x02, 0x07, 0x0A, 3100, 0, 3690),
+                r(0x02, 0x08, 0x0A, 6200, 5330, 8200),
+            ],
+            // Catalyst efficiency ratio: 0.82 with a limit of 0.75 → fails.
+            0x21 => vec![r(
+                0x21,
+                0x80,
+                0x20,
+                if self.cleared { 150 } else { 210 },
+                0,
+                192,
+            )],
+            0x3B => vec![r(0x3B, 0x80, 0xFE, 120, 0, 600)],
+            0x41 => vec![r(0x41, 0x81, 0x10, 22_000 / 1000, 0, 60)],
+            0xA1 => vec![
+                r(0xA1, 0x0B, 0x24, misfires / 10, 0, 65_535),
+                r(0xA1, 0x0C, 0x24, misfires, 0, 65_535),
+            ],
+            0xA2 => vec![
+                r(0xA2, 0x0B, 0x24, misfires / 10, 0, 65_535),
+                r(0xA2, 0x0C, 0x24, misfires, 0, 30),
+            ],
+            0xA3..=0xA5 => vec![
+                r(mid, 0x0B, 0x24, 0, 0, 65_535),
+                r(mid, 0x0C, 0x24, 0, 0, 30),
+            ],
+            _ => return None,
+        };
+        let mut out = vec![0x46];
+        for rec in records {
+            out.extend(rec);
+        }
+        Some(out)
+    }
+
     /// Raw data bytes of a mode 01 PID for the given engine state.
     fn pid_bytes(&self, pid: u8, e: &EngineState) -> Option<Vec<u8>> {
         let u8c = |v: f64| v.round().clamp(0.0, 255.0) as u8;
@@ -435,6 +491,7 @@ impl Simulator {
                 self.cleared = true;
                 Some(vec![0x44])
             }
+            0x06 if req.len() >= 2 => self.mode06(req[1]),
             0x09 if req.len() >= 2 => match req[1] {
                 0x00 => {
                     Some([&[0x49, 0x00][..], &encode_supported(0, &[0x02, 0x04, 0x0A])].concat())

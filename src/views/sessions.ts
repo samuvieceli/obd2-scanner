@@ -4,6 +4,7 @@ import { api } from "../api";
 import { fmtNum, t } from "../i18n";
 import { emit, on, state } from "../store";
 import { busy, button, clear, errorText, h, section, timestampForFile, toast } from "../ui";
+import { startPlayback } from "../playback";
 import { buildReportHtml } from "./report";
 
 function duration(s: number): string {
@@ -66,17 +67,42 @@ export function mount(root: HTMLElement) {
   ];
   const exportBtns = opts.map((o) => o.b);
 
-  const openBtn = button(t("sessions.open"), async () => {
+  const pick = async () => {
     const path = await open({ multiple: false, filters: [{ name: "JSON", extensions: ["json"] }] });
-    if (!path || Array.isArray(path)) return;
+    if (!path || Array.isArray(path)) return null;
     try {
-      const session = await api.loadSession(path);
-      state.viewSession = { name: path.split(/[\\/]/).pop() ?? path, session };
-      location.hash = "#/charts";
+      return { name: path.split(/[\\/]/).pop() ?? path, session: await api.loadSession(path) };
     } catch (e) {
       toast(errorText(e), "error");
+      return null;
     }
+  };
+  const openBtn = button(t("sessions.openCharts"), async () => {
+    const r = await pick();
+    if (!r) return;
+    state.viewSession = r;
+    location.hash = "#/charts";
   }, "secondary");
+  const replayBtn = button(t("sessions.replay"), async () => {
+    const r = await pick();
+    if (!r) return;
+    if (!r.session.frames.length) {
+      toast(t("sessions.replayEmpty"), "info");
+      return;
+    }
+    if (state.polling) {
+      try {
+        await api.setLive(state.liveKeys, false);
+      } catch {
+        /* the worker may already be gone */
+      }
+      state.polling = false;
+      emit("connection");
+    }
+    state.viewSession = null;
+    startPlayback(r.name, r.session);
+    location.hash = "#/dashboard";
+  }, "primary");
 
   const saveReport = async () => {
     const path = await save({ defaultPath: `obd2-relatorio-${timestampForFile()}.html`, filters: [{ name: "HTML", extensions: ["html"] }] });
@@ -102,7 +128,15 @@ export function mount(root: HTMLElement) {
   page.append(
     section(t("sessions.recordingTitle"), h("p", { class: "muted" }, t("sessions.recordingIntro")), recBtn, statusBox),
     section(t("sessions.export"), h("div", { class: "options" }, opts.map((o) => o.el))),
-    section(t("sessions.open"), h("p", { class: "muted small" }, t("sessions.openDesc")), openBtn),
+    section(
+      t("sessions.open"),
+      h(
+        "div",
+        { class: "options" },
+        h("div", { class: "option" }, replayBtn, h("p", { class: "muted small" }, t("sessions.replayDesc"))),
+        h("div", { class: "option" }, openBtn, h("p", { class: "muted small" }, t("sessions.openDesc"))),
+      ),
+    ),
     section(
       t("sessions.reportTitle"),
       h("p", { class: "muted" }, t("sessions.reportIntro")),
