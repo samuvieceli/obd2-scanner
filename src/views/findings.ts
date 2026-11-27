@@ -5,18 +5,22 @@ import { state } from "../store";
 import { h } from "../ui";
 import { displayUnit, toDisplay } from "../units";
 
+/** Finding values that are temperatures in texts containing "°C". */
+const TEMP_PARAMS = ["value", "ambient", "peak"];
+
 /** `mixture_lean_b1` -> text of `findings.mixture_lean` with bank 1. */
 export function findingText(f: Finding): string {
   const m = /^(.*)_b([12])$/.exec(f.id);
   const id = m ? m[1] : f.id;
   const params: Record<string, string | number> = { ...f.values };
   if (m) params.bank = m[2];
-  let text = t(`findings.${id}`, params);
-  // Temperatures are written "{value} °C" in the texts.
-  if (displayUnit("°C") !== "°C" && text.includes("°C") && typeof f.values.value === "number") {
-    text = t(`findings.${id}`, { ...params, value: Math.round(toDisplay("°C", f.values.value)) }).replaceAll("°C", displayUnit("°C"));
+  const text = t(`findings.${id}`, params);
+  // Temperatures are written "{value} °C" (also {ambient}, {peak}) in the texts.
+  if (displayUnit("°C") === "°C" || !text.includes("°C")) return text;
+  for (const k of TEMP_PARAMS) {
+    if (typeof f.values[k] === "number") params[k] = Math.round(toDisplay("°C", f.values[k]));
   }
-  return text;
+  return t(`findings.${id}`, params).replaceAll("°C", displayUnit("°C"));
 }
 
 export function findingList(list: Finding[]): HTMLElement {
