@@ -69,7 +69,11 @@ Abra **Testes de desempenho** e dirija: não há botão de iniciar. O programa r
 | --- | --- | --- |
 | 0–100 km/h | Pare o carro meio segundo e acelere. | Começa no instante em que o carro sai do lugar (não conta o tempo de reação); termina ao cruzar 100 km/h. |
 | 100–0 km/h | Passe de 100 km/h e freie até parar. | Começa ao cruzar 100 km/h freando; termina quando o carro para. Mostra a distância de frenagem. |
-| 40–80 e 80–120 km/h | Fique abaixo da velocidade inicial e acelere forte. | Começa ao cruzar a velocidade inicial acelerando (passar devagar por 40 km/h não conta); termina ao cruzar a final. |
+| 40–80 e 80–120 km/h | Mantenha velocidade constante perto da inicial (até 8 km/h abaixo ou 2 km/h acima, variando no máximo 4 km/h) por 2 segundos e então acelere fundo. | Começa ao cruzar a velocidade inicial (ou na própria acelerada, se você já estava nela); termina ao cruzar a final. |
+
+Por que a retomada exige velocidade constante antes: numa ultrapassagem de verdade o carro está "embalado" numa marcha longa e o motor em giro baixo. Se a medição valesse quando a velocidade só passa por 40 ou 80 km/h no meio de uma acelerada que já vinha de antes, o câmbio já estaria numa marcha mais curta, o motor em giro alto e, nos motores turbo, a pressão do turbo já cheia, e o tempo sairia irrealmente curto. Por isso uma mesma acelerada de 35 a 120 km/h conta só o 40–80.
+
+Cada cartão tem a opção **Medir este teste**: desmarque os que não quer acompanhar. A escolha fica salva por carro (perfil).
 
 O teste é descartado se você aliviar o pé (a velocidade cai), se a velocidade parar de subir por 3 segundos ou se a leitura falhar. Os tempos são calculados entre duas leituras (interpolação), por isso a precisão fica perto de 0,1 s com 8 ou mais leituras por segundo. O **modo preciso** lê só a velocidade enquanto a tela está aberta, para ter mais leituras. **Faça testes só em local fechado e seguro, nunca em via pública.** Também funciona com uma gravação reproduzida.
 

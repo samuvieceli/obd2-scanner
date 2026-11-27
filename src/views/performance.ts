@@ -6,7 +6,7 @@ import { fmtNum, getLang, t } from "../i18n";
 import { freshValue, hasLiveSource, on, state } from "../store";
 import { PERF_TESTS, PerfDetector, type PerfResult, type PerfTestId } from "../perf";
 import { button, clear, errorText, h, leaveOnDisconnect, notConnected, toast } from "../ui";
-import { FIRST_PROFILE, profile } from "../prefs";
+import { FIRST_PROFILE, profile, saveProfile } from "../prefs";
 import { displayUnit, toDisplay } from "../units";
 
 const MAX_HISTORY = 300;
@@ -47,8 +47,11 @@ export function mount(root: HTMLElement) {
     return;
   }
 
-  const detector = new PerfDetector();
   const me = profile();
+  // Tests the driver chose to watch (all by default), kept per car.
+  const armed = new Set<PerfTestId>(me.perfTests ?? PERF_TESTS.map((d) => d.id));
+  const makeDetector = () => new PerfDetector(PERF_TESTS.filter((d) => armed.has(d.id)));
+  let detector = makeDetector();
   // Every car keeps its own results; the others stay saved untouched.
   const others = loadHistory().filter((r) => (r.profileId ?? FIRST_PROFILE) !== me.id);
   let history = loadHistory().filter((r) => (r.profileId ?? FIRST_PROFILE) === me.id);
@@ -81,7 +84,24 @@ export function mount(root: HTMLElement) {
     const status = h("p", { class: "perf-status" });
     const last = h("p", { class: "perf-time" }, "—");
     const best = h("p", { class: "muted small" });
-    const el = h("article", { class: "card perf-card" }, h("h2", null, testLabel(def.from, def.to)), h("p", { class: "muted small" }, t(`perf.tests.${def.id}`)), last, best, status);
+    const toggle = h(
+      "label",
+      { class: "check" },
+      h("input", {
+        type: "checkbox",
+        checked: armed.has(def.id),
+        onchange: (e: Event) => {
+          if ((e.target as HTMLInputElement).checked) armed.add(def.id);
+          else armed.delete(def.id);
+          saveProfile({ perfTests: PERF_TESTS.filter((d) => armed.has(d.id)).map((d) => d.id) }, me.id);
+          // A run in progress is dropped: start clean with the new choice.
+          detector = makeDetector();
+          renderCards();
+        },
+      }),
+      h("span", null, t("perf.watch")),
+    );
+    const el = h("article", { class: "card perf-card" }, h("h2", null, testLabel(def.from, def.to)), h("p", { class: "muted small" }, t(`perf.tests.${def.id}`)), last, best, status, toggle);
     grid.append(el);
     cards.set(def.id, { status, last, best, el });
   }
@@ -90,12 +110,17 @@ export function mount(root: HTMLElement) {
   const fmtDate = (ms: number) => new Date(ms).toLocaleString(getLang(), { dateStyle: "short", timeStyle: "short" });
 
   const renderCards = () => {
-    for (const st of detector.status()) {
-      const c = cards.get(st.test)!;
+    const statuses = detector.status();
+    for (const def of PERF_TESTS) {
+      const c = cards.get(def.id)!;
+      const st = statuses.find((x) => x.test === def.id) ?? { test: def.id, phase: "off" as const };
+      c.el.classList.toggle("off", st.phase === "off");
       c.el.classList.toggle("running", st.phase === "running");
       c.el.classList.toggle("ready", st.phase === "ready");
       c.status.textContent =
-        st.phase === "running"
+        st.phase === "off"
+          ? t("perf.off")
+          : st.phase === "running"
           ? t("perf.running", { s: fmtNum(st.elapsedS ?? 0, 1) })
           : st.phase === "ready"
             ? t(`perf.ready.${st.test}`)

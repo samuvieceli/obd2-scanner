@@ -5,6 +5,7 @@
 // car. Everything that depends on the car (fuel, engine size, alert limits,
 // VIN) lives in a vehicle profile; one profile is active at a time and is
 // picked automatically when a connected car's VIN matches a profile.
+import type { PerfTestId } from "./perf";
 import type { Prices } from "./cost";
 import type { UnitPrefs } from "./units";
 import { emit } from "./store";
@@ -33,6 +34,8 @@ export interface Profile {
   /** Volumetric efficiency (0-1) used with the displacement. */
   volumetricEff: number;
   alerts: AlertRule[];
+  /** Performance tests being watched; missing = all of them. */
+  perfTests?: PerfTestId[];
 }
 
 export interface Prefs {

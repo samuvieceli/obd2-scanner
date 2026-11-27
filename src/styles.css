@@ -407,6 +407,7 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .perf-card.ready .perf-status { color: var(--ok); }
 .perf-card.running { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent); }
 .perf-card.running .perf-status { color: var(--accent); }
+.perf-card.off > :not(label) { opacity: 0.55; }
 
 /* Link recovery / reconnection banner */
 .link-banner { display: flex; align-items: center; gap: 12px; padding: 10px 24px; border-bottom: 1px solid color-mix(in srgb, var(--warn) 50%, transparent); background: color-mix(in srgb, var(--warn) 12%, var(--surface)); }
