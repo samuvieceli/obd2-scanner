@@ -54,6 +54,8 @@ cargo test -p obd-core --all-features # testes do núcleo (no Linux, BLE precisa
 npm test               # testes da interface (desempenho, testes guiados, consumo, trips, abastecimento, relatório...)
 ```
 
+Base de dados e particularidades dos carros brasileiros (OBDBr, flex, chassi): [docs/CARROS-BRASILEIROS.md](docs/CARROS-BRASILEIROS.md).
+
 Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md). Mapa visual de todos os componentes, com diagramas: [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
 
 ## Créditos e licença
@@ -63,6 +65,8 @@ Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Parte
 
 - [pyOBD](https://github.com/alexfare/pyobd) (GPL-2.0-or-later): ~1.900 descrições de códigos genéricos (inglês), detecção rápida da velocidade serial e tentativa de protocolos um por um.
 - [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (GPL-3.0): ~2.500 descrições de códigos em português do Brasil; lista de PIDs (`pids.csv`) usada para conferir fórmulas dos parâmetros extras; ideia do modo head-up display.
+- [OBDex](https://github.com/foerbsnavi/OBDex) (dados CC0): ~6.250 códigos genéricos mais novos (títulos em inglês; textos em português escritos para este projeto).
+- Wikibooks e Wikipedia (CC BY-SA 4.0): códigos de fabricante do chassi e tabelas de norma OBD (OBDBr) e combustível.
 - [ELMduino](https://github.com/PowerBroker2/ELMduino) (MIT): ideia da leitura rápida (vários parâmetros por pedido).
 - [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) (AGPL-3.0): tabelas de códigos específicos de 10 marcas.
 - [DDT4ALL](https://github.com/cedricp/ddt4all) (GPL-3.0): ideia do teste de versão real do adaptador e da busca de centrais.

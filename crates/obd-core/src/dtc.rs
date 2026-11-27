@@ -7,6 +7,10 @@
 //!   Portuguese (pt-BR) texts for most of them come from AndrOBD
 //!   (github.com/fr3ts0n/AndrOBD, GPL-3.0); the most common ~150 were
 //!   written for this project.
+//!   About 6,250 newer codes (SAE J2012 2016+ titles) come from OBDex
+//!   (github.com/foerbsnavi/OBDex, data CC0-1.0). Their Portuguese texts were
+//!   written for this project; hybrid/electric charging codes (P0Axx-P0Fxx,
+//!   P2Axx-P2Fxx) are still English only.
 //! * `data/dtc_brands.json`: manufacturer-specific codes per brand (English),
 //!   imported from Libre Diagnostic
 //!   (github.com/Libre-Diagnosctic/libre-automotive-diagnostic, AGPL-3.0).
@@ -318,12 +322,34 @@ mod tests {
 
     #[test]
     fn english_fallback_for_untranslated_codes() {
-        // B0002 is in the imported English list but not translated yet.
-        let d = describe("B0002", "pt-BR");
+        // P0D27 (electric car charger) is in the imported English list but
+        // not translated yet.
+        let d = describe("P0D27", "pt-BR");
         assert!(d.known && !d.translated);
-        assert!(d.description.contains("Driver Frontal Stage 2"));
+        assert!(d.description.contains("Battery Charger"));
         // P0001 got its Portuguese text from AndrOBD.
         assert!(describe("P0001", "pt-BR").translated);
+    }
+
+    #[test]
+    fn codes_imported_from_obdex() {
+        // Not in the older lists; title from OBDex (CC0), text written here.
+        let d = describe("U02A6", "pt-BR");
+        assert!(d.known && d.translated);
+        assert!(d.description.contains("Perda de comunicação"));
+        let d = describe("P029C", "pt-BR");
+        assert!(d.known && d.translated);
+        assert!(d.description.contains("bico injetor"));
+        assert!(
+            describe("P029C", "en-US")
+                .description
+                .contains("Injector Restricted")
+        );
+        // Every entry has English text; a Portuguese text, when present, is not empty.
+        for (code, entry) in db() {
+            assert!(entry.get("en").is_some_and(|t| !t.is_empty()), "{code}");
+            assert!(entry.get("pt").is_none_or(|t| !t.is_empty()), "{code}");
+        }
     }
 
     #[test]

@@ -7,6 +7,13 @@ import { busy, button, clear, h, infoTip, notConnected, section } from "../ui";
 
 const place = (name: string) => (msgs().places as Record<string, string>)[name] ?? name;
 
+/** Name of a coded value (PID 1C or 51), with its explanation. */
+const coded = (table: "obdStandards" | "fuelTypes", code: number | null | undefined, tip: string) => {
+  if (code === null || code === undefined) return null;
+  const name = (msgs()[table] as Record<string, string>)[code] ?? t("vehicle.unknownCode", { code });
+  return h("span", null, name, " ", infoTip(tip));
+};
+
 export function mount(root: HTMLElement) {
   const page = h("div", { class: "page" });
   root.append(page);
@@ -47,6 +54,8 @@ export function mount(root: HTMLElement) {
       kv([
         [t("vehicle.calibration"), v.identity.calibration_id],
         [t("vehicle.ecuName"), v.identity.ecu_name],
+        [t("vehicle.obdStandard"), coded("obdStandards", v.identity.obd_standard, t("vehicle.obdStandardTip"))],
+        [t("vehicle.fuelType"), coded("fuelTypes", v.identity.fuel_type, t("vehicle.fuelTypeTip"))],
         [t("vehicle.adapter"), `${v.adapter.version} — ${v.adapter.transport}`],
         [t("vehicle.protocol"), v.adapter.protocol],
         [t("vehicle.voltage"), v.batteryVoltage != null ? `${fmtNum(v.batteryVoltage, 1)} V` : null],
