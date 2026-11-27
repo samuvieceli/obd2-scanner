@@ -7,7 +7,7 @@
 //    Brazil): air mass = rpm × displacement × efficiency × pressure / (R × T).
 // Ethanol content from PID 52 is used for flex cars when available.
 import { emit, on, state } from "./store";
-import { prefs, type FuelType } from "./prefs";
+import { profile, type FuelType } from "./prefs";
 
 /** Stoichiometric air/fuel ratio and density (g/L) of each fuel. */
 const FUELS: Record<Exclude<FuelType, "auto">, { afr: number; density: number }> = {
@@ -19,7 +19,7 @@ const FUELS: Record<Exclude<FuelType, "auto">, { afr: number; density: number }>
 
 /** Air/fuel ratio and density, interpolated by ethanol share for flex cars. */
 function fuelProps(): { afr: number; density: number } {
-  const p = prefs();
+  const p = profile();
   if (p.fuel !== "auto") return FUELS[p.fuel];
   const e = state.latest.ethanol_percent;
   if (e === undefined) return FUELS.gasoline_e27;
@@ -33,7 +33,7 @@ function fuelProps(): { afr: number; density: number } {
 export function airFlow(v: Record<string, number>): number | undefined {
   if (v.maf !== undefined) return v.maf;
   if (v.rpm === undefined || v.intake_map === undefined || v.intake_temp === undefined) return undefined;
-  const p = prefs();
+  const p = profile();
   const tK = v.intake_temp + 273.15;
   const rho = (v.intake_map * 1000) / (287.05 * tK); // kg/m³
   const m3PerS = (v.rpm / 120) * (p.displacementL / 1000) * p.volumetricEff;

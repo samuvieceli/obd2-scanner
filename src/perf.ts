@@ -49,6 +49,8 @@ export interface PerfResult {
   sampleHz: number;
   /** Wall-clock time when the run finished (ms since 1970). */
   at: number;
+  /** Vehicle profile the run belongs to (missing in results saved before profiles). */
+  profileId?: string;
 }
 
 export type PerfPhase = "waiting" | "ready" | "running";

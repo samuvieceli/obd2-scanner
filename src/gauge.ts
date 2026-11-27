@@ -1,12 +1,13 @@
 // Analog dial (SVG) used by the dashboard's "Dials" mode.
 import { fmtNum } from "./i18n";
+import { displayValue } from "./ui";
 
 const NS = "http://www.w3.org/2000/svg";
 const START = -135; // degrees, 0 = straight up
 const SWEEP = 270;
 const R = 80;
 
-/** Values above which the dial shows a red zone. */
+/** Values above which the dial shows a red zone (metric units). */
 const RED_FROM: Record<string, number> = {
   rpm: 6000,
   coolant_temp: 110,
@@ -48,12 +49,13 @@ function tickLabel(v: number): string {
   return fmtNum(v, Number.isInteger(v) ? 0 : 1);
 }
 
+/** Dial for `key`; range and values are in the unit shown on screen. */
 export function makeGauge(key: string, minIn: number, maxIn: number): { svg: SVGSVGElement; set: (v: number | undefined) => void } {
   const [min, max] = niceRange(minIn, maxIn);
   const frac = (v: number) => Math.max(0, Math.min(1, (v - min) / (max - min)));
   const svg = el("svg", { viewBox: "0 0 200 170", class: "gauge", role: "img" });
   svg.append(el("path", { d: arc(START, START + SWEEP, R), class: "gauge-track" }));
-  const red = RED_FROM[key];
+  const red = RED_FROM[key] === undefined ? undefined : displayValue(key, RED_FROM[key]);
   if (red !== undefined && red < max) {
     svg.append(el("path", { d: arc(START + SWEEP * frac(red), START + SWEEP, R), class: "gauge-red" }));
   }

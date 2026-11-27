@@ -14,10 +14,12 @@
 //! 4. Decoders: [`pid`], [`dtc`], [`vin`], [`readiness`], [`mode06`].
 //! 5. [`interpret`]: plain-language findings from live data.
 //! 6. [`session`]: recording and export (CSV, JSON).
+//! 7. [`health`]: notices a frozen adapter or a lost link and says what to do.
 
 pub mod dtc;
 pub mod elm327;
 pub mod error;
+pub mod health;
 pub mod interpret;
 pub mod mode06;
 pub mod pid;

@@ -78,6 +78,13 @@ pub fn looks_like_clone(version: &str) -> bool {
     ["v1.5", "v2.1", "v2.2"].iter().any(|k| v.contains(k))
 }
 
+/// Start-up text of an ELM327 (or `LV RESET`): seen in the middle of a
+/// session it means the adapter rebooted, e.g. during engine cranking.
+fn is_reset_banner(line: &str) -> bool {
+    let l = line.trim().to_ascii_uppercase();
+    l.starts_with("ELM327") || l.contains("LV RESET")
+}
+
 impl AdapterInfo {
     /// CAN protocols (6-9, also when prefixed with `A` for "automatic").
     pub fn is_can(&self) -> bool {
@@ -110,6 +117,8 @@ pub struct Elm327 {
     pub config: ElmConfig,
     pub info: AdapterInfo,
     logger: Option<Logger>,
+    /// Set when the transport failed (port closed, Bluetooth dropped).
+    link_lost: bool,
 }
 
 impl Elm327 {
@@ -123,7 +132,37 @@ impl Elm327 {
             config,
             info,
             logger: None,
+            link_lost: false,
         }
+    }
+
+    /// True once the transport has failed: the port must be opened again.
+    pub fn link_lost(&self) -> bool {
+        self.link_lost
+    }
+
+    /// Releases the port (Windows refuses to open a COM port twice), keeping
+    /// what is known about the adapter.
+    pub fn close(&mut self) {
+        self.transport = Box::new(crate::transport::Closed);
+        self.link_lost = true;
+    }
+
+    /// Quiet "are you there?" check used while idle (not shown in the
+    /// terminal log). Any answer counts, even `?`.
+    pub fn ping(&mut self) -> Result<()> {
+        let logger = self.logger.take();
+        let r = self.raw_command("ATRV", Duration::from_millis(1_500));
+        self.logger = logger;
+        r.map(|_| ())
+    }
+
+    /// Notes transport failures so the worker can reconnect.
+    fn io<T>(&mut self, r: Result<T>) -> Result<T> {
+        if let Err(ObdError::Io(_) | ObdError::Connection(_) | ObdError::NotConnected) = &r {
+            self.link_lost = true;
+        }
+        r
     }
 
     pub fn set_logger(&mut self, logger: Logger) {
@@ -138,9 +177,11 @@ impl Elm327 {
 
     /// Sends a command and returns the raw text up to the `>` prompt.
     pub fn raw_command(&mut self, cmd: &str, timeout: Duration) -> Result<String> {
-        self.transport.clear_input()?;
+        let r = self.transport.clear_input();
+        self.io(r)?;
         self.log(LogDirection::Tx, cmd);
-        self.transport.write_all(format!("{cmd}\r").as_bytes())?;
+        let r = self.transport.write_all(format!("{cmd}\r").as_bytes());
+        self.io(r)?;
 
         let deadline = Instant::now() + timeout;
         let mut out: Vec<u8> = Vec::new();
@@ -150,7 +191,8 @@ impl Elm327 {
             if now >= deadline {
                 break;
             }
-            let n = self.transport.read(&mut buf, deadline - now)?;
+            let r = self.transport.read(&mut buf, deadline - now);
+            let n = self.io(r)?;
             out.extend_from_slice(&buf[..n]);
             if out.contains(&b'>') {
                 break;
@@ -191,6 +233,10 @@ impl Elm327 {
     fn command_with_retry(&mut self, cmd: &str) -> Result<Vec<String>> {
         let attempt = |me: &mut Self| -> Result<Vec<String>> {
             let lines = me.command(cmd)?;
+            if lines.iter().any(|l| is_reset_banner(l)) {
+                me.log(LogDirection::Info, "adapter restarted by itself");
+                return Err(ObdError::AdapterReset);
+            }
             check_errors(&lines)?;
             Ok(lines)
         };
@@ -309,6 +355,52 @@ impl Elm327 {
             ),
         );
         Ok(&self.info)
+    }
+
+    /// Brings a frozen or rebooted adapter back without closing the port:
+    ///
+    /// 1. checks that the adapter still answers at all (`ATI`, twice);
+    /// 2. resets it (`ATZ`) and sends the settings again;
+    /// 3. talks to the car on the protocol found before (no slow search).
+    ///
+    /// Errors: [`ObdError::Connection`] when the adapter stays silent (the
+    /// port must be reopened, or the adapter unplugged and plugged back);
+    /// a vehicle error (`UNABLE TO CONNECT`, `NO DATA`) when the adapter is
+    /// fine but the car stopped answering (ignition off).
+    pub fn recover(&mut self) -> Result<()> {
+        self.log(LogDirection::Info, "adapter not responding, recovering");
+        let mut alive = false;
+        for wait_ms in [1_000, 2_000] {
+            if let Ok(raw) = self.raw_command("ATI", Duration::from_millis(wait_ms)) {
+                if raw.contains('>') || raw.to_ascii_uppercase().contains("ELM") {
+                    alive = true;
+                    break;
+                }
+            }
+            if self.link_lost {
+                break;
+            }
+        }
+        if !alive {
+            return Err(ObdError::Connection("the adapter stopped answering".into()));
+        }
+        let user_protocol = self.config.protocol.clone();
+        let known = self
+            .info
+            .protocol_number
+            .trim_start_matches('A')
+            .to_string();
+        if !known.is_empty() {
+            self.config.protocol = known;
+        }
+        let result = self
+            .setup_adapter()
+            .and_then(|_| self.connect_vehicle().map(|_| ()));
+        self.config.protocol = user_protocol;
+        if result.is_ok() {
+            self.log(LogDirection::Info, "adapter recovered");
+        }
+        result
     }
 
     /// First OBD request (`0100`): the adapter searches the protocol, which can

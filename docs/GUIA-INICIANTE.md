@@ -32,7 +32,7 @@ Mapa das pastas:
 | `crates/obd-core/` | O "motor": conversa com o adaptador ELM327, fórmulas dos sensores, códigos de falha, simulador. |
 | `crates/obd-core/data/` | Descrições dos códigos de falha (arquivos JSON). |
 | `src-tauri/` | A "casca" do programa para Windows (janela, instalador, ícones). |
-| `docs/` | Documentação (este guia, como usar, arquitetura, créditos). |
+| `docs/` | Documentação (este guia, como usar, arquitetura, créditos). O **mapa visual com diagramas** de todos os componentes está em `docs/DIAGRAMAS.md`. |
 | `.github/workflows/ci.yml` | A verificação automática do GitHub, que testa e gera o instalador a cada mudança. |
 
 ---
@@ -108,7 +108,7 @@ No terminal do VS Code:
 | Comando | O que verifica | Tempo |
 | --- | --- | --- |
 | `npm run typecheck` | Erros de digitação no código da interface. | segundos |
-| `npm test` | A detecção dos testes de desempenho. | segundos |
+| `npm test` | A detecção dos testes de desempenho e a conversão de unidades. | segundos |
 | `cargo test -p obd-core --all-features` | O "motor": fórmulas, códigos de falha, simulador, adaptadores clones. | 1 a 3 min na primeira vez |
 | `npm run tauri build` | Gera o instalador em `target\release\bundle\nsis\`. | 5 a 10 min |
 
@@ -157,4 +157,4 @@ Você também não precisa rodar tudo isso sempre: **a cada envio, o GitHub roda
 
 ---
 
-Mais detalhes: [COMO-USAR.md](COMO-USAR.md) (usar o programa), [ARQUITETURA.md](ARQUITETURA.md) (como o código é organizado) e [CREDITOS.md](CREDITOS.md).
+Mais detalhes: [COMO-USAR.md](COMO-USAR.md) (usar o programa), [DIAGRAMAS.md](DIAGRAMAS.md) (mapa visual dos componentes), [ARQUITETURA.md](ARQUITETURA.md) (como o código é organizado) e [CREDITOS.md](CREDITOS.md).

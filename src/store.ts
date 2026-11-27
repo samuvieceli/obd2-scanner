@@ -5,6 +5,7 @@ import type {
   DtcReport,
   Finding,
   FreezeFrame,
+  LinkStatus,
   LiveFrame,
   LogEvent,
   PidMeta,
@@ -15,7 +16,7 @@ import type {
   VehicleInfo,
 } from "./api";
 
-export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "alerts";
+export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "alerts" | "profile" | "link";
 
 export interface Series {
   t: number[];
@@ -53,6 +54,8 @@ export const state = {
   connection: "disconnected" as "disconnected" | "connecting" | "connected",
   adapter: null as AdapterInfo | null,
   vehicleError: null as CmdError | null,
+  /** Recovery or reconnection in progress, null when the link is fine. */
+  link: null as LinkStatus | null,
   catalog: [] as PidMeta[],
   liveKeys: loadKeys() ?? [...DEFAULT_KEYS],
   polling: false,

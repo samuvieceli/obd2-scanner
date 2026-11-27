@@ -264,3 +264,50 @@ fn records_rejected_at_commands_and_clone_version() {
     assert!(elm.info.likely_clone);
     assert_eq!(elm.info.unsupported_at, vec!["ATS1", "ATAT1"]);
 }
+
+#[test]
+fn recovers_from_a_frozen_clone() {
+    use obd_core::health::{Action, LinkHealth, Outcome};
+    let mut elm = demo(true);
+    elm.raw_command("ATSIMHANG", std::time::Duration::from_millis(300))
+        .unwrap();
+    // The worker would see three silent requests in a row and recover.
+    let mut health = LinkHealth::new();
+    let mut action = Action::Continue;
+    for _ in 0..3 {
+        let r = elm.read_pid(0x0C);
+        assert!(matches!(r, Err(ObdError::Timeout)), "{r:?}");
+        action = health.record(Outcome::of(&r));
+    }
+    assert_eq!(action, Action::Recover);
+    elm.recover().expect("recover");
+    assert!(elm.read_pid(0x0C).is_ok());
+    assert!(!elm.link_lost());
+}
+
+#[test]
+fn notices_an_adapter_that_rebooted() {
+    let mut elm = demo(false);
+    elm.raw_command("ATSIMRESET", std::time::Duration::from_millis(300))
+        .unwrap();
+    assert!(matches!(elm.read_pid(0x0D), Err(ObdError::AdapterReset)));
+    elm.recover().expect("recover");
+    assert!(elm.read_pid(0x0D).is_ok());
+}
+
+#[test]
+fn fully_frozen_adapter_needs_a_reconnection() {
+    let mut elm = demo(false);
+    elm.raw_command("ATSIMFREEZE", std::time::Duration::from_millis(300))
+        .unwrap();
+    assert!(matches!(elm.recover(), Err(ObdError::Connection(_))));
+}
+
+#[test]
+fn dropped_link_is_flagged() {
+    let mut elm = demo(false);
+    elm.raw_command("ATSIMDROP", std::time::Duration::from_millis(300))
+        .unwrap();
+    assert!(matches!(elm.read_pid(0x0C), Err(ObdError::Io(_))));
+    assert!(elm.link_lost());
+}

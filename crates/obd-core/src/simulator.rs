@@ -8,6 +8,17 @@
 //!
 //! With `quirky = true` it imitates a cheap clone: ignores `ATE0`, rejects
 //! some AT commands, prints `SEARCHING...` and sends stray NUL bytes.
+//!
+//! Failures of cheap clones can be triggered on purpose with commands a
+//! real adapter does not have (they answer `?` there), to try the recovery
+//! and reconnection features:
+//!
+//! | Command | Imitates | Fixed by |
+//! | --- | --- | --- |
+//! | `ATSIMHANG` | frozen OBD side: car requests get no answer | `ATZ` / `ATWS` |
+//! | `ATSIMRESET` | reboot after a voltage dip (banner, settings lost) | setup again |
+//! | `ATSIMFREEZE` | adapter fully frozen, not even `ATI` answers | reopening (power cycle) |
+//! | `ATSIMDROP` | Bluetooth out of range: the port fails | reopening |
 
 use std::collections::VecDeque;
 use std::f64::consts::PI;
@@ -30,6 +41,16 @@ pub struct SimulatorOptions {
     pub quirky: bool,
     /// Speed-up factor for the virtual clock (1.0 = real time).
     pub time_scale: f64,
+}
+
+/// Failure being imitated (see the module documentation).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Fault {
+    None,
+    Hang,
+    Reset,
+    Freeze,
+    Drop,
 }
 
 /// Physical values of the virtual engine at one instant.
@@ -127,6 +148,7 @@ pub struct Simulator {
     input: Vec<u8>,
     out: VecDeque<u8>,
     ready_at: Instant,
+    fault: Fault,
 }
 
 const SUPPORTED: &[u8] = &[
@@ -166,6 +188,7 @@ impl Simulator {
             input: Vec::new(),
             out: VecDeque::new(),
             ready_at: Instant::now(),
+            fault: Fault::None,
         }
     }
 
@@ -374,7 +397,19 @@ impl Simulator {
         let ok = || vec!["OK".to_string()];
         let quirky = self.opts.quirky;
         match at {
+            "SIMHANG" | "SIMRESET" | "SIMFREEZE" | "SIMDROP" => {
+                self.fault = match at {
+                    "SIMHANG" => Fault::Hang,
+                    "SIMRESET" => Fault::Reset,
+                    "SIMFREEZE" => Fault::Freeze,
+                    _ => Fault::Drop,
+                };
+                ok()
+            }
             "Z" | "WS" => {
+                if self.fault == Fault::Hang {
+                    self.fault = Fault::None;
+                }
                 self.echo = true;
                 self.spaces = true;
                 self.linefeeds = true;
@@ -518,12 +553,49 @@ impl Simulator {
     }
 }
 
+impl Simulator {
+    /// Applies an active fault to a command. Returns `true` when the command
+    /// must get no answer at all.
+    fn swallowed_by_fault(&mut self, cmd: &str) -> bool {
+        let is_obd = !cmd.trim().to_ascii_uppercase().starts_with("AT");
+        match self.fault {
+            Fault::Freeze => true,
+            Fault::Hang => is_obd,
+            Fault::Reset if is_obd => {
+                // Boot banner instead of the answer, settings back to defaults.
+                self.fault = Fault::None;
+                self.echo = true;
+                self.spaces = true;
+                self.linefeeds = true;
+                self.searched = false;
+                self.out.extend("\r\rELM327 v1.5\r\r>".bytes());
+                true
+            }
+            _ => false,
+        }
+    }
+}
+
+fn link_dropped() -> crate::ObdError {
+    crate::ObdError::Io(std::io::Error::new(
+        std::io::ErrorKind::ConnectionAborted,
+        "demo: Bluetooth connection lost",
+    ))
+}
+
 impl Transport for Simulator {
     fn write_all(&mut self, data: &[u8]) -> Result<()> {
+        if self.fault == Fault::Drop {
+            return Err(link_dropped());
+        }
         self.input.extend_from_slice(data);
         while let Some(pos) = self.input.iter().position(|&b| b == b'\r') {
             let line: Vec<u8> = self.input.drain(..=pos).collect();
             let cmd = String::from_utf8_lossy(&line[..line.len() - 1]).to_string();
+            if self.swallowed_by_fault(&cmd) {
+                self.ready_at = Instant::now() + Duration::from_millis(self.opts.latency_ms);
+                continue;
+            }
             let eol = if self.linefeeds { "\r\n" } else { "\r" };
             let mut text = String::new();
             if self.echo {
@@ -546,6 +618,10 @@ impl Transport for Simulator {
     }
 
     fn read(&mut self, buf: &mut [u8], timeout: Duration) -> Result<usize> {
+        // The "OK" to ATSIMDROP still arrives; the link fails after it.
+        if self.fault == Fault::Drop && self.out.is_empty() {
+            return Err(link_dropped());
+        }
         let now = Instant::now();
         if self.out.is_empty() {
             std::thread::sleep(timeout.min(Duration::from_millis(50)));
@@ -566,6 +642,9 @@ impl Transport for Simulator {
     }
 
     fn clear_input(&mut self) -> Result<()> {
+        if self.fault == Fault::Drop {
+            return Err(link_dropped());
+        }
         self.out.clear();
         Ok(())
     }

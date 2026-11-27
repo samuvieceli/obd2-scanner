@@ -1,5 +1,6 @@
 // Vehicle information (VIN, ECU, adapter) and readiness monitors.
 import { api } from "../api";
+import { reportVin } from "./connection";
 import { fmtNum, msgs, t } from "../i18n";
 import { state } from "../store";
 import { busy, button, clear, h, infoTip, notConnected, section } from "../ui";
@@ -89,6 +90,7 @@ export function mount(root: HTMLElement) {
     if (v) {
       state.vehicle = v;
       renderInfo();
+      reportVin(v.identity.vin);
     }
   }, "primary");
   const readyBtn = button(t("vehicle.readReadiness"), async () => {

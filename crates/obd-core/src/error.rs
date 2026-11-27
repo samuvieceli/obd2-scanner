@@ -24,6 +24,8 @@ pub enum ObdError {
     NotConnected,
     #[error("connection error: {0}")]
     Connection(String),
+    #[error("the adapter restarted by itself (voltage dip or crash) and lost its settings")]
+    AdapterReset,
 }
 
 impl ObdError {
@@ -40,6 +42,7 @@ impl ObdError {
             ObdError::Parse(_) => "parse",
             ObdError::NotConnected => "not_connected",
             ObdError::Connection(_) => "connection",
+            ObdError::AdapterReset => "adapter_reset",
         }
     }
 }

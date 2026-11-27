@@ -2,6 +2,7 @@
 import { fmtNum, pidText, t } from "./i18n";
 import type { CmdError } from "./api";
 import { meta } from "./store";
+import { displayUnit, extraDecimals, toDisplay } from "./units";
 
 type Child = Node | string | number | null | undefined | false;
 type Attrs = Record<string, unknown>;
@@ -74,22 +75,35 @@ export function pidTip(key: string): HTMLElement {
   return infoTip(`${p.desc}${typical}`);
 }
 
-export function decimalsFor(key: string): number {
-  const unit = meta(key)?.unit ?? (key === "battery_voltage" ? "V" : "");
-  if (key === "rpm" || key === "speed" || key === "run_time") return 0;
-  if (unit === "V") return key.startsWith("o2_") ? 3 : 2;
-  if (unit === "λ") return 3;
-  if (unit === "°C" || unit === "kPa" || unit === "km" || unit === "min" || unit === "") return 0;
-  return 1;
+/** Metric unit of a parameter, as decoded from the car. */
+export function baseUnitOf(key: string): string {
+  return meta(key)?.unit ?? (key === "battery_voltage" ? "V" : "");
 }
 
+/** Unit shown on screen, after the user's unit choice. */
+export function unitOf(key: string): string {
+  return displayUnit(baseUnitOf(key));
+}
+
+/** Value converted to the unit shown on screen. */
+export function displayValue(key: string, v: number): number {
+  return toDisplay(baseUnitOf(key), v);
+}
+
+export function decimalsFor(key: string): number {
+  const unit = baseUnitOf(key);
+  let d = 1;
+  if (key === "rpm" || key === "speed" || key === "run_time") d = 0;
+  else if (unit === "V") d = key.startsWith("o2_") ? 3 : 2;
+  else if (unit === "λ") d = 3;
+  else if (unit === "°C" || unit === "kPa" || unit === "km" || unit === "min" || unit === "") d = 0;
+  return d + extraDecimals(unit);
+}
+
+/** Formats a value in the unit shown on screen (without the unit). */
 export function fmtValue(key: string, v: number | undefined): string {
   if (v === undefined || Number.isNaN(v)) return "—";
-  return fmtNum(v, decimalsFor(key));
-}
-
-export function unitOf(key: string): string {
-  return meta(key)?.unit ?? (key === "battery_voltage" ? "V" : "");
+  return fmtNum(displayValue(key, v), decimalsFor(key));
 }
 
 export function button(

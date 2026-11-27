@@ -5,7 +5,9 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 
 ## O que ele faz
 
-- **Conexão** por USB, Bluetooth clássico (porta COM), **Bluetooth LE**, Wi-Fi e **modo demonstração** (carro virtual, sem adaptador). Tolerante aos defeitos comuns dos clones ELM327 (repete pedidos perdidos, avisa quais comandos o adaptador recusa).
+- **Conexão** por USB, Bluetooth clássico (porta COM), **Bluetooth LE**, Wi-Fi e **modo demonstração** (carro virtual, sem adaptador). Tolerante aos defeitos comuns dos clones ELM327 (repete pedidos perdidos, avisa quais comandos o adaptador recusa), com **detecção de travamento** do adaptador (reinicia e reconfigura sozinho) e **reconexão automática** quando o Bluetooth ou o cabo cai.
+- **Perfis para vários carros**, reconhecidos pelo chassi (VIN), cada um com combustível, cilindrada, alertas e resultados próprios.
+- **Unidades** à escolha: km/h ou mph, °C ou °F, kPa, bar ou psi, km ou milhas, km/L, L/100 km ou mpg.
 - **Painel ao vivo** com mais de 80 parâmetros (rotação, temperatura, correção de combustível, sondas lambda e de banda larga, turbo, torque, filtro de partículas, hodômetro, tensão da bateria...), cada um com explicação curta.
 - **Cartões ou mostradores com ponteiro**, **alertas** com som quando um valor sai da faixa segura e **computador de bordo** (consumo em km/L, distância, combustível gasto).
 - **Testes de desempenho** 0–100, 100–0, 40–80 e 80–120 km/h com detecção automática do início e do fim reais de cada teste, distância e histórico.
@@ -39,10 +41,10 @@ npm install
 npm run tauri dev      # abre o app em modo de desenvolvimento
 npm run tauri build    # gera o instalador em target/release/bundle
 cargo test -p obd-core --all-features # testes do núcleo (no Linux, BLE precisa de libdbus-1-dev)
-npm test               # testes da interface (detecção dos testes de desempenho)
+npm test               # testes da interface (testes de desempenho, unidades)
 ```
 
-Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
+Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md). Mapa visual de todos os componentes, com diagramas: [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
 
 ## Créditos e licença
 
@@ -58,7 +60,9 @@ Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Parte
 ---
 
 **English:** OBD2 Scanner is a Rust + Tauri 2 desktop app for ELM327 adapters (genuine or clones) over USB, Bluetooth
-classic (COM port), Bluetooth LE, Wi-Fi and a built-in demo simulator. It shows live data as cards or dials with
+classic (COM port), Bluetooth LE, Wi-Fi and a built-in demo simulator. It detects frozen clone adapters (reset and reconfigure),
+reconnects by itself when the link drops, keeps per-car profiles (matched by VIN) and offers metric or imperial units.
+It shows live data as cards or dials with
 explanations, automatic interpretation, alerts, a trip computer, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h) and a head-up display; charts; trouble codes (read/clear,
 freeze frame, 10 brand tables); Mode 06 test results; readiness monitors; VIN decoding; an AT terminal; recording,
 playback and export to CSV/JSON/PNG plus a printable report. UI in Brazilian Portuguese and US English with 8 themes.

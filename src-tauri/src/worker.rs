@@ -4,6 +4,14 @@
 //! single background thread owns the [`Elm327`] driver. UI commands are sent
 //! to it as closures through a channel and run between live-data reads, so
 //! the screen stays responsive while data is being polled.
+//!
+//! The worker also keeps the link alive (see `obd_core::health`):
+//! * a frozen or rebooted adapter is reset and reconfigured (`recover`);
+//! * a lost link (Bluetooth out of range, cable pulled) is reopened with
+//!   growing pauses, for up to 3 minutes, when automatic reconnection is on;
+//! * while idle, a quiet `ATRV` every 10 s notices a dropped link early.
+//!
+//! Every change is announced to the UI with a `link-status` event.
 
 use std::collections::HashMap;
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender, TryRecvError};
@@ -11,15 +19,20 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use obd_core::elm327::Elm327;
+use obd_core::elm327::{AdapterInfo, Elm327};
+use obd_core::health::{self, Action, LinkHealth, Outcome};
 use obd_core::interpret::Interpreter;
 use obd_core::pid::{self, BATTERY_VOLTAGE_KEY};
 use obd_core::session::Frame;
 use obd_core::ObdError;
 use serde::Serialize;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 
 use crate::recorder::Recorder;
+use crate::CmdError;
+
+/// Opens the same adapter again (same port, same settings).
+pub type Reopen = Box<dyn FnMut() -> Result<Elm327, CmdError> + Send>;
 
 type Job = Box<dyn FnOnce(&mut Elm327) + Send>;
 
@@ -46,14 +59,48 @@ pub struct LiveFrame {
     pub rate_hz: f64,
 }
 
+/// Event sent to the UI when the state of the link changes.
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkStatus {
+    /// `recovering`, `recovered`, `vehicle_silent`, `reconnecting` or `reconnected`.
+    pub state: &'static str,
+    /// Reconnection attempt number (1-based), 0 otherwise.
+    pub attempt: u32,
+    /// Seconds until the next reconnection attempt.
+    pub next_in_s: u64,
+    pub adapter: Option<AdapterInfo>,
+    pub error: Option<CmdError>,
+}
+
 const MAX_FAILURES: u32 = 3;
+/// Idle "are you there?" interval.
+const PING_EVERY: Duration = Duration::from_secs(10);
+/// Pause after the car stopped answering (ignition off), before trying again.
+const VEHICLE_SILENT_PAUSE: Duration = Duration::from_secs(5);
 
 impl Worker {
-    pub fn spawn(mut elm: Elm327, app: AppHandle, recorder: Arc<Mutex<Recorder>>) -> Self {
+    /// `reopen` enables automatic reconnection.
+    pub fn spawn(
+        elm: Elm327,
+        app: AppHandle,
+        recorder: Arc<Mutex<Recorder>>,
+        reopen: Option<Reopen>,
+    ) -> Self {
         let (tx, rx) = mpsc::channel::<Msg>();
         let handle = std::thread::Builder::new()
             .name("obd-worker".into())
-            .spawn(move || run_loop(&mut elm, &rx, &app, &recorder))
+            .spawn(move || {
+                let mut link = Link {
+                    elm,
+                    app,
+                    reopen,
+                    health: LinkHealth::new(),
+                    paused_until: None,
+                    generation: 0,
+                };
+                run_loop(&mut link, &rx, &recorder)
+            })
             .expect("spawn worker thread");
         Self {
             tx,
@@ -90,7 +137,167 @@ impl Drop for Worker {
 }
 
 fn is_fatal(e: &ObdError) -> bool {
-    matches!(e, ObdError::Io(_) | ObdError::Connection(_))
+    matches!(
+        e,
+        ObdError::Io(_) | ObdError::Connection(_) | ObdError::NotConnected
+    )
+}
+
+/// The adapter plus everything needed to keep it reachable.
+struct Link {
+    elm: Elm327,
+    app: AppHandle,
+    reopen: Option<Reopen>,
+    health: LinkHealth,
+    /// No polling until then (the car stopped answering).
+    paused_until: Option<Instant>,
+    /// Counts recoveries and reconnections, so a polling cycle can tell
+    /// that the adapter was reset under it.
+    generation: u64,
+}
+
+/// Answer of [`Link::act`]: keep going or stop the worker.
+enum Flow {
+    Go,
+    Stop,
+}
+
+impl Link {
+    fn status(&self, state: &'static str) -> LinkStatus {
+        LinkStatus {
+            state,
+            attempt: 0,
+            next_in_s: 0,
+            adapter: None,
+            error: None,
+        }
+    }
+
+    fn emit(&self, s: LinkStatus) {
+        let _ = self.app.emit("link-status", s);
+    }
+
+    /// New adapter details for later commands (reports, recordings).
+    fn publish_adapter(&self) {
+        let state = self.app.state::<crate::AppState>();
+        *state.adapter.lock().unwrap() = Some(self.elm.info.clone());
+    }
+
+    /// Records the outcome of a request and reacts to it.
+    fn observe<T>(&mut self, r: &Result<T, ObdError>, rx: &Receiver<Msg>, ctx: &mut Ctx) -> Flow {
+        let mut outcome = Outcome::of(r);
+        if self.elm.link_lost() {
+            outcome = Outcome::LinkLost;
+        }
+        let action = self.health.record(outcome);
+        self.act(action, rx, ctx)
+    }
+
+    fn act(&mut self, action: Action, rx: &Receiver<Msg>, ctx: &mut Ctx) -> Flow {
+        match action {
+            Action::Continue => Flow::Go,
+            Action::Recover => self.recover(rx, ctx),
+            Action::Reconnect => self.reconnect(rx, ctx, None),
+        }
+    }
+
+    /// Resets a frozen adapter; reconnects if it stays silent.
+    fn recover(&mut self, rx: &Receiver<Msg>, ctx: &mut Ctx) -> Flow {
+        self.generation += 1;
+        self.emit(self.status("recovering"));
+        match self.elm.recover() {
+            Ok(()) => {
+                self.health.reset();
+                self.publish_adapter();
+                self.emit(LinkStatus {
+                    adapter: Some(self.elm.info.clone()),
+                    ..self.status("recovered")
+                });
+                Flow::Go
+            }
+            Err(e) if is_fatal(&e) => self.reconnect(rx, ctx, Some(e.into())),
+            Err(e) => {
+                // The adapter is fine, the car is not answering (ignition off?).
+                self.paused_until = Some(Instant::now() + VEHICLE_SILENT_PAUSE);
+                self.emit(LinkStatus {
+                    error: Some(e.into()),
+                    ..self.status("vehicle_silent")
+                });
+                Flow::Go
+            }
+        }
+    }
+
+    /// Closes the port and opens it again, with growing pauses, until it
+    /// works, the user disconnects or [`health::RECONNECT_GIVE_UP`] passes.
+    fn reconnect(&mut self, rx: &Receiver<Msg>, ctx: &mut Ctx, cause: Option<CmdError>) -> Flow {
+        let mut last =
+            cause.unwrap_or_else(|| CmdError::from(ObdError::Connection("link lost".into())));
+        self.generation += 1;
+        self.elm.close();
+        let Some(reopen) = self.reopen.as_mut() else {
+            let _ = self.app.emit("connection-lost", last);
+            return Flow::Stop;
+        };
+        let started = Instant::now();
+        let mut attempt = 0;
+        while started.elapsed() < health::RECONNECT_GIVE_UP {
+            attempt += 1;
+            let wait = health::reconnect_delay(attempt);
+            let _ = self.app.emit(
+                "link-status",
+                LinkStatus {
+                    state: "reconnecting",
+                    attempt,
+                    next_in_s: wait.as_secs(),
+                    adapter: None,
+                    error: Some(last.clone()),
+                },
+            );
+            // Wait, still listening to the UI. Jobs are dropped: their
+            // callers get "not connected" at once instead of waiting.
+            let until = Instant::now() + wait;
+            while let Some(left) = until.checked_duration_since(Instant::now()) {
+                match rx.recv_timeout(left) {
+                    Ok(Msg::Stop) | Err(RecvTimeoutError::Disconnected) => return Flow::Stop,
+                    Ok(Msg::Run(job)) => drop(job),
+                    Ok(Msg::SetLive(keys)) => {
+                        ctx.live = keys;
+                        ctx.failures.clear();
+                    }
+                    Ok(Msg::Polling(on)) => ctx.polling = on,
+                    Err(RecvTimeoutError::Timeout) => break,
+                }
+            }
+            match reopen() {
+                Ok(elm) => {
+                    self.elm = elm;
+                    // Ignition may be off: the adapter link is what matters here.
+                    let vehicle_error = self.elm.connect_vehicle().err().map(CmdError::from);
+                    self.health.reset();
+                    self.publish_adapter();
+                    self.emit(LinkStatus {
+                        attempt,
+                        adapter: Some(self.elm.info.clone()),
+                        error: vehicle_error,
+                        ..self.status("reconnected")
+                    });
+                    return Flow::Go;
+                }
+                Err(e) => last = e,
+            }
+        }
+        let _ = self.app.emit("connection-lost", last);
+        Flow::Stop
+    }
+}
+
+/// Polling settings changed by UI messages.
+struct Ctx {
+    live: Vec<String>,
+    polling: bool,
+    failures: HashMap<String, u32>,
+    multi_ok: bool,
 }
 
 /// One request of a polling cycle: the PIDs asked (empty = adapter battery
@@ -137,43 +344,43 @@ fn count_failure(failures: &mut HashMap<String, u32>, dropped: &mut Vec<String>,
 }
 
 /// Applies one message; returns false when the worker must stop.
-fn apply(
-    msg: Msg,
-    elm: &mut Elm327,
-    live: &mut Vec<String>,
-    polling: &mut bool,
-    failures: &mut HashMap<String, u32>,
-) -> bool {
+fn apply(msg: Msg, link: &mut Link, rx: &Receiver<Msg>, ctx: &mut Ctx) -> bool {
     match msg {
-        Msg::Run(job) => job(elm),
-        Msg::SetLive(keys) => {
-            *live = keys;
-            failures.clear();
+        Msg::Run(job) => {
+            job(&mut link.elm);
+            // A command from a screen may be the first to notice a lost link.
+            if link.elm.link_lost() {
+                return matches!(link.act(Action::Reconnect, rx, ctx), Flow::Go);
+            }
         }
-        Msg::Polling(on) => *polling = on,
+        Msg::SetLive(keys) => {
+            ctx.live = keys;
+            ctx.failures.clear();
+        }
+        Msg::Polling(on) => ctx.polling = on,
         Msg::Stop => return false,
     }
     true
 }
 
-fn run_loop(
-    elm: &mut Elm327,
-    rx: &Receiver<Msg>,
-    app: &AppHandle,
-    recorder: &Arc<Mutex<Recorder>>,
-) {
+fn run_loop(link: &mut Link, rx: &Receiver<Msg>, recorder: &Arc<Mutex<Recorder>>) {
     let start = Instant::now();
-    let mut live: Vec<String> = Vec::new();
-    let mut failures: HashMap<String, u32> = HashMap::new();
-    let mut polling = false;
-    let mut multi_ok = true;
+    let mut ctx = Ctx {
+        live: Vec::new(),
+        polling: false,
+        failures: HashMap::new(),
+        multi_ok: true,
+    };
     let mut interpreter = Interpreter::new();
     let mut last_findings = Instant::now() - Duration::from_secs(10);
     let mut last_cycle = Instant::now();
+    let mut last_traffic = Instant::now();
 
     loop {
+        let paused = link.paused_until.is_some_and(|t| Instant::now() < t);
+        let active = ctx.polling && !ctx.live.is_empty() && !paused;
         // Wait for work when idle, only peek while polling.
-        let first = if polling && !live.is_empty() {
+        let first = if active {
             match rx.try_recv() {
                 Ok(m) => Some(m),
                 Err(TryRecvError::Empty) => None,
@@ -187,69 +394,91 @@ fn run_loop(
             }
         };
         if let Some(m) = first {
-            if !apply(m, elm, &mut live, &mut polling, &mut failures) {
+            last_traffic = Instant::now();
+            if !apply(m, link, rx, &mut ctx) {
                 return;
             }
             continue;
         }
-        if !polling || live.is_empty() {
+        if !active {
+            if last_traffic.elapsed() >= PING_EVERY {
+                last_traffic = Instant::now();
+                let r = link.elm.ping();
+                if let Flow::Stop = link.observe(&r, rx, &mut ctx) {
+                    return;
+                }
+            }
             continue;
         }
+        last_traffic = Instant::now();
 
         // One polling cycle. Requests are groups of keys: one PID, the
         // battery voltage, or (fast mode on CAN) up to 6 PIDs at once.
         let mut values = HashMap::new();
         let mut dropped = Vec::new();
-        let multi = multi_ok && elm.config.multi_pid && elm.info.is_can();
-        for group in request_groups(&live, multi) {
+        let multi = ctx.multi_ok && link.elm.config.multi_pid && link.elm.info.is_can();
+        for group in request_groups(&ctx.live, multi) {
             // Serve pending UI requests between reads.
             while let Ok(m) = rx.try_recv() {
-                if !apply(m, elm, &mut live, &mut polling, &mut failures) {
+                if !apply(m, link, rx, &mut ctx) {
                     return;
                 }
             }
-            if !polling {
+            if !ctx.polling {
                 break;
             }
+            let elm = &mut link.elm;
             let result: Result<Vec<(String, f64)>, ObdError> = match &group.pids[..] {
                 [] => elm
                     .battery_voltage()
                     .map(|v| vec![(BATTERY_VOLTAGE_KEY.to_string(), v)]),
                 [one] => elm.read_pid_values(*one),
                 many => match elm.read_pids_multi(many) {
-                    Err(e) if !is_fatal(&e) => {
-                        // Car or adapter does not cope with grouped requests:
-                        // switch to one PID per request for this connection.
-                        multi_ok = false;
-                        continue;
+                    // Car or adapter does not cope with grouped requests
+                    // (refusal, silence or garbage): one PID per request for
+                    // the rest of this session. Silence still counts for the
+                    // health check below.
+                    Err(e) if Outcome::of_error(&e) != Outcome::LinkLost => {
+                        ctx.multi_ok = false;
+                        if Outcome::of_error(&e) == Outcome::Answered {
+                            continue;
+                        }
+                        Err(e)
                     }
                     r => r,
                 },
             };
+            let generation = link.generation;
+            if let Flow::Stop = link.observe(&result, rx, &mut ctx) {
+                return;
+            }
+            // After a recovery or a reconnection, start a fresh cycle.
+            if link.generation != generation {
+                break;
+            }
             match result {
                 Ok(got) => {
                     for key in &group.keys {
                         if let Some((_, v)) = got.iter().find(|(k, _)| k == key) {
-                            failures.remove(key);
+                            ctx.failures.remove(key);
                             values.insert(key.clone(), *v);
                         } else {
-                            count_failure(&mut failures, &mut dropped, key);
+                            count_failure(&mut ctx.failures, &mut dropped, key);
                         }
                     }
                 }
-                Err(e) if is_fatal(&e) => {
-                    let _ = app.emit("connection-lost", crate::CmdError::from(e));
-                    return;
-                }
+                // Silence and link problems are the health check's business:
+                // do not blame the parameters for them.
+                Err(e) if Outcome::of_error(&e) != Outcome::Answered => {}
                 Err(_) => {
                     for key in &group.keys {
-                        count_failure(&mut failures, &mut dropped, key);
+                        count_failure(&mut ctx.failures, &mut dropped, key);
                     }
                 }
             }
         }
         if !dropped.is_empty() {
-            live.retain(|k| !dropped.contains(k));
+            ctx.live.retain(|k| !dropped.contains(k));
         }
         if values.is_empty() && dropped.is_empty() {
             continue;
@@ -267,7 +496,7 @@ fn run_loop(
                 values: values.clone().into_iter().collect(),
             });
         }
-        let _ = app.emit(
+        let _ = link.app.emit(
             "live-frame",
             LiveFrame {
                 t_ms,
@@ -278,7 +507,7 @@ fn run_loop(
         );
         if last_findings.elapsed() >= Duration::from_secs(1) {
             last_findings = Instant::now();
-            let _ = app.emit("findings", interpreter.evaluate());
+            let _ = link.app.emit("findings", interpreter.evaluate());
         }
     }
 }

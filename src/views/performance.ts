@@ -5,8 +5,22 @@ import { fmtNum, getLang, t } from "../i18n";
 import { hasLiveSource, on, state } from "../store";
 import { PERF_TESTS, PerfDetector, type PerfResult, type PerfTestId } from "../perf";
 import { button, clear, errorText, h, notConnected, toast } from "../ui";
+import { FIRST_PROFILE, profile } from "../prefs";
+import { displayUnit, toDisplay } from "../units";
 
-const MAX_HISTORY = 100;
+const MAX_HISTORY = 300;
+
+/** Test name, with the mph equivalent when speeds are shown in mph. */
+function testLabel(from: number, to: number): string {
+  const base = `${from}–${to} km/h`;
+  if (displayUnit("km/h") !== "mph") return base;
+  const mph = (v: number) => fmtNum(toDisplay("km/h", v), 0);
+  return `${base} (${mph(from)}–${mph(to)} mph)`;
+}
+
+function fmtDistance(m: number): string {
+  return displayUnit("km") === "mi" ? `${fmtNum(m * 3.28084, 0)} ft` : `${fmtNum(m, 1)} m`;
+}
 
 function loadHistory(): PerfResult[] {
   try {
@@ -33,7 +47,11 @@ export function mount(root: HTMLElement) {
   }
 
   const detector = new PerfDetector();
-  let history = loadHistory();
+  const me = profile();
+  // Every car keeps its own results; the others stay saved untouched.
+  const others = loadHistory().filter((r) => (r.profileId ?? FIRST_PROFILE) !== me.id);
+  let history = loadHistory().filter((r) => (r.profileId ?? FIRST_PROFILE) === me.id);
+  const store = () => saveHistory([...others, ...history]);
   const live = !state.playback;
   const wasPolling = state.polling;
   // Speed-only polling gives many more samples per second → more precise times.
@@ -50,6 +68,7 @@ export function mount(root: HTMLElement) {
   };
 
   const speedEl = h("span", { class: "perf-speed" }, "—");
+  const speedUnit = displayUnit("km/h");
   const rateEl = h("p", { class: "muted small" });
   const cards = new Map<PerfTestId, { status: HTMLElement; last: HTMLElement; best: HTMLElement; el: HTMLElement }>();
   const grid = h("div", { class: "perf-grid" });
@@ -59,7 +78,7 @@ export function mount(root: HTMLElement) {
     const status = h("p", { class: "perf-status" });
     const last = h("p", { class: "perf-time" }, "—");
     const best = h("p", { class: "muted small" });
-    const el = h("article", { class: "card perf-card" }, h("h2", null, `${def.from}–${def.to} km/h`), h("p", { class: "muted small" }, t(`perf.tests.${def.id}`)), last, best, status);
+    const el = h("article", { class: "card perf-card" }, h("h2", null, testLabel(def.from, def.to)), h("p", { class: "muted small" }, t(`perf.tests.${def.id}`)), last, best, status);
     grid.append(el);
     cards.set(def.id, { status, last, best, el });
   }
@@ -113,9 +132,9 @@ export function mount(root: HTMLElement) {
                 "tr",
                 null,
                 h("td", null, fmtDate(r.at)),
-                h("td", null, `${def.from}–${def.to} km/h`),
+                h("td", null, testLabel(def.from, def.to)),
                 h("td", { class: "num" }, h("strong", null, fmtTime(r.timeS))),
-                h("td", { class: "num" }, `${fmtNum(r.distanceM, 1)} m`),
+                h("td", { class: "num" }, fmtDistance(r.distanceM)),
                 h("td", { class: "num" }, `${fmtNum(Math.abs(r.avgG), 2)} g`),
                 h("td", { class: "num", title: r.sampleHz < 4 ? t("perf.lowRate") : "" }, `${fmtNum(r.sampleHz, 1)}/s${r.sampleHz < 4 ? " ⚠" : ""}`),
               );
@@ -125,7 +144,7 @@ export function mount(root: HTMLElement) {
       ),
       button(t("perf.clear"), () => {
         history = [];
-        saveHistory(history);
+        store();
         renderHistory();
         renderCards();
       }, "ghost"),
@@ -150,8 +169,9 @@ export function mount(root: HTMLElement) {
   page.append(
     h("h1", null, t("perf.title")),
     h("p", { class: "lead" }, t("perf.intro")),
+    h("p", { class: "muted small" }, t("profiles.resultsOf", { name: me.name })),
     h("div", { class: "alert alert-warning" }, h("p", null, t("perf.safety"))),
-    h("div", { class: "perf-live card" }, h("div", null, speedEl, h("span", { class: "unit" }, " km/h")), h("div", null, fastBox, rateEl)),
+    h("div", { class: "perf-live card" }, h("div", null, speedEl, h("span", { class: "unit" }, ` ${speedUnit}`)), h("div", null, fastBox, rateEl)),
     grid,
     h("section", { class: "card" }, h("h2", null, t("perf.history")), historyBox),
   );
@@ -159,17 +179,17 @@ export function mount(root: HTMLElement) {
   const onFrame = () => {
     const v = state.latest.speed;
     const tS = state.lastFrameT;
-    speedEl.textContent = v === undefined ? "—" : fmtNum(v, 0);
+    speedEl.textContent = v === undefined ? "—" : fmtNum(toDisplay("km/h", v), 0);
     const rate = state.rateHz;
     rateEl.textContent = t(rate >= 8 ? "perf.rateGood" : rate >= 4 ? "perf.rateOk" : "perf.rateLow", { rate: fmtNum(rate, 1) });
     if (v === undefined || tS === undefined) return;
-    const done = detector.push(tS, v);
+    const done = detector.push(tS, v).map((r) => ({ ...r, profileId: me.id }));
     if (done.length) {
       history = [...history, ...done].slice(-MAX_HISTORY);
-      saveHistory(history);
+      store();
       for (const r of done) {
         const def = PERF_TESTS.find((d) => d.id === r.test)!;
-        toast(t("perf.done", { test: `${def.from}–${def.to} km/h`, time: fmtTime(r.timeS) }), "ok");
+        toast(t("perf.done", { test: testLabel(def.from, def.to), time: fmtTime(r.timeS) }), "ok");
       }
       renderHistory();
     }

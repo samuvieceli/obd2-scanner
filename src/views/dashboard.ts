@@ -2,12 +2,18 @@
 import { api } from "../api";
 import { pidText, t } from "../i18n";
 import { DEFAULT_KEYS, displayKeys, emit, hasLiveSource, isSupported, on, setLiveKeys, state } from "../store";
-import { busy, button, clear, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
+import { busy, button, clear, displayValue, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
 import type { Category } from "../api";
 import { findingList } from "./findings";
 import { makeGauge } from "../gauge";
 import { activeAlerts } from "../alerts";
 import { fmtNum } from "../i18n";
+import { consumption, displayUnit, toDisplay } from "../units";
+
+function fmtEconomy(kmPerL: number): string {
+  const [v, unit] = consumption(kmPerL);
+  return `${fmtNum(v, 1)} ${unit}`;
+}
 import { resetTrip, trip } from "../trip";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
@@ -154,7 +160,7 @@ export function mount(root: HTMLElement) {
       const value = h("span", { class: "value" });
       if (style === "gauges") {
         const m = state.catalog.find((x) => x.key === key);
-        const g = makeGauge(key, m?.min ?? 0, m?.max ?? (key === "battery_voltage" ? 16 : 100));
+        const g = makeGauge(key, displayValue(key, m?.min ?? 0), displayValue(key, m?.max ?? (key === "battery_voltage" ? 16 : 100)));
         g.svg.setAttribute("aria-label", txt.name);
         const range = h("span", { class: "range" });
         const el = h(
@@ -196,7 +202,7 @@ export function mount(root: HTMLElement) {
       const hi = m?.max ?? (key === "battery_voltage" ? 16 : 100);
       const pct = v === undefined ? 0 : Math.max(0, Math.min(100, ((v - lo) / (hi - lo)) * 100));
       if (c.bar) c.bar.style.width = `${pct}%`;
-      c.gauge?.(v);
+      c.gauge?.(v === undefined ? undefined : displayValue(key, v));
       c.el.classList.toggle("alarm", activeAlerts.has(key));
     }
   };
@@ -224,10 +230,10 @@ export function mount(root: HTMLElement) {
     } else {
       const avg = trip.fuelL > 0.001 ? trip.distanceKm / trip.fuelL : undefined;
       tripBox.append(
-        row(t("trip.instant"), trip.kmpl !== undefined ? `${fmtNum(trip.kmpl, 1)} km/L` : trip.lph !== undefined ? `${fmtNum(trip.lph, 2)} L/h` : "—"),
-        row(t("trip.average"), avg !== undefined && trip.distanceKm > 0.1 ? `${fmtNum(avg, 1)} km/L` : "—"),
-        row(t("trip.distance"), `${fmtNum(trip.distanceKm, 2)} km`),
-        row(t("trip.fuel"), `${fmtNum(trip.fuelL, 2)} L`),
+        row(t("trip.instant"), trip.kmpl !== undefined ? fmtEconomy(trip.kmpl) : trip.lph !== undefined ? `${fmtNum(toDisplay("L/h", trip.lph), 2)} ${displayUnit("L/h")}` : "—"),
+        row(t("trip.average"), avg !== undefined && trip.distanceKm > 0.1 ? fmtEconomy(avg) : "—"),
+        row(t("trip.distance"), `${fmtNum(toDisplay("km", trip.distanceKm), 2)} ${displayUnit("km")}`),
+        row(t("trip.fuel"), `${fmtNum(toDisplay("L", trip.fuelL), 2)} ${displayUnit("L")}`),
         row(t("trip.time"), `${Math.floor(trip.timeS / 60)} min ${String(Math.floor(trip.timeS % 60)).padStart(2, "0")} s`),
       );
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));

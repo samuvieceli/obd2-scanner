@@ -7,6 +7,7 @@ import { getLang, onLangChange, setLang, t } from "./i18n";
 import { emit, on, pushFrame, pushLog, state } from "./store";
 import { clear, h, toast, errorText } from "./ui";
 import { applyTheme } from "./theme";
+import { prefs, setActiveProfile } from "./prefs";
 import { initAlerts } from "./alerts";
 import { initTrip } from "./trip";
 import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
@@ -56,6 +57,7 @@ const content = h("main", { class: "content", id: "content" });
 const nav = h("nav", { class: "nav" });
 const statusEl = h("div", { class: "status" });
 const playerEl = h("div", { class: "player", hidden: true });
+const linkEl = h("div", { class: "link-banner", hidden: true, role: "status" });
 let cleanup: (() => void) | void;
 
 function currentRoute(): string {
@@ -85,6 +87,9 @@ function renderStatus() {
   if (state.playback) {
     label = t("playback.status");
     cls = "on";
+  } else if (state.link) {
+    label = t(state.link.state === "reconnecting" ? "status.reconnecting" : "status.recovering");
+    cls = "wait";
   } else if (state.connection === "connecting") {
     label = t("status.connecting");
     cls = "wait";
@@ -107,6 +112,39 @@ function renderStatus() {
   if (state.recording.recording) {
     statusEl.append(h("span", { class: "pill pill-rec" }, h("span", { class: "dot" }), t("status.recording")));
   }
+}
+
+/** Banner shown while a frozen adapter is reset or a lost link is reopened. */
+function renderLink() {
+  const l = state.link;
+  linkEl.hidden = !l;
+  clear(linkEl);
+  if (!l) return;
+  const text =
+    l.state === "reconnecting"
+      ? t("link.reconnectingBanner", { attempt: l.attempt, s: l.nextInS })
+      : t("link.recoveringBanner");
+  linkEl.append(
+    h("span", { class: "spinner", "aria-hidden": "true" }),
+    h("div", { class: "grow" }, h("strong", null, text), h("p", { class: "small muted" }, t(`link.${l.state}Help`))),
+    h(
+      "button",
+      {
+        type: "button",
+        class: "btn btn-ghost btn-sm",
+        onclick: async () => {
+          await api.disconnect().catch(() => undefined);
+          state.link = null;
+          state.connection = "disconnected";
+          state.adapter = null;
+          state.polling = false;
+          emit("link");
+          emit("connection");
+        },
+      },
+      t("link.stop"),
+    ),
+  );
 }
 
 function clock(ms: number): string {
@@ -175,6 +213,17 @@ function renderView() {
 
 function layout() {
   clear(app);
+  const p = prefs();
+  const profileSelect = h(
+    "select",
+    {
+      class: "lang-select",
+      "aria-label": t("profiles.active"),
+      title: t("profiles.active"),
+      onchange: (e: Event) => setActiveProfile((e.target as HTMLSelectElement).value),
+    },
+    p.profiles.map((x) => h("option", { value: x.id, selected: x.id === p.activeProfile }, x.name)),
+  );
   const langSelect = h(
     "select",
     {
@@ -196,14 +245,15 @@ function layout() {
         h("div", null, h("strong", null, t("app.name")), h("span", null, t("app.tagline"))),
       ),
       nav,
-      h("div", { class: "sidebar-foot" }, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}` : "")),
+      h("div", { class: "sidebar-foot" }, profileSelect, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}` : "")),
     ),
-    h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl), playerEl, content),
+    h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl), linkEl, playerEl, content),
   );
   content.tabIndex = -1;
   slider = null;
   renderPlayer();
   renderStatus();
+  renderLink();
   renderView();
 }
 
@@ -236,17 +286,37 @@ async function boot() {
     emit("findings");
   });
   await events.log(pushLog);
+  await events.linkStatus((s) => {
+    if (s.state === "recovered" || s.state === "reconnected") {
+      state.link = null;
+      if (s.adapter) state.adapter = s.adapter;
+      if (s.state === "reconnected") state.vehicleError = s.error;
+      toast(t(`link.${s.state}`), "ok");
+    } else if (s.state === "vehicle_silent") {
+      state.link = null;
+      toast(t("link.vehicle_silent"), "info");
+    } else {
+      state.link = s;
+    }
+    emit("link");
+    emit("connection");
+  });
   await events.connectionLost((e) => {
     state.connection = "disconnected";
     state.polling = false;
     state.adapter = null;
+    state.link = null;
+    emit("link");
     emit("connection");
-    toast(errorText(e), "error");
+    toast(`${errorText(e)} ${t("link.lostHelp")}`, "error");
   });
 
   initTrip();
   initAlerts();
   on("connection", renderStatus);
+  on("link", renderLink);
+  // Another car: screens show its settings, alerts and results.
+  on("profile", layout);
   let wasPlaying = false;
   on("playback", () => {
     renderPlayer();

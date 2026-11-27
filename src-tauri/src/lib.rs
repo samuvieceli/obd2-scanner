@@ -90,7 +90,13 @@ where
     };
     blocking(move || {
         tx.recv_timeout(Duration::from_secs(90))
-            .map_err(|_| CmdError::from(ObdError::Timeout))?
+            .map_err(|e| {
+                CmdError::from(match e {
+                    // The job was dropped: the link is down and being reopened.
+                    std::sync::mpsc::RecvTimeoutError::Disconnected => ObdError::NotConnected,
+                    std::sync::mpsc::RecvTimeoutError::Timeout => ObdError::Timeout,
+                })
+            })?
             .map_err(CmdError::from)
     })
     .await
@@ -142,7 +148,7 @@ fn ensure_vin(elm: &mut Elm327, known: Option<String>) -> Option<String> {
     known.or_else(|| elm.read_vehicle_identity().vin)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct ConnectRequest {
     target: ConnectionTarget,
@@ -151,6 +157,9 @@ struct ConnectRequest {
     /// Demo only: imitate a quirky clone adapter.
     #[serde(default)]
     demo_quirky: bool,
+    /// Reopen the connection by itself when it drops.
+    #[serde(default)]
+    auto_reconnect: bool,
 }
 
 #[derive(Serialize)]
@@ -250,20 +259,46 @@ async fn connect(
     drop(old);
 
     let app2 = app.clone();
+    let req = request.clone();
     let (elm, vehicle_error) = blocking(move || {
-        let mut elm = open_adapter(&request, &app2)?;
+        let mut elm = open_adapter(&req, &app2)?;
         let vehicle_error = elm.connect_vehicle().err().map(CmdError::from);
         Ok((elm, vehicle_error))
     })
     .await?;
     let adapter = elm.info.clone();
+    let reopen = request
+        .auto_reconnect
+        .then(|| reopener(request, &adapter, app.clone()));
     *state.adapter.lock().unwrap() = Some(adapter.clone());
     *state.identity.lock().unwrap() = VehicleIdentity::default();
-    *state.worker.lock().unwrap() = Some(Worker::spawn(elm, app, state.recorder.clone()));
+    *state.worker.lock().unwrap() = Some(Worker::spawn(elm, app, state.recorder.clone(), reopen));
     Ok(ConnectResult {
         adapter,
         vehicle_error,
     })
+}
+
+/// Opens the same adapter again for automatic reconnection. A serial port
+/// found by trying several speeds is reopened directly at the speed that
+/// worked, and the protocol found is reused (no slow search).
+fn reopener(mut req: ConnectRequest, found: &AdapterInfo, app: AppHandle) -> worker::Reopen {
+    if let ConnectionTarget::Serial { baud_rate, .. } = &mut req.target {
+        if *baud_rate == 0 {
+            if let Some(rate) = found
+                .transport
+                .rsplit_once('@')
+                .and_then(|(_, r)| r.trim().parse().ok())
+            {
+                *baud_rate = rate;
+            }
+        }
+    }
+    let known = found.protocol_number.trim_start_matches('A');
+    if !known.is_empty() {
+        req.config.protocol = known.to_string();
+    }
+    Box::new(move || open_adapter(&req, &app))
 }
 
 /// Tries to reach the vehicle again (e.g. after turning the ignition on).

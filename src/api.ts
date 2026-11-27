@@ -146,6 +146,15 @@ export interface LiveFrame {
   rate_hz: number;
 }
 
+/** Change in the state of the link to the adapter (see worker.rs). */
+export interface LinkStatus {
+  state: "recovering" | "recovered" | "vehicle_silent" | "reconnecting" | "reconnected";
+  attempt: number;
+  nextInS: number;
+  adapter: AdapterInfo | null;
+  error: CmdError | null;
+}
+
 export type Severity = "ok" | "info" | "warning" | "critical";
 
 export interface Finding {
@@ -178,8 +187,8 @@ export const api = {
   scanBle: (seconds?: number) => invoke<BleDevice[]>("scan_ble", { seconds }),
   pidCatalog: () => invoke<PidMeta[]>("pid_catalog"),
   describeDtc: (code: string, lang: string) => invoke<DtcInfo>("describe_dtc", { code, lang }),
-  connect: (target: ConnectionTarget, config: ElmConfig, demoQuirky: boolean) =>
-    invoke<ConnectResult>("connect", { request: { target, config, demoQuirky } }),
+  connect: (target: ConnectionTarget, config: ElmConfig, demoQuirky: boolean, autoReconnect: boolean) =>
+    invoke<ConnectResult>("connect", { request: { target, config, demoQuirky, autoReconnect } }),
   retryVehicle: () => invoke<AdapterInfo>("retry_vehicle"),
   disconnect: () => invoke<void>("disconnect"),
   setLive: (keys: string[], polling: boolean) => invoke<void>("set_live", { keys, polling }),
@@ -205,6 +214,7 @@ export const events = {
   liveFrame: (f: (e: LiveFrame) => void): Promise<UnlistenFn> => listen<LiveFrame>("live-frame", (e) => f(e.payload)),
   findings: (f: (e: Finding[]) => void): Promise<UnlistenFn> => listen<Finding[]>("findings", (e) => f(e.payload)),
   log: (f: (e: LogEvent) => void): Promise<UnlistenFn> => listen<LogEvent>("elm-log", (e) => f(e.payload)),
+  linkStatus: (f: (e: LinkStatus) => void): Promise<UnlistenFn> => listen<LinkStatus>("link-status", (e) => f(e.payload)),
   connectionLost: (f: (e: CmdError) => void): Promise<UnlistenFn> =>
     listen<CmdError>("connection-lost", (e) => f(e.payload)),
 };

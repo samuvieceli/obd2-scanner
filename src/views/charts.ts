@@ -5,7 +5,7 @@ import { api } from "../api";
 import { pidText, t } from "../i18n";
 import { hasLiveSource, on, state, type Series } from "../store";
 import { cssVar } from "../theme";
-import { button, clear, decimalsFor, errorText, h, timestampForFile, toast, unitOf } from "../ui";
+import { button, clear, decimalsFor, displayValue, errorText, h, timestampForFile, toast, unitOf } from "../ui";
 import { fmtNum } from "../i18n";
 
 const PALETTE = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
@@ -127,11 +127,12 @@ export function mount(root: HTMLElement) {
   const dataFor = (key: string): uPlot.AlignedData => {
     const s = source().get(key);
     if (!s || !s.t.length) return [[], []];
-    if (!windowS || viewing) return [s.t.slice(), s.v.slice()];
+    const shown = (v: number[]) => v.map((x) => displayValue(key, x));
+    if (!windowS || viewing) return [s.t.slice(), shown(s.v)];
     const end = s.t[s.t.length - 1];
     let i = s.t.length - 1;
     while (i > 0 && s.t[i - 1] >= end - windowS) i--;
-    return [s.t.slice(i), s.v.slice(i)];
+    return [s.t.slice(i), shown(s.v.slice(i))];
   };
 
   const refresh = () => {

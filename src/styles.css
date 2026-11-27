@@ -393,3 +393,18 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .perf-card.ready .perf-status { color: var(--ok); }
 .perf-card.running { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent); }
 .perf-card.running .perf-status { color: var(--accent); }
+
+/* Link recovery / reconnection banner */
+.link-banner { display: flex; align-items: center; gap: 12px; padding: 10px 24px; border-bottom: 1px solid color-mix(in srgb, var(--warn) 50%, transparent); background: color-mix(in srgb, var(--warn) 12%, var(--surface)); }
+.link-banner[hidden] { display: none; }
+.link-banner p { margin: 2px 0 0; }
+.spinner { width: 18px; height: 18px; flex: none; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--warn) 30%, transparent); border-top-color: var(--warn); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+
+/* Units */
+.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 14px; margin-top: 12px; }
+.row.wrap { align-items: center; }
+.sidebar-foot { flex-wrap: wrap; }
+.sidebar-foot > select:first-child { flex: 1 1 100%; min-width: 0; }
+.vin-row { margin: 4px 0 14px; align-items: center; gap: 10px; }

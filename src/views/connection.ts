@@ -4,6 +4,19 @@ import { api, type BleDevice, type ConnectionTarget, type ElmConfig, type PortIn
 import { t } from "../i18n";
 import { emit, on, resetLiveData, state } from "../store";
 import { busy, button, clear, errorText, h, infoTip, section, toast } from "../ui";
+import { matchVin, prefs, savePrefs } from "../prefs";
+
+/** Picks the vehicle profile of the connected car and says so. */
+export function reportVin(vin: string | null) {
+  if (!vin) return;
+  const m = matchVin(vin);
+  if (m.kind === "switched") toast(t("profiles.switched", { name: m.profile.name }), "ok");
+  else if (m.kind === "learned") toast(t("profiles.learned", { name: m.profile.name }), "info");
+  else if (m.kind === "other") toast(t("profiles.otherCar", { name: m.profile.name }), "info");
+}
+
+/** Clone failures the demo can imitate (see simulator.rs). */
+const DEMO_FAULTS = ["hang", "reset", "freeze", "drop"] as const;
 
 type Kind = "demo" | "serial" | "tcp" | "ble";
 
@@ -331,6 +344,20 @@ export function mount(root: HTMLElement) {
       ),
     );
 
+    card.append(
+      h(
+        "label",
+        { class: "check" },
+        h("input", {
+          type: "checkbox",
+          checked: prefs().autoReconnect,
+          onchange: (e: Event) => savePrefs({ autoReconnect: (e.target as HTMLInputElement).checked }),
+        }),
+        h("span", null, t("link.autoReconnect")),
+        infoTip(t("link.autoReconnectHelp")),
+      ),
+    );
+
     const connectBtn = button(t("common.connect"), () => doConnect(connectBtn), "primary", { class: "btn btn-primary btn-lg" });
     connectBtn.disabled =
       (form.kind === "serial" && !form.port) || (form.kind === "ble" && (!form.bleId || scanning)) || state.connection === "connecting";
@@ -348,13 +375,23 @@ export function mount(root: HTMLElement) {
     stopPlayback();
     state.connection = "connecting";
     emit("connection");
-    const res = await busy(btn, () => api.connect(target, form.config, form.quirky));
+    const res = await busy(btn, () => api.connect(target, form.config, form.quirky, prefs().autoReconnect));
     if (res) {
       resetLiveData();
       state.connection = "connected";
       state.adapter = res.adapter;
       state.vehicleError = res.vehicleError;
       toast(t("connection.connected", { transport: res.adapter.transport }), "ok");
+      if (!res.vehicleError) {
+        // VIN → vehicle profile, in the background.
+        api
+          .readVehicleInfo()
+          .then((v) => {
+            state.vehicle = v;
+            reportVin(v.identity.vin);
+          })
+          .catch(() => undefined);
+      }
     } else {
       state.connection = "disconnected";
     }
@@ -405,8 +442,29 @@ export function mount(root: HTMLElement) {
       emit("connection");
     }, "danger");
     card.append(h("div", { class: "actions" }, h("a", { class: "btn btn-primary", href: "#/dashboard" }, t("nav.dashboard")), disc));
+    if (a.transport.startsWith("Demo")) card.append(demoFaults());
     return card;
   };
+
+  /** Demo only: buttons that make the virtual adapter fail like a clone. */
+  const demoFaults = () =>
+    h(
+      "details",
+      { class: "help" },
+      h("summary", null, t("link.demoTitle")),
+      h("p", { class: "small muted" }, t("link.demoIntro")),
+      h(
+        "div",
+        { class: "row wrap" },
+        DEMO_FAULTS.map((f) => {
+          const b: HTMLButtonElement = button(t(`link.demo.${f}`), async () => {
+            await busy(b, () => api.sendRaw(`ATSIM${f.toUpperCase()}`, 1000));
+            toast(t(`link.demo.${f}Done`), "info");
+          }, "ghost", { title: t(`link.demo.${f}Help`) });
+          return b;
+        }),
+      ),
+    );
 
   const logBox = h("pre", { class: "log", "aria-live": "off" });
   const renderLog = () => {

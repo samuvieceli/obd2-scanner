@@ -1,77 +1,230 @@
-// Settings: language, theme, vehicle (for fuel calculations), alerts, about.
+// Settings: language, theme, vehicle profiles, units, connection, alerts, about.
 import { getLang, LANGS, setLang, t } from "../i18n";
-import { state } from "../store";
+import { emit, on, state } from "../store";
 import { applyTheme, getTheme, THEME_SWATCH, THEMES, type Theme } from "../theme";
-import { button, clear, h, infoTip, section } from "../ui";
-import { DEFAULT_ALERTS, prefs, savePrefs, type AlertRule, type FuelType } from "../prefs";
+import { baseUnitOf, button, clear, h, infoTip, section, toast, unitOf } from "../ui";
+import { DEFAULT_ALERTS, newProfile, prefs, profile, savePrefs, saveProfile, setActiveProfile, type AlertRule, type FuelType } from "../prefs";
+import { fromDisplay, saveUnits, toDisplay, UNIT_CHOICES, UNIT_PRESETS, units, type UnitPrefs } from "../units";
 import { pidText } from "../i18n";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 const REPO_URL = "https://github.com/samuvieceli/obd2-scanner";
 const FUELS: FuelType[] = ["auto", "gasoline_e27", "ethanol", "gasoline_pure", "diesel"];
 
-function vehicleSection(): HTMLElement {
-  const p = prefs();
-  const num = (label: string, help: string, value: number, step: number, min: number, max: number, set: (v: number) => void) =>
-    h(
-      "label",
-      { class: "field" },
-      h("span", null, label, " ", infoTip(help)),
-      h("input", {
-        type: "number",
-        step,
-        min,
-        max,
-        value: String(value),
-        onchange: (e: Event) => {
-          const v = Number((e.target as HTMLInputElement).value);
-          if (Number.isFinite(v) && v >= min && v <= max) set(v);
-        },
-      }),
-    );
-  return section(
-    t("settings.vehicle"),
-    h("p", { class: "muted small" }, t("settings.vehicleIntro")),
-    h(
-      "label",
-      { class: "field" },
-      h("span", null, t("settings.fuel")),
+/** Vehicle profiles: one per car, with the data used by the calculations. */
+function profilesSection(offs: (() => void)[]): HTMLElement {
+  const box = h("div");
+  const render = () => {
+    clear(box);
+    const p = profile();
+    const all = prefs().profiles;
+    const num = (label: string, help: string, value: number, step: number, min: number, max: number, set: (v: number) => void) =>
       h(
-        "select",
-        { onchange: (e: Event) => savePrefs({ fuel: (e.target as HTMLSelectElement).value as FuelType }) },
-        FUELS.map((f) => h("option", { value: f, selected: f === p.fuel }, t(`settings.fuels.${f}`))),
+        "label",
+        { class: "field" },
+        h("span", null, label, " ", infoTip(help)),
+        h("input", {
+          type: "number",
+          step,
+          min,
+          max,
+          value: String(value),
+          onchange: (e: Event) => {
+            const v = Number((e.target as HTMLInputElement).value);
+            if (Number.isFinite(v) && v >= min && v <= max) set(v);
+          },
+        }),
+      );
+    const picker = h(
+      "select",
+      {
+        id: "profile-pick",
+        onchange: (e: Event) => {
+          setActiveProfile((e.target as HTMLSelectElement).value);
+          render();
+        },
+      },
+      all.map((x) => h("option", { value: x.id, selected: x.id === p.id }, x.name)),
+    );
+    box.append(
+      h("p", { class: "muted small" }, t("profiles.intro")),
+      h(
+        "div",
+        { class: "row" },
+        h("label", { class: "field grow", for: "profile-pick" }, h("span", null, t("profiles.active")), picker),
+        button(t("profiles.add"), () => {
+          const created = newProfile(t("profiles.newName", { n: all.length + 1 }));
+          savePrefs({ profiles: [...all, created] });
+          setActiveProfile(created.id);
+          render();
+        }, "secondary"),
+        all.length > 1
+          ? button(t("profiles.remove"), () => {
+              // A plain confirm() would block the app window: ask by double click instead.
+              if (!removeArmed) {
+                removeArmed = true;
+                toast(t("profiles.removeConfirm", { name: p.name }), "info");
+                setTimeout(() => (removeArmed = false), 4000);
+                return;
+              }
+              removeArmed = false;
+              const rest = all.filter((x) => x.id !== p.id);
+              savePrefs({ profiles: rest });
+              setActiveProfile(rest[0].id);
+              render();
+            }, "ghost")
+          : null,
       ),
-    ),
+      h(
+        "label",
+        { class: "field" },
+        h("span", null, t("profiles.name")),
+        h("input", {
+          type: "text",
+          value: p.name,
+          maxlength: 40,
+          onchange: (e: Event) => {
+            const name = (e.target as HTMLInputElement).value.trim();
+            if (name) {
+              saveProfile({ name });
+              emit("profile");
+              render();
+            }
+          },
+        }),
+      ),
+      h(
+        "div",
+        { class: "kv-row vin-row" },
+        h("span", { class: "muted" }, t("profiles.vin"), " ", infoTip(t("profiles.vinHelp"))),
+        h("span", { class: "mono" }, p.vin ?? t("profiles.vinUnknown")),
+        p.vin
+          ? button(t("profiles.vinForget"), () => {
+              saveProfile({ vin: null });
+              render();
+            }, "ghost")
+          : null,
+      ),
+      h(
+        "label",
+        { class: "field" },
+        h("span", null, t("settings.fuel")),
+        h(
+          "select",
+          { onchange: (e: Event) => saveProfile({ fuel: (e.target as HTMLSelectElement).value as FuelType }) },
+          FUELS.map((f) => h("option", { value: f, selected: f === p.fuel }, t(`settings.fuels.${f}`))),
+        ),
+      ),
+      h(
+        "div",
+        { class: "row" },
+        num(t("settings.displacement"), t("settings.displacementHelp"), p.displacementL, 0.1, 0.6, 8, (v) => saveProfile({ displacementL: v })),
+        num(t("settings.efficiency"), t("settings.efficiencyHelp"), Math.round(p.volumetricEff * 100), 1, 50, 120, (v) => saveProfile({ volumetricEff: v / 100 })),
+      ),
+    );
+  };
+  let removeArmed = false;
+  render();
+  offs.push(on("profile", render));
+  return section(t("profiles.title"), box);
+}
+
+function unitsSection(): HTMLElement {
+  const box = h("div");
+  const render = () => {
+    clear(box);
+    const u = units();
+    const presetOf = (Object.keys(UNIT_PRESETS) as (keyof typeof UNIT_PRESETS)[]).find((k) =>
+      (Object.keys(u) as (keyof UnitPrefs)[]).every((q) => UNIT_PRESETS[k][q] === u[q]),
+    );
+    box.append(
+      h("p", { class: "muted small" }, t("units.intro")),
+      h(
+        "div",
+        { class: "row wrap", role: "radiogroup", "aria-label": t("units.presets") },
+        (Object.keys(UNIT_PRESETS) as (keyof typeof UNIT_PRESETS)[]).map((k) =>
+          h(
+            "button",
+            {
+              type: "button",
+              role: "radio",
+              "aria-checked": String(presetOf === k),
+              class: `btn ${presetOf === k ? "btn-primary" : "btn-secondary"}`,
+              onclick: () => {
+                saveUnits(UNIT_PRESETS[k]);
+                render();
+              },
+            },
+            t(`units.preset.${k}`),
+          ),
+        ),
+      ),
+      h(
+        "div",
+        { class: "unit-grid" },
+        (Object.keys(UNIT_CHOICES) as (keyof UnitPrefs)[]).map((q) =>
+          h(
+            "label",
+            { class: "field" },
+            h("span", null, t(`units.${q}`)),
+            h(
+              "select",
+              {
+                onchange: (e: Event) => {
+                  saveUnits({ [q]: (e.target as HTMLSelectElement).value } as Partial<UnitPrefs>);
+                  render();
+                },
+              },
+              (UNIT_CHOICES[q] as string[]).map((c) => h("option", { value: c, selected: c === u[q] }, t(`units.names.${c}`))),
+            ),
+          ),
+        ),
+      ),
+      h("p", { class: "muted small" }, t("units.note")),
+    );
+  };
+  render();
+  return section(t("units.title"), box);
+}
+
+function connectionSection(): HTMLElement {
+  const p = prefs();
+  return section(
+    t("settings.connection"),
     h(
-      "div",
-      { class: "row" },
-      num(t("settings.displacement"), t("settings.displacementHelp"), p.displacementL, 0.1, 0.6, 8, (v) => savePrefs({ displacementL: v })),
-      num(t("settings.efficiency"), t("settings.efficiencyHelp"), Math.round(p.volumetricEff * 100), 1, 50, 120, (v) => savePrefs({ volumetricEff: v / 100 })),
+      "label",
+      { class: "check" },
+      h("input", { type: "checkbox", checked: p.autoReconnect, onchange: (e: Event) => savePrefs({ autoReconnect: (e.target as HTMLInputElement).checked }) }),
+      h("span", null, t("link.autoReconnect")),
+      infoTip(t("link.autoReconnectHelp")),
     ),
   );
 }
 
-function alertsSection(): HTMLElement {
+function alertsSection(offs: (() => void)[]): HTMLElement {
   const list = h("div", { class: "alert-rules" });
   const render = () => {
     clear(list);
-    const rules = prefs().alerts;
+    const rules = profile().alerts;
     const update = (i: number, change: Partial<AlertRule>) => {
       const next = rules.map((r, j) => (j === i ? { ...r, ...change } : r));
-      savePrefs({ alerts: next });
+      saveProfile({ alerts: next });
     };
-    const limit = (i: number, which: "below" | "above", v: number | null) =>
-      h("input", {
+    // Limits are stored in metric units and shown in the user's units.
+    const limit = (i: number, which: "below" | "above", v: number | null) => {
+      const base = baseUnitOf(rules[i].key);
+      return h("input", {
         type: "number",
         step: "any",
-        value: v === null ? "" : String(v),
+        value: v === null ? "" : String(Number(toDisplay(base, v).toFixed(2))),
         placeholder: "—",
         "aria-label": t(`settings.alert${which === "below" ? "Below" : "Above"}`),
         onchange: (e: Event) => {
           const raw = (e.target as HTMLInputElement).value.trim();
-          update(i, { [which]: raw === "" ? null : Number(raw) });
+          update(i, { [which]: raw === "" ? null : fromDisplay(base, Number(raw)) });
         },
       });
+    };
     list.append(
       h(
         "div",
@@ -91,7 +244,7 @@ function alertsSection(): HTMLElement {
             h(
               "tr",
               null,
-              h("td", null, pidText(r.key).name, h("span", { class: "muted small" }, ` (${state.catalog.find((m) => m.key === r.key)?.unit ?? ""})`)),
+              h("td", null, pidText(r.key).name, unitOf(r.key) ? h("span", { class: "muted small" }, ` (${unitOf(r.key)})`) : null),
               h("td", null, limit(i, "below", r.below)),
               h("td", null, limit(i, "above", r.above)),
               h(
@@ -108,7 +261,7 @@ function alertsSection(): HTMLElement {
                 "td",
                 null,
                 button(t("settings.alertRemove"), () => {
-                  savePrefs({ alerts: rules.filter((_, j) => j !== i) });
+                  saveProfile({ alerts: rules.filter((_, j) => j !== i) });
                   render();
                 }, "ghost"),
               ),
@@ -131,17 +284,18 @@ function alertsSection(): HTMLElement {
         add,
         button(t("settings.alertAdd"), () => {
           if (!add.value) return;
-          savePrefs({ alerts: [...prefs().alerts, { key: add.value, below: null, above: null, enabled: true }] });
+          saveProfile({ alerts: [...profile().alerts, { key: add.value, below: null, above: null, enabled: true }] });
           render();
         }, "secondary"),
         button(t("settings.alertDefaults"), () => {
-          savePrefs({ alerts: structuredClone(DEFAULT_ALERTS) });
+          saveProfile({ alerts: structuredClone(DEFAULT_ALERTS) });
           render();
         }, "ghost"),
       ),
     );
   };
   render();
+  offs.push(on("profile", render));
   const p = prefs();
   const check = (label: string, value: boolean, set: (v: boolean) => void) =>
     h(
@@ -160,6 +314,7 @@ function alertsSection(): HTMLElement {
 }
 
 export function mount(root: HTMLElement) {
+  const offs: (() => void)[] = [];
   const page = h("div", { class: "page" });
   root.append(page);
   const lang = h(
@@ -203,8 +358,10 @@ export function mount(root: HTMLElement) {
       h("label", { class: "field" }, h("span", null, t("settings.language")), lang),
       h("div", { class: "field" }, h("span", { class: "label" }, t("settings.theme")), theme),
     ),
-    vehicleSection(),
-    alertsSection(),
+    profilesSection(offs),
+    unitsSection(),
+    connectionSection(),
+    alertsSection(offs),
     section(
       t("settings.about"),
       h("p", null, h("strong", null, t("app.name")), " — ", t("settings.version", { version: state.appVersion })),
@@ -227,4 +384,5 @@ export function mount(root: HTMLElement) {
       ),
     ),
   );
+  return () => offs.forEach((f) => f());
 }

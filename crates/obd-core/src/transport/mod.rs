@@ -37,6 +37,24 @@ pub trait Transport: Send {
     fn describe(&self) -> String;
 }
 
+/// A transport that is already closed: every call fails. Stands in for a
+/// port that was released so it can be opened again.
+pub struct Closed;
+
+impl Transport for Closed {
+    fn write_all(&mut self, _: &[u8]) -> Result<()> {
+        Err(crate::ObdError::NotConnected)
+    }
+
+    fn read(&mut self, _: &mut [u8], _: Duration) -> Result<usize> {
+        Err(crate::ObdError::NotConnected)
+    }
+
+    fn describe(&self) -> String {
+        "closed".into()
+    }
+}
+
 /// How to reach the adapter. Serialized as JSON between UI and backend.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind", rename_all = "snake_case")]

@@ -37,7 +37,7 @@ Na tela **Head-up display (HUD)**, escolha até 4 parâmetros (eles vêm da list
 ## 6. Computador de bordo, alertas e mostradores
 
 - No **Painel ao vivo**, o botão **Cartões / Mostradores** troca entre números grandes e mostradores com ponteiro.
-- O quadro **Computador de bordo** mostra o consumo agora e a média da viagem em km/L. Ele usa a vazão de combustível, o sensor MAF ou, em carros só com sensor MAP (comum no Brasil), uma estimativa pela cilindrada. Para melhorar a precisão, informe o combustível e a cilindrada em **Configurações → Veículo**.
+- O quadro **Computador de bordo** mostra o consumo agora e a média da viagem em km/L. Ele usa a vazão de combustível, o sensor MAF ou, em carros só com sensor MAP (comum no Brasil), uma estimativa pela cilindrada. Para melhorar a precisão, informe o combustível e a cilindrada do perfil do carro em **Configurações → Veículos (perfis)**.
 - **Alertas** (em **Configurações**): avisam com mensagem e som quando, por exemplo, a temperatura passa de 110 °C ou a bateria fica abaixo de 11,8 V com o motor ligado. Você pode mudar os limites e incluir outros parâmetros.
 
 ## 6b. Testes de desempenho
@@ -64,9 +64,37 @@ Salve a gravação em **JSON** e depois use **Gravações → Reproduzir gravaç
 
 Em **Configurações** há 8 temas. O **Noturno** (vermelho no preto) não ofusca dirigindo à noite; o **Alto contraste** ajuda sob sol forte ou com baixa visão.
 
+## 10. Vários carros (perfis)
+
+Em **Configurações → Veículos (perfis)**, clique em **Novo veículo** para cada carro e informe nome, combustível e cilindrada. Cada perfil tem os seus próprios alertas e resultados de desempenho. Na primeira conexão, o programa lê o chassi (VIN) do carro e guarda no perfil ativo. Depois disso, ao conectar em qualquer um dos carros, ele **troca de perfil sozinho**. O perfil ativo também pode ser trocado na caixa no canto inferior esquerdo da janela.
+
+## 11. Unidades
+
+Em **Configurações → Unidades**, escolha um padrão (**Brasil**, **Europa**, **EUA**, **Reino Unido**) ou cada unidade separadamente: velocidade (km/h ou mph), temperatura (°C ou °F), pressão (kPa, bar ou psi), distância (km ou milhas), volume (litros ou galões), consumo (km/L, L/100 km, mpg) e torque. A troca vale para o painel, mostradores, HUD, gráficos, alertas, computador de bordo e relatório. As gravações e os arquivos exportados continuam no sistema métrico, que é o padrão do OBD2.
+
+## 12. Reconexão automática
+
+Com a opção **Reconectar automaticamente se a conexão cair** ligada (na tela Conexão e em Configurações; vem ligada), o programa volta sozinho quando o Bluetooth sai de alcance, o cabo solta ou o adaptador trava. Uma faixa amarela no topo mostra a tentativa e o tempo até a próxima. Ele tenta por até 3 minutos, com esperas de 1, 2, 3, 5, 8 e depois 10 segundos, e mantém a lista de parâmetros e a gravação em andamento. **Parar e desconectar** cancela.
+
 ## Adaptadores clones
 
-A maioria dos adaptadores baratos é clone do ELM327 (costumam se apresentar como "v1.5" ou "v2.1", versões que o fabricante original nunca lançou). O programa já trata os defeitos mais comuns: não exige `OK`, aceita eco ligado, aguarda resets lentos, repete uma vez pedidos perdidos ou interrompidos (`STOPPED`, `BUFFER FULL`) e segue sem os comandos que o clone recusa. Na tela **Conexão** aparece "provável clone" e a lista de comandos recusados. Se um clone travar com frequência, aumente os tempos em **Opções avançadas** ou desligue a **leitura rápida**.
+A maioria dos adaptadores baratos é clone do ELM327 (costumam se apresentar como "v1.5" ou "v2.1", versões que o fabricante original nunca lançou). O programa já trata os defeitos mais comuns: não exige `OK`, aceita eco ligado, aguarda resets lentos, repete uma vez pedidos perdidos ou interrompidos (`STOPPED`, `BUFFER FULL`) e segue sem os comandos que o clone recusa. Na tela **Conexão** aparece "provável clone" e a lista de comandos recusados.
+
+### Quando o clone trava
+
+Clones costumam travar de três jeitos, e o programa percebe e resolve cada um sozinho:
+
+| O que acontece | Como o programa percebe | O que ele faz |
+| --- | --- | --- |
+| Para de responder ao carro, mas ainda responde a comandos AT. | 3 pedidos seguidos sem resposta (cada um já repetido uma vez), ou só `STOPPED` / `BUFFER FULL` / lixo. | Confere se o adaptador está vivo (`ATI`), reinicia (`ATZ`), configura de novo e volta no mesmo protocolo de antes (sem a busca lenta). Leva poucos segundos. |
+| Reinicia sozinho numa queda de tensão (comum na partida do motor) e perde as configurações. | A resposta traz o texto de início (`ELM327 v1.5`) ou `LV RESET`. | Configura de novo na hora. |
+| Congela por completo ou a conexão cai. | Nem o `ATI` responde, ou a porta dá erro. Parado, um teste silencioso a cada 10 s percebe a queda. | Fecha e reabre a conexão (reconexão automática). |
+
+Se o adaptador responde mas o carro não (ignição desligada), o programa avisa e tenta de novo a cada 5 segundos, sem ficar reiniciando o adaptador.
+
+**Se nada disso resolver:** tire o adaptador da tomada OBD por 10 segundos e coloque de novo (isso desliga e religa o adaptador, que é o único jeito de destravar alguns clones). Se travar com frequência: em **Opções avançadas**, desligue a **leitura rápida** e aumente o tempo de espera por comando; leia menos parâmetros ao mesmo tempo; e, se possível, troque por um adaptador com chip original (ou um clone de boa qualidade, como OBDLink, Vgate iCar Pro ou Veepeak).
+
+No **modo demonstração**, a tela Conexão tem **Simular falhas de adaptador clone**: botões que fazem o adaptador virtual travar, reiniciar, congelar ou perder o Bluetooth, para você ver a recuperação funcionando.
 
 ## Problemas comuns
 
@@ -75,8 +103,9 @@ A maioria dos adaptadores baratos é clone do ELM327 (costumam se apresentar com
 | "O adaptador não respondeu a tempo" | Porta errada ou adaptador sem energia. Confira a porta COM. Em *Opções avançadas*, aumente o tempo de espera do reset ATZ. |
 | "Adaptador OK, veículo sem resposta" | Ligue a ignição (ou o motor) e clique em **Tentar de novo**. |
 | Leituras lentas | Selecione menos parâmetros no Painel ou diminua o tempo de espera por comando. |
+| Faixa amarela "Reiniciando o adaptador" ou "Tentando reconectar" | Normal com clones: o programa está se recuperando sozinho. Se durar mais de um minuto, tire o adaptador da tomada por 10 segundos. Veja *Quando o clone trava*. |
 | Valores pulando ou travando com adaptador clone | Em *Opções avançadas*, desligue a **leitura rápida** e aumente o tempo de espera por comando. |
-| Consumo calculado muito diferente do real | Confira o combustível e a cilindrada em **Configurações → Veículo** e ajuste a eficiência volumétrica. |
+| Consumo calculado muito diferente do real | Confira o combustível e a cilindrada em **Configurações → Veículos (perfis)** e ajuste a eficiência volumétrica. |
 | Um parâmetro some do painel | O carro parou de responder a ele; o programa o retira automaticamente. |
 | Dados estranhos | Veja o **Registro de comunicação** na tela Conexão ou use o **Terminal AT** (ex.: `ATI`, `ATRV`, `0100`). |
 

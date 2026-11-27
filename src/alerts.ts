@@ -2,7 +2,7 @@
 // optional beep, and again only after it has come back (hysteresis).
 import { pidText, t } from "./i18n";
 import { emit, on, state } from "./store";
-import { prefs } from "./prefs";
+import { prefs, profile } from "./prefs";
 import { fmtValue, toast, unitOf } from "./ui";
 
 /** Keys currently outside their limits. */
@@ -36,7 +36,7 @@ function check() {
     return;
   }
   let changed = false;
-  for (const rule of p.alerts) {
+  for (const rule of profile().alerts) {
     if (!rule.enabled) continue;
     const v = state.latest[rule.key];
     if (v === undefined) continue;
