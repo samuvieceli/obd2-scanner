@@ -2,7 +2,7 @@
 import { api } from "../api";
 import { pidText, t } from "../i18n";
 import { DEFAULT_KEYS, displayKeys, emit, hasLiveSource, isSupported, on, setLiveKeys, state } from "../store";
-import { busy, button, clear, displayValue, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
+import { warmBadge, busy, button, clear, displayValue, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
 import type { Category } from "../api";
 import { findingList } from "./findings";
 import { makeGauge } from "../gauge";
@@ -15,6 +15,9 @@ function fmtEconomy(kmPerL: number): string {
   return `${fmtNum(v, 1)} ${unit}`;
 }
 import { resetTrip, trip } from "../trip";
+import { tripCost } from "../cost";
+import { prefs, profile } from "../prefs";
+import { PRESETS, matchPreset, presetKeys, type PresetId } from "../presets";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
 
@@ -69,6 +72,7 @@ export function mount(root: HTMLElement) {
     ),
   );
   const styleSeg = h("div", { class: "seg", role: "group", "aria-label": t("dashboard.style") }, styleBtns);
+  const warmEl = h("span", { class: "warm-badge", hidden: true, role: "status" });
   const findingsBox = h("div");
   const tripBox = h("div");
   const picker = h("div", { class: "picker", hidden: true });
@@ -141,6 +145,38 @@ export function mount(root: HTMLElement) {
               h("span", null, pidText(m.key).name),
             );
           }),
+        ),
+      );
+    }
+  };
+
+  // Ready-made layouts: one click replaces the chosen parameters.
+  const presetRow = h("div", { class: "chips preset-row", role: "group", "aria-label": t("dashboard.presets") });
+  const renderPresets = () => {
+    clear(presetRow);
+    const active = matchPreset(state.liveKeys, isSupported);
+    presetRow.append(h("span", { class: "muted small" }, t("dashboard.presets")));
+    for (const id of Object.keys(PRESETS) as PresetId[]) {
+      presetRow.append(
+        h(
+          "button",
+          {
+            type: "button",
+            class: `chip ${id === active ? "on" : ""}`,
+            "aria-pressed": String(id === active),
+            title: t(`dashboard.preset.${id}.help`),
+            onclick: async () => {
+              const keys = presetKeys(id, isSupported);
+              setLiveKeys(keys);
+              try {
+                await api.setLive(keys, state.polling);
+              } catch (e) {
+                toast(errorText(e), "error");
+              }
+              if (!picker.hidden) renderPicker();
+            },
+          },
+          t(`dashboard.preset.${id}.name`),
         ),
       );
     }
@@ -236,6 +272,17 @@ export function mount(root: HTMLElement) {
         row(t("trip.fuel"), `${fmtNum(toDisplay("L", trip.fuelL), 2)} ${displayUnit("L")}`),
         row(t("trip.time"), `${Math.floor(trip.timeS / 60)} min ${String(Math.floor(trip.timeS % 60)).padStart(2, "0")} s`),
       );
+      const money = (v: number) => `${t("cost.currency")} ${fmtNum(v, 2)}`;
+      const c = tripCost(trip.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices);
+      if (c.cost !== undefined) tripBox.append(row(t("cost.trip"), money(c.cost)));
+      if (c.asGasoline !== undefined && c.asEthanol !== undefined && trip.fuelL > 0.01) {
+        tripBox.append(
+          row(t("cost.asGasoline"), money(c.asGasoline)),
+          row(t("cost.asEthanol"), money(c.asEthanol)),
+          h("p", { class: "muted small" }, t("cost.breakEven", { pct: fmtNum(c.breakEven * 100, 0) })),
+        );
+      }
+      if (c.cost === undefined) tripBox.append(h("p", { class: "muted small" }, h("a", { href: "#/settings" }, t("cost.setPrices"))));
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
     }
     tripBox.append(
@@ -255,7 +302,8 @@ export function mount(root: HTMLElement) {
 
   renderToolbar();
   page.append(
-    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title")), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [chooseBtn, recBtn, pollBtn])),
+    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title"), " ", warmEl), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [chooseBtn, recBtn, pollBtn])),
+    state.playback ? "" : presetRow,
     picker,
     h(
       "div",
@@ -273,21 +321,24 @@ export function mount(root: HTMLElement) {
     ),
   );
   renderCards();
+  warmBadge(warmEl, state);
+  renderPresets();
   renderFindings();
   renderTrip();
 
   let raf = 0;
+  // One redraw per animation frame, whatever asked for it.
+  const redraw = () => {
+    if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip(), warmBadge(warmEl, state)));
+  };
   const offs = [
-    on("frame", () => {
-      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip()));
-    }),
-    on("trip", () => {
-      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), updateValues(), renderTrip()));
-    }),
+    on("frame", redraw),
+    on("trip", redraw),
     on("findings", renderFindings),
     on("alerts", updateValues),
     on("live-keys", renderTrip),
     on("live-keys", renderCards),
+    on("live-keys", renderPresets),
     on("recording", renderToolbar),
     on("connection", renderToolbar),
   ];

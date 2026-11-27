@@ -89,13 +89,59 @@ export function mount(root: HTMLElement) {
 
   const render = () => {
     clear(page);
-    page.append(h("h1", null, t("connection.title")), h("p", { class: "lead" }, t("connection.intro")));
+    page.append(h("h1", null, t("connection.title")), h("p", { class: "lead" }, t("connection.intro")), firstSteps());
     if (state.connection === "connected") {
       page.append(connectedCard());
     } else {
       page.append(typePicker(), formCard());
     }
     page.append(logCard());
+  };
+
+  /** Short "first steps" card, until the user hides it. */
+  const firstSteps = () => {
+    let hidden = false;
+    try {
+      hidden = localStorage.getItem("firstStepsHidden") === "1";
+    } catch {
+      /* show it */
+    }
+    const setHidden = (v: boolean) => {
+      try {
+        localStorage.setItem("firstStepsHidden", v ? "1" : "0");
+      } catch {
+        /* only for this session */
+      }
+      render();
+    };
+    if (hidden) return h("p", { class: "small" }, h("a", { href: "#/connection", onclick: (e: Event) => (e.preventDefault(), setHidden(false)) }, t("firstSteps.show")));
+    const connected = state.connection === "connected";
+    const step = (key: string, action: HTMLElement | null) => h("li", null, h("span", null, t(`firstSteps.${key}`)), action ? " " : "", action);
+    const link = (href: string, label: string) => h("a", { href, class: "btn btn-ghost btn-sm" }, label);
+    return h(
+      "section",
+      { class: "card first-steps" },
+      h("h2", null, t("firstSteps.title")),
+      h(
+        "ol",
+        null,
+        step(
+          "demo",
+          connected || form.kind === "demo"
+            ? null
+            : button(t("firstSteps.useDemo"), () => {
+                form.kind = "demo";
+                saveForm(form);
+                render();
+              }, "ghost", { class: "btn btn-ghost btn-sm" }),
+        ),
+        step("dashboard", connected ? link("#/dashboard", t("nav.dashboard")) : null),
+        step("codes", connected ? link("#/diagnostics", t("nav.diagnostics")) : null),
+        step("guided", connected ? link("#/guided", t("nav.guided")) : null),
+        step("help", link("#/glossary", t("nav.glossary"))),
+      ),
+      button(t("firstSteps.hide"), () => setHidden(true), "ghost"),
+    );
   };
 
   const typePicker = () => {

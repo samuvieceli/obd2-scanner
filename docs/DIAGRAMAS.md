@@ -217,6 +217,7 @@ flowchart LR
         store["store.ts<br/>estado e avisos"]
         api["api.ts<br/>ponte com o Rust"]
         trip["trip.ts<br/>consumo"]
+        cost["cost.ts + fuels.ts<br/>custo em R$ e<br/>gasolina × etanol"]
         perf["perf.ts<br/>detecção 0-100 etc."]
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         o2test["o2test.ts<br/>sondas e catalisador"]
@@ -226,10 +227,13 @@ flowchart LR
         prefs["prefs.ts<br/>preferências e perfis"]
         units["units.ts<br/>unidades"]
         gauge["gauge.ts<br/>mostradores"]
-        theme["theme.ts<br/>temas"]
+        theme["theme.ts<br/>temas e botão dia/noite"]
+        presets["presets.ts<br/>painéis prontos"]
+        warmup["warmup.ts<br/>motor frio / pronto"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
-    dashboard --> gauge & trip & alerts
+    dashboard --> gauge & trip & alerts & presets & warmup
+    hud --> warmup
     performance --> perf
     guided --> battery & o2test & trims
     sessions --> playback
@@ -240,6 +244,8 @@ flowchart LR
     telas --> api
     telas --> i18n
     trip & alerts --> prefs
+    dashboard --> cost
+    cost --> prefs
 ```
 
 ---

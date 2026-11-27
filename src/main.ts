@@ -6,7 +6,7 @@ import { api, events, isTauri } from "./api";
 import { getLang, onLangChange, setLang, t } from "./i18n";
 import { emit, on, pushFrame, pushLog, state } from "./store";
 import { clear, h, installTooltips, toast, errorText } from "./ui";
-import { applyTheme } from "./theme";
+import { applyTheme, getTheme, type Theme } from "./theme";
 import { prefs, setActiveProfile } from "./prefs";
 import { initAlerts } from "./alerts";
 import { initTrip } from "./trip";
@@ -60,6 +60,7 @@ const app = document.getElementById("app")!;
 const content = h("main", { class: "content", id: "content" });
 const nav = h("nav", { class: "nav" });
 const statusEl = h("div", { class: "status" });
+const dayNightEl = h("div", { class: "seg daynight", role: "group" });
 const playerEl = h("div", { class: "player", hidden: true });
 const linkEl = h("div", { class: "link-banner", hidden: true, role: "status" });
 let cleanup: (() => void) | void;
@@ -115,6 +116,47 @@ function renderStatus() {
   }
   if (state.recording.recording) {
     statusEl.append(h("span", { class: "pill pill-rec" }, h("span", { class: "dot" }), t("status.recording")));
+  }
+}
+
+/**
+ * Quick day/night switch: high contrast for strong sun, deep red for night
+ * driving. Pressing the active one again goes back to the theme chosen in
+ * Settings.
+ */
+function renderDayNight() {
+  clear(dayNightEl);
+  dayNightEl.setAttribute("aria-label", t("daynight.label"));
+  const current = getTheme();
+  const pick = (target: Theme) => {
+    let next = target;
+    if (current === target) {
+      try {
+        next = (localStorage.getItem("themeBeforeQuick") as Theme | null) ?? "dark";
+      } catch {
+        next = "dark";
+      }
+    } else if (current !== "contrast" && current !== "night") {
+      try {
+        localStorage.setItem("themeBeforeQuick", current);
+      } catch {
+        /* not remembered */
+      }
+    }
+    applyTheme(next);
+  };
+  for (const [target, icon] of [
+    ["contrast", "☀"],
+    ["night", "☾"],
+  ] as const) {
+    dayNightEl.append(
+      h(
+        "button",
+        { type: "button", "aria-pressed": String(current === target), title: t(`daynight.${target}`), onclick: () => pick(target) },
+        h("span", { "aria-hidden": "true" }, icon),
+        h("span", { class: "daynight-text" }, t(`daynight.${target}Short`)),
+      ),
+    );
   }
 }
 
@@ -251,12 +293,13 @@ function layout() {
       nav,
       h("div", { class: "sidebar-foot" }, profileSelect, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}${state.portableData ? ` · ${t("settings.portableShort")}` : ""}` : "")),
     ),
-    h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl), linkEl, playerEl, content),
+    h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl, dayNightEl), linkEl, playerEl, content),
   );
   content.tabIndex = -1;
   slider = null;
   renderPlayer();
   renderStatus();
+  renderDayNight();
   renderLink();
   renderView();
 }
@@ -351,6 +394,7 @@ async function boot() {
       renderStatus();
     }
   });
+  window.addEventListener("themechange", renderDayNight);
   onLangChange(layout);
   window.addEventListener("hashchange", renderView);
   layout();

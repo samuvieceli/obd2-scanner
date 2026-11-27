@@ -324,7 +324,7 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
 /* Head-up display */
-.hud-screen { margin-top: 12px; background: #000; color: #fff; border-radius: var(--radius); min-height: 60vh; display: grid; grid-template-columns: 1fr; gap: 8px; padding: 16px; align-content: center; outline: none; container-type: inline-size; }
+.hud-screen { position: relative; margin-top: 12px; background: #000; color: #fff; border-radius: var(--radius); min-height: 60vh; display: grid; grid-template-columns: 1fr; gap: 8px; padding: 16px; align-content: center; outline: none; container-type: inline-size; }
 .hud-screen[data-count="2"] { grid-template-columns: 1fr 1fr; }
 .hud-screen[data-count="3"], .hud-screen[data-count="4"] { grid-template-columns: 1fr 1fr; }
 .hud-screen[data-count="3"] .hud-cell:first-child { grid-column: 1 / -1; }
@@ -448,3 +448,16 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .legend-list { list-style: none; padding: 0; margin: 0; display: flex; gap: 16px; flex-wrap: wrap; }
 .trim-map thead th { text-align: center; }
 .trim-map thead th:first-child { text-align: left; }
+.preset-row { align-items: center; margin-bottom: 12px; }
+.topbar .status { flex: 1; }
+.daynight button { display: inline-flex; gap: 6px; align-items: center; }
+@media (max-width: 760px) { .daynight-text { display: none; } }
+.warm-badge { display: inline-block; vertical-align: middle; font-size: 0.8rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; border: 1px solid currentColor; }
+.warm-badge[hidden] { display: none; }
+.warm-cold { color: var(--info); }
+.warm-warming { color: var(--warn); }
+.warm-ready { color: var(--ok); }
+.hud-warm { position: absolute; top: 12px; left: 12px; font-size: clamp(0.9rem, 2vw, 1.6rem); }
+.first-steps { margin-bottom: 14px; }
+.first-steps ol { margin: 4px 0 10px; padding-left: 20px; display: grid; gap: 6px; }
+.first-steps li .btn-sm { margin-left: 4px; }

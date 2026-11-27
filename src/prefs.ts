@@ -5,6 +5,7 @@
 // car. Everything that depends on the car (fuel, engine size, alert limits,
 // VIN) lives in a vehicle profile; one profile is active at a time and is
 // picked automatically when a connected car's VIN matches a profile.
+import type { Prices } from "./cost";
 import type { UnitPrefs } from "./units";
 import { emit } from "./store";
 import { t } from "./i18n";
@@ -42,6 +43,8 @@ export interface Prefs {
   units: UnitPrefs;
   profiles: Profile[];
   activeProfile: string;
+  /** Price per litre at the pump, for the trip cost (null = not given). */
+  fuelPrices: Prices;
 }
 
 export const DEFAULT_ALERTS: AlertRule[] = [
@@ -90,6 +93,7 @@ function load(): Prefs {
     units: { ...DEFAULT_UNITS, ...(stored.units ?? {}) },
     profiles,
     activeProfile: active,
+    fuelPrices: stored.fuelPrices ?? {},
   };
 }
 

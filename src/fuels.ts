@@ -27,21 +27,24 @@ export interface FuelProps {
   afr: number;
   /** g/L */
   density: number;
+  /** Lower heating value, MJ/kg (energy per kilogram, for cost comparisons). */
+  lhv: number;
 }
 
 /** Pure components (textbook values). */
-const GASOLINE_A: FuelProps = { afr: 14.7, density: 745 }; // gasoline without ethanol
-const ETHANOL_ANHYDROUS: FuelProps = { afr: 9.0, density: 789 };
-const ETHANOL_HYDRATED: FuelProps = { afr: 9.0 * 0.93, density: 809 }; // water burns no air
-const DIESEL_A: FuelProps = { afr: 14.5, density: 832 }; // fossil diesel
-const BIODIESEL: FuelProps = { afr: 12.5, density: 880 };
+const GASOLINE_A: FuelProps = { afr: 14.7, density: 745, lhv: 43.4 }; // gasoline without ethanol
+const ETHANOL_ANHYDROUS: FuelProps = { afr: 9.0, density: 789, lhv: 26.8 };
+// Water burns no air and gives no energy.
+const ETHANOL_HYDRATED: FuelProps = { afr: 9.0 * 0.93, density: 809, lhv: 26.8 * 0.93 };
+const DIESEL_A: FuelProps = { afr: 14.5, density: 832, lhv: 42.8 }; // fossil diesel
+const BIODIESEL: FuelProps = { afr: 12.5, density: 880, lhv: 37.3 };
 
 /** Mixes `pct`% (by volume) of `b` into `a`, weighting the ratio by mass. */
 export function blend(a: FuelProps, b: FuelProps, pct: number): FuelProps {
   const vb = Math.max(0, Math.min(1, pct / 100));
   const ma = a.density * (1 - vb);
   const mb = b.density * vb;
-  return { afr: (a.afr * ma + b.afr * mb) / (ma + mb), density: ma + mb };
+  return { afr: (a.afr * ma + b.afr * mb) / (ma + mb), density: ma + mb, lhv: (a.lhv * ma + b.lhv * mb) / (ma + mb) };
 }
 
 export const FUELS: Record<Exclude<FuelType, "auto">, FuelProps> = {
@@ -67,4 +70,9 @@ export function migrateFuel(fuel: string | undefined): FuelType {
   if (fuel === "gasoline_e27") return "gasoline";
   const known: FuelType[] = ["auto", "gasoline", "gasoline_premium", "ethanol", "diesel", "gasoline_pure"];
   return known.includes(fuel as FuelType) ? (fuel as FuelType) : "auto";
+}
+
+/** Energy in one litre, MJ/L. */
+export function energyPerL(f: FuelProps): number {
+  return (f.lhv * f.density) / 1000;
 }
