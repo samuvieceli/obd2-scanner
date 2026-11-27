@@ -29,6 +29,7 @@ Mapa das pastas:
 | `src/` | A interface (as telas). `src/views/` tem um arquivo por tela. |
 | `src/locales/pt-BR.ts` e `en-US.ts` | **Todos os textos** do programa, em português e inglês. É o lugar mais fácil para começar a mexer. |
 | `src/styles.css` | Cores, tamanhos e temas. |
+| `src/trip.ts`, `src/trips.ts` e `src/refuel.ts` | O computador de bordo: a conta do consumo, a Trip A e a Trip B e o ajuste pelo abastecimento ("Tanque cheio" e "Abasteci"). |
 | `crates/obd-core/` | O "motor": conversa com o adaptador ELM327, fórmulas dos sensores, códigos de falha, simulador. |
 | `crates/obd-core/data/` | Descrições dos códigos de falha (arquivos JSON). |
 | `src-tauri/` | A "casca" do programa para Windows (janela, instalador, ícones). |
