@@ -15,6 +15,7 @@ function fmtEconomy(kmPerL: number): string {
   return `${fmtNum(v, 1)} ${unit}`;
 }
 import { resetTrip, trip } from "../trip";
+import { lastDrive, showSummary } from "./drive-summary";
 import { tripCost } from "../cost";
 import { prefs, profile } from "../prefs";
 import { PRESETS, matchPreset, presetKeys, type PresetId } from "../presets";
@@ -310,7 +311,13 @@ export function mount(root: HTMLElement) {
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
     }
     tripBox.append(
-      h("div", { class: "row" }, button(t("trip.reset"), resetTrip, "ghost"), h("a", { class: "btn btn-ghost", href: "#/performance" }, t("nav.performance"))),
+      h(
+        "div",
+        { class: "row" },
+        button(t("trip.reset"), resetTrip, "ghost"),
+        lastDrive ? button(t("summary.open"), () => lastDrive && showSummary(lastDrive), "ghost") : "",
+        h("a", { class: "btn btn-ghost", href: "#/performance" }, t("nav.performance")),
+      ),
     );
   };
 

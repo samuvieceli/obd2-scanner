@@ -43,6 +43,8 @@ export function mount(root: HTMLElement) {
     ctx.fillStyle = markColor;
     ctx.lineWidth = Math.max(1, devicePixelRatio || 1) * 1.5;
     ctx.setLineDash([6, 4]);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
     ctx.font = `${11 * (devicePixelRatio || 1)}px system-ui, sans-serif`;
     marks.forEach((m, i) => {
       const x = Math.round(u.valToPos(m, "x", true));
@@ -162,7 +164,8 @@ export function mount(root: HTMLElement) {
   };
 
   const refresh = () => {
-    if (paused) return;
+    // An opened recording does not change; redrawing would undo the zoom.
+    if (paused || viewing) return;
     plots.forEach((p, key) => p.setData(dataFor(key)));
   };
 
@@ -284,6 +287,19 @@ export function mount(root: HTMLElement) {
         h(
           "div",
           { class: "chips" },
+          h(
+            "button",
+            {
+              type: "button",
+              class: "chip",
+              onclick: () =>
+                plots.forEach((p) => {
+                  const xs = p.data[0];
+                  if (xs.length) p.setScale("x", { min: xs[0], max: xs[xs.length - 1] });
+                }),
+            },
+            t("charts.all"),
+          ),
           marks.map((m, i) =>
             h(
               "button",

@@ -10,6 +10,7 @@ import { applyTheme, getTheme, type Theme } from "./theme";
 import { prefs, setActiveProfile } from "./prefs";
 import { initAlerts } from "./alerts";
 import { initTrip } from "./trip";
+import { initDriveSummary } from "./views/drive-summary";
 import { initKeepAwake } from "./awake";
 import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
 import { fmtNum } from "./i18n";
@@ -389,6 +390,7 @@ async function boot() {
   });
 
   initTrip();
+  initDriveSummary();
   initTrimCollector();
   initAlerts();
   initKeepAwake();
