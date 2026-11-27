@@ -135,6 +135,8 @@ export interface VehicleInfo {
 export interface RecordingStatus {
   recording: boolean;
   frames: number;
+  /** Events marked in the recording in progress. */
+  marks: number;
   lastFrames: number;
   lastDurationS: number;
 }
@@ -192,6 +194,8 @@ export interface Session {
   vehicle: VehicleIdentity;
   pids: PidMeta[];
   frames: { t_ms: number; values: Record<string, number> }[];
+  /** Moments marked by the driver, ms since the start (missing in old files). */
+  marks?: number[];
 }
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -220,6 +224,7 @@ export const api = {
   sendRaw: (command: string, timeoutMs?: number) => invoke<string>("send_raw", { command, timeoutMs }),
   startRecording: () => invoke<RecordingStatus>("start_recording"),
   stopRecording: () => invoke<RecordingStatus>("stop_recording"),
+  addMark: () => invoke<RecordingStatus>("add_mark"),
   recordingStatus: () => invoke<RecordingStatus>("get_recording_status"),
   exportSession: (format: "csv" | "csv_br" | "json", path: string) =>
     invoke<void>("export_session", { format, path }),

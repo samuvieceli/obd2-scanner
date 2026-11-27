@@ -7,6 +7,7 @@ import { hasLiveSource, on, state, type Series } from "../store";
 import { cssVar } from "../theme";
 import { button, clear, decimalsFor, displayValue, errorText, h, timestampForFile, toast, unitOf } from "../ui";
 import { fmtNum } from "../i18n";
+import { copyCard, drawCard } from "../share";
 
 const PALETTE = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
 const WINDOWS = [30, 60, 300, 900, 0]; // seconds, 0 = all
@@ -30,6 +31,30 @@ export function mount(root: HTMLElement) {
       }
     }
   }
+  // Event marks of a viewed recording, in seconds like the time axis.
+  const marks = viewing ? [...(viewing.session.marks ?? [])].sort((a, b) => a - b).map((m) => m / 1000) : [];
+  const markColor = cssVar("--danger") || "#ef4444";
+  const drawMarks = (u: uPlot) => {
+    if (!marks.length) return;
+    const ctx = u.ctx;
+    const { top, height } = u.bbox;
+    ctx.save();
+    ctx.strokeStyle = markColor;
+    ctx.fillStyle = markColor;
+    ctx.lineWidth = Math.max(1, devicePixelRatio || 1) * 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.font = `${11 * (devicePixelRatio || 1)}px system-ui, sans-serif`;
+    marks.forEach((m, i) => {
+      const x = Math.round(u.valToPos(m, "x", true));
+      if (x < u.bbox.left || x > u.bbox.left + u.bbox.width) return;
+      ctx.beginPath();
+      ctx.moveTo(x, top);
+      ctx.lineTo(x, top + height);
+      ctx.stroke();
+      ctx.fillText(`★${i + 1}`, x + 4, top + 12 * (devicePixelRatio || 1));
+    });
+    ctx.restore();
+  };
   const source = () => (viewing ? sessionSeries : state.history);
   const available = () => (viewing ? [...sessionSeries.keys()] : state.playback ? [...state.playback.keys] : [...state.liveKeys]);
 
@@ -96,6 +121,7 @@ export function mount(root: HTMLElement) {
         cursor: { sync: { key: sync.key }, drag: { x: true, y: false } },
         legend: { show: true },
         scales: { x: { time: false } },
+        hooks: { draw: [drawMarks] },
         axes: [
           { stroke: axisColor, grid: { stroke: gridColor }, ticks: { stroke: gridColor }, label: t("charts.time"), labelSize: 18, size: 36 },
           {
@@ -140,8 +166,9 @@ export function mount(root: HTMLElement) {
     plots.forEach((p, key) => p.setData(dataFor(key)));
   };
 
-  const exportPng = async () => {
-    if (!plots.size) return;
+  /** All visible charts stacked in one picture, each with its title. */
+  const composeCharts = (): HTMLCanvasElement | null => {
+    if (!plots.size) return null;
     const canvases = [...plots.entries()].map(([k, p]) => ({ key: k, canvas: p.root.querySelector("canvas") as HTMLCanvasElement }));
     const scale = window.devicePixelRatio || 1;
     const titleH = 28 * scale;
@@ -163,6 +190,12 @@ export function mount(root: HTMLElement) {
       ctx.drawImage(c.canvas, 0, y);
       y += c.canvas.height;
     }
+    return out;
+  };
+
+  const exportPng = async () => {
+    const out = composeCharts();
+    if (!out) return;
     const blob = await new Promise<Blob | null>((r) => out.toBlob(r, "image/png"));
     if (!blob) return;
     const path = await save({ defaultPath: `obd2-grafico-${timestampForFile()}.png`, filters: [{ name: "PNG", extensions: ["png"] }] });
@@ -173,6 +206,17 @@ export function mount(root: HTMLElement) {
     } catch (e) {
       toast(errorText(e), "error");
     }
+  };
+
+  const copyPng = async () => {
+    const out = composeCharts();
+    if (!out) return;
+    const lines = selected().map((k) => {
+      const mm = (viewing ? null : state.minmax[k]) ?? null;
+      const unit = unitOf(k);
+      return { text: mm ? `${pidText(k).name}: ${t("dashboard.min")} ${fmtNum(displayValue(k, mm[0]), decimalsFor(k))} · ${t("dashboard.max")} ${fmtNum(displayValue(k, mm[1]), decimalsFor(k))} ${unit}` : pidText(k).name };
+    });
+    await copyCard(drawCard(viewing ? `${t("charts.title")} · ${viewing.name}` : t("charts.title"), lines, out), "obd2-grafico");
   };
 
   const windowSel = h(
@@ -208,7 +252,8 @@ export function mount(root: HTMLElement) {
       { class: "toolbar" },
       h("label", { class: "inline" }, h("span", null, t("charts.window")), windowSel),
       viewing ? null : pauseBtn,
-      button(t("charts.exportPng"), exportPng, "secondary"),
+      button(t("share.copy"), copyPng, "secondary", { title: t("share.help") }),
+      button(t("charts.exportPng"), exportPng, "ghost"),
     ),
   );
   page.append(head);
@@ -228,7 +273,34 @@ export function mount(root: HTMLElement) {
   } else if (!hasLiveSource() && !state.history.size) {
     page.append(h("p", { class: "muted" }, t("charts.empty")));
   }
-  page.append(h("div", { class: "field" }, h("span", { class: "label" }, t("charts.params")), chips), chartBox);
+  page.append(h("div", { class: "field" }, h("span", { class: "label" }, t("charts.params")), chips));
+  if (marks.length) {
+    // Jump chips: zoom all charts to 30 s around each marked event.
+    page.append(
+      h(
+        "div",
+        { class: "field" },
+        h("span", { class: "label" }, t("marks.inChart")),
+        h(
+          "div",
+          { class: "chips" },
+          marks.map((m, i) =>
+            h(
+              "button",
+              {
+                type: "button",
+                class: "chip mark-chip",
+                title: t("marks.jump", { n: i + 1 }),
+                onclick: () => plots.forEach((p) => p.setScale("x", { min: Math.max(0, m - 15), max: m + 15 })),
+              },
+              `★${i + 1} · ${fmtNum(m, 0)} s`,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  page.append(chartBox);
   renderChips();
   requestAnimationFrame(buildPlots);
 

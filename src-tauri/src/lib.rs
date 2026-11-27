@@ -513,6 +513,8 @@ async fn send_raw(
 struct RecordingStatus {
     recording: bool,
     frames: usize,
+    /// Events marked in the recording in progress.
+    marks: usize,
     last_frames: usize,
     last_duration_s: f64,
 }
@@ -521,6 +523,7 @@ fn recording_status(r: &Recorder) -> RecordingStatus {
     RecordingStatus {
         recording: r.is_recording(),
         frames: r.frame_count(),
+        marks: r.mark_count(),
         last_frames: r.last.as_ref().map(|s| s.frames.len()).unwrap_or(0),
         last_duration_s: r.last.as_ref().map(|s| s.duration_s()).unwrap_or(0.0),
     }
@@ -541,6 +544,15 @@ fn start_recording(state: State<'_, AppState>) -> RecordingStatus {
     let mut r = state.recorder.lock().unwrap();
     r.start(template);
     recording_status(&r)
+}
+
+/// Marks this moment of the recording (the driver felt a problem).
+#[tauri::command]
+fn add_mark(state: State<'_, AppState>) -> CmdResult<RecordingStatus> {
+    let mut r = state.recorder.lock().unwrap();
+    r.mark()
+        .ok_or_else(|| CmdError::other("not_recording", "no recording in progress"))?;
+    Ok(recording_status(&r))
 }
 
 #[tauri::command]
@@ -685,6 +697,7 @@ pub fn run() {
             send_raw,
             start_recording,
             stop_recording,
+            add_mark,
             get_recording_status,
             recovered_recording,
             export_session,

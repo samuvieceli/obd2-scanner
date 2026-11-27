@@ -2,8 +2,9 @@
 //!
 //! The recording lives in memory (fast to export and replay) and, as a safety
 //! copy, is also written as it goes to [`BACKUP_FILE`] in the program's data
-//! folder: one JSON line with the session details, then one line per frame,
-//! and an `{"end":true}` line when it stops. Lines are buffered and written to
+//! folder: one JSON line with the session details, then one line per frame
+//! (and a `{"mark":t_ms}` line per event the driver marks), and an
+//! `{"end":true}` line when it stops. Lines are buffered and written to
 //! disk at least every [`FLUSH_EVERY`]. If the program or the computer stops
 //! in the middle, the next start finds a file without the end line and
 //! offers that recording again ([`Recorder::recover`]).
@@ -80,6 +81,30 @@ impl Recorder {
         s.frames.push(frame);
     }
 
+    /// Marks this moment of the recording; returns the number of marks.
+    pub fn mark(&mut self) -> Option<usize> {
+        let (start, s) = self.active.as_mut()?;
+        let t_ms = start.elapsed().as_millis() as u64;
+        s.marks.push(t_ms);
+        if let Some(b) = self.backup.as_mut() {
+            // Marks are rare and precious: written to disk at once.
+            if writeln!(b.file, r#"{{"mark":{t_ms}}}"#)
+                .and_then(|_| flush(b))
+                .is_err()
+            {
+                self.backup = None;
+            }
+        }
+        Some(s.marks.len())
+    }
+
+    pub fn mark_count(&self) -> usize {
+        self.active
+            .as_ref()
+            .map(|(_, s)| s.marks.len())
+            .unwrap_or(0)
+    }
+
     pub fn stop(&mut self) -> Option<&Session> {
         if let Some((_, s)) = self.active.take() {
             if let Some(mut b) = self.backup.take() {
@@ -126,6 +151,11 @@ fn flush(b: &mut Backup) -> std::io::Result<()> {
     b.file.get_ref().sync_data()
 }
 
+#[derive(serde::Deserialize)]
+struct MarkLine {
+    mark: u64,
+}
+
 /// The session in a safety copy without its end line and with at least one
 /// frame. A last line cut in half by the crash is skipped.
 fn read_interrupted(path: &Path) -> Option<Session> {
@@ -139,6 +169,8 @@ fn read_interrupted(path: &Path) -> Option<Session> {
         }
         if let Ok(frame) = serde_json::from_str::<Frame>(&line) {
             session.frames.push(frame);
+        } else if let Ok(m) = serde_json::from_str::<MarkLine>(&line) {
+            session.marks.push(m.mark);
         }
     }
     (!session.frames.is_empty()).then_some(session)
@@ -170,6 +202,7 @@ mod tests {
             ..Default::default()
         });
         r.push(frame(800.0));
+        assert_eq!(r.mark(), Some(1));
         r.push(frame(900.0));
         // Crash: the buffer reaches the disk only when dropped here, which
         // stands for the periodic flush.
@@ -186,6 +219,7 @@ mod tests {
         let s = next.last.as_ref().unwrap();
         assert_eq!(s.adapter, "Demo");
         assert_eq!(s.frames[1].values["rpm"], 900.0);
+        assert_eq!(s.marks.len(), 1);
         std::fs::remove_dir_all(dir).unwrap();
     }
 

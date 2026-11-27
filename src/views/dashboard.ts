@@ -32,6 +32,30 @@ export async function toggleRecording() {
   emit("recording");
 }
 
+/** Marks this moment of the recording (button or Space key). */
+export async function markEvent() {
+  if (!state.recording.recording) return;
+  try {
+    state.recording = await api.addMark();
+    emit("recording");
+    toast(t("marks.added", { n: state.recording.marks }), "ok");
+  } catch (e) {
+    toast(errorText(e), "error");
+  }
+}
+
+/** Big "mark event" button, shown only while recording. */
+export function markButton(): HTMLButtonElement {
+  const b = button(t("marks.button"), () => void markEvent(), "danger", { title: t("marks.help") });
+  const sync = () => {
+    b.hidden = !state.recording.recording;
+    b.textContent = state.recording.marks ? `${t("marks.button")} (${state.recording.marks})` : t("marks.button");
+  };
+  sync();
+  on("recording", sync);
+  return b;
+}
+
 export function mount(root: HTMLElement) {
   const page = h("div", { class: "page" });
   root.append(page);
@@ -302,7 +326,7 @@ export function mount(root: HTMLElement) {
 
   renderToolbar();
   page.append(
-    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title"), " ", warmEl), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [chooseBtn, recBtn, pollBtn])),
+    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title"), " ", warmEl), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [markButton(), chooseBtn, recBtn, pollBtn])),
     state.playback ? "" : presetRow,
     picker,
     h(
