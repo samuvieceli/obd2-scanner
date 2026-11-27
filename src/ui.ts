@@ -64,6 +64,70 @@ export function toast(message: string, kind: "info" | "ok" | "error" = "info") {
   setTimeout(() => el.remove(), kind === "error" ? 7600 : 4600);
 }
 
+/** Gap kept between a tooltip and the window edges or its icon, in px. */
+const TIP_MARGIN = 8;
+
+/**
+ * Shows the text of any `.tip` icon in one shared bubble attached to the page
+ * body. The bubble opens below the icon (above when there is no room), is
+ * centred on it and pushed back inside the window, so it is never cut by a
+ * card, the sidebar or a scrolling area. Called once at start-up.
+ */
+export function installTooltips() {
+  const bubble = h("div", { class: "tip-bubble", role: "tooltip", "aria-hidden": "true", hidden: true });
+  document.body.append(bubble);
+  let current: HTMLElement | null = null;
+
+  const hide = () => {
+    current = null;
+    bubble.hidden = true;
+  };
+  const show = (tip: HTMLElement) => {
+    current = tip;
+    bubble.textContent = tip.dataset.tip ?? "";
+    bubble.hidden = false;
+    const icon = tip.getBoundingClientRect();
+    const { width, height } = bubble.getBoundingClientRect();
+    const maxLeft = window.innerWidth - width - TIP_MARGIN;
+    const left = Math.max(TIP_MARGIN, Math.min(icon.left + icon.width / 2 - width / 2, maxLeft));
+    const below = icon.bottom + TIP_MARGIN;
+    const fitsBelow = below + height <= window.innerHeight - TIP_MARGIN;
+    const top = fitsBelow ? below : Math.max(TIP_MARGIN, icon.top - TIP_MARGIN - height);
+    bubble.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+  };
+  const tipOf = (e: Event) => (e.target as Element | null)?.closest?.<HTMLElement>(".tip") ?? null;
+
+  document.addEventListener("mouseover", (e) => {
+    const tip = tipOf(e);
+    if (tip && tip !== current) show(tip);
+  });
+  document.addEventListener("mouseout", (e) => {
+    const into = (e as MouseEvent).relatedTarget as Element | null;
+    if (current && tipOf(e) === current && !current.contains(into)) {
+      if (document.activeElement === current) return;
+      hide();
+    }
+  });
+  document.addEventListener("focusin", (e) => {
+    const tip = tipOf(e);
+    if (tip) show(tip);
+  });
+  document.addEventListener("focusout", (e) => {
+    if (tipOf(e) === current) hide();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && current) hide();
+  });
+  // The icon moved (scrolling, resizing; also when focus scrolls it into
+  // view): follow it. It disappeared (screen change): close.
+  const follow = () => current && show(current);
+  document.addEventListener("scroll", follow, true);
+  window.addEventListener("resize", follow);
+  new MutationObserver(() => {
+    if (current && !current.isConnected) hide();
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
 /** Small "i" bubble showing an explanation on hover/focus. */
 export function infoTip(text: string): HTMLElement {
   return h("span", { class: "tip", tabindex: 0, "data-tip": text, "aria-label": text }, "i");
