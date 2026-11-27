@@ -5,7 +5,7 @@ import { api, type Session } from "./api";
 import { emit, pushFrame, resetLiveData, state } from "./store";
 
 const TICK_MS = 50;
-const FINDINGS_WINDOW_MS = 30_000;
+const FINDINGS_WINDOW_MS = 60_000;
 export const SPEEDS = [0.5, 1, 2, 4, 8];
 
 export interface Playback {

@@ -13,7 +13,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Testes de desempenho** 0–100, 100–0, 40–80 e 80–120 km/h com detecção automática do início e do fim reais de cada teste, distância e histórico.
 - **Testes guiados**: bateria e alternador passo a passo (repouso, partida e carga), comparação das sondas lambda para avaliar o catalisador e mapa de correção de combustível por rotação e carga, com resultado em linguagem simples.
 - **Head-up display (HUD)**: até 4 valores enormes em fundo preto, em tela cheia, com opção espelhada para refletir no para-brisa.
-- **Interpretação automática** dos dados (superaquecimento, mistura pobre/rica, carga da bateria, sonda lambda, catalisador).
+- **Interpretação automática** dos dados, sempre como indício e com o que verificar (superaquecimento, válvula termostática, sensores de temperatura, MAP e MAF incoerentes, mistura pobre/rica, bateria, partida e alternador, marcha lenta alta ou irregular, vácuo fraco, sonda lambda, catalisador), com confirmação por tempo para evitar alarme falso.
 - **Gráficos** em tempo real, sincronizados, com exportação para imagem PNG.
 - **Códigos de falha**: confirmados, pendentes e permanentes, com descrição em português e tabelas de 10 marcas; apagar códigos; quadro congelado; consulta de qualquer código.
 - **Testes da central (Modo 06)**: resultados dos autotestes (sondas, catalisador, falhas de combustão...) com aprovado/reprovado, para achar problemas antes da luz de injeção acender.

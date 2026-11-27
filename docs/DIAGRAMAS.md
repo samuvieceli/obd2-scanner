@@ -116,7 +116,7 @@ flowchart TB
         vin["vin.rs<br/>chassi: fabricante, ano, país"]
         readiness["readiness.rs<br/>monitores de prontidão"]
         mode06["mode06.rs<br/>resultados dos autotestes"]
-        interpret["interpret.rs<br/>interpretação em português"]
+        interpret["interpret.rs<br/>interpretação automática (indícios)"]
         session["session.rs<br/>gravação CSV e JSON"]
         simulator["simulator.rs<br/>carro virtual com defeitos,<br/>falhas de clone e 2 centrais"]
         adaptertest["adapter_test.rs<br/>versão real do ELM327"]

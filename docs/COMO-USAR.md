@@ -116,6 +116,35 @@ Só contam as leituras em **malha fechada** (PID 03, quando a central corrige a 
 | Rica (negativo) só em marcha lenta | Válvula do cânister presa aberta, bico pingando. |
 | Rica em tudo | Bico vazando, pressão de combustível alta, sonda com leitura errada, combustível no óleo. |
 
+## 6d. Interpretação automática
+
+O quadro **Interpretação dos dados** do painel analisa sozinho os parâmetros que estão sendo lidos e mostra **indícios**, sempre com o que verificar. Não é diagnóstico: é uma pista para levar ao mecânico ou conferir com um teste guiado.
+
+Para evitar alarme falso, cada regra:
+
+- só usa parâmetros que o carro informa e que estão no painel agora (um valor sem atualização há mais de 5 s é ignorado);
+- só vale nas condições certas: mistura e sondas com motor quente, em malha fechada e fora do corte de combustível na desaceleração; marcha lenta com motor quente, carro parado e pé fora do acelerador; carga do alternador só 20 s depois da partida;
+- precisa se repetir por alguns segundos antes de aparecer (uma leitura estranha sozinha não conta);
+- some só quando o valor volta com folga (por exemplo, a mistura pobre aparece acima de +10% e some abaixo de +8%), para não ficar piscando.
+
+| Indício | Quando aparece | Parâmetros usados |
+| --- | --- | --- |
+| Superaquecimento | 115 °C ou mais por 5 s (crítico); 108 °C ou mais por 10 s (atenção). Até 105 °C é normal em muitos carros parados no trânsito. | Temp. motor |
+| Válvula termostática aberta | Abaixo de 70 °C depois de 15 min ligado, ou temperatura que cai abaixo de 75 °C andando acima de 40 km/h depois de ter passado de 85 °C. | Temp. motor, velocidade, tempo ligado |
+| Sensor de temperatura com defeito | Marca −40 °C (fio solto) ou fica 10 °C abaixo da temperatura externa com o motor ligado. | Temp. motor, temp. ambiente |
+| Mistura pobre ou rica | Correção total (média do curto prazo em 10 s + longo prazo) acima de ±10% (informação) ou ±20% (atenção), com motor quente há pelo menos 1 min e em malha fechada. Em carro flex, logo após trocar de combustível pode ser só o aprendizado. | STFT, LTFT, malha, rotação, carga |
+| Bateria e alternador | Motor desligado: abaixo de 12,0 V (fraca) ou de 12,4 V (parcial). Na partida: queda abaixo de 9,6 V. Motor ligado: abaixo de 12,6 V por 20 s (não carrega), 12,6–13,2 V (pode ser carga inteligente), acima de 15,0 V por 10 s (regulador). Sem a rotação no painel não há avaliação, porque não dá para saber se o motor está ligado. | Tensão, rotação |
+| Marcha lenta alta ou irregular | Motor quente e carro parado: acima de 1.150 rpm por 10 s, ou rotação pulando para cima e para baixo (mais de 250 rpm) em 15 s. Um degrau só, como o do ar-condicionado ligando, não conta. | Rotação, velocidade, borboleta |
+| Vácuo fraco em marcha lenta | Pressão do coletor acima de 70% da externa por 15 s. | MAP, pressão barométrica |
+| Sensor MAP incoerente | Motor desligado e MAP diferente da pressão externa em mais de 10 kPa. | MAP, pressão barométrica |
+| Sensor MAF sem sinal | Menos de 0,5 g/s com o motor acima de 600 rpm. | MAF, rotação |
+| Ar de admissão quente | Andando acima de 40 km/h por 30 s e ar 30 °C acima do externo (ou acima de 65 °C sem temp. externa). Parado, ar quente é normal. | Temp. do ar, temp. ambiente, velocidade |
+| Sonda lambda parada | Sonda dianteira variando menos de 0,3 V em 10 s, motor quente, malha fechada. | Sonda B1S1 |
+| Catalisador fraco | Rotação estável, motor quente há 5 min: a sonda traseira cruza o meio da escala pelo menos 70% das vezes que a dianteira. | Sondas B1S1 e B1S2 |
+| Catalisador muito quente | Acima de 900 °C por 5 s. | Temp. do catalisador |
+
+Quando a regra deixa de valer por um instante (uma acelerada, uma freada), o último resultado de mistura, marcha lenta e catalisador continua na tela enquanto o motor estiver ligado.
+
 ## 7. Testes da central (Modo 06)
 
 Em **Códigos de falha → Testes da central**, clique em **Ler testes**. Cada linha é um autoteste da central com o valor medido e os limites aceitos. Um teste **reprovado** costuma indicar o componente com problema antes mesmo de aparecer um código de falha. Disponível em carros com rede CAN (a maioria a partir de 2008–2010).
