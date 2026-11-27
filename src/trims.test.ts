@@ -22,6 +22,16 @@ describe("fuel trim map", () => {
     expect(m.pattern()).toBe("not_enough");
   });
 
+  it("leaves out fuel cut-off and the samples right after it", () => {
+    const m = new TrimMap();
+    // Coasting in gear: closed loop still reported, trims dropping.
+    fill(m, 2200, 4, -25, 5);
+    expect(m.used).toBe(0);
+    // Back on the pedal: two samples to settle, then counted.
+    fill(m, 2200, 40, 2, 12);
+    expect(m.used).toBe(10);
+  });
+
   it("falls back on coolant temperature without loop status", () => {
     const m = new TrimMap();
     for (let i = 0; i < 20; i++) m.push({ rpm: 800, load: 20, stft: 3, ltft: 2, coolant: 50 });

@@ -9,7 +9,7 @@ import { BatteryTest, overall, type BatteryResult, type Grade, type Reading } fr
 import { LOAD_BINS, MIN_SAMPLES, RPM_BINS, TrimMap, gradeTrim, type Pattern } from "../trims";
 import { O2Test, RPM_RANGE, WARM_C, WINDOW_S, type O2Result, type Verdict } from "../o2test";
 import { cssVar } from "../theme";
-import { button, clear, errorText, h, infoTip, notConnected, toast } from "../ui";
+import { button, clear, errorText, h, infoTip, leaveOnDisconnect, notConnected, toast } from "../ui";
 
 type Panel = (box: HTMLElement) => (() => void) | void;
 
@@ -52,7 +52,11 @@ export function mount(root: HTMLElement) {
     cleanup = (TESTS.find((x) => x.id === id) ?? TESTS[0]).panel(box);
   };
   open(lastTab);
-  return () => cleanup?.();
+  const offConn = leaveOnDisconnect(t("guided.interrupted"));
+  return () => {
+    offConn();
+    cleanup?.();
+  };
 }
 
 // ---------------------------------------------------------------------------

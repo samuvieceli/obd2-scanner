@@ -30,6 +30,16 @@ export const LOAD_BINS = [30, 60];
 /** Samples a cell needs before its average is trusted. */
 export const MIN_SAMPLES = 10;
 const WARM_C = 70;
+/**
+ * Foot off the pedal with a gear engaged: the engine computer cuts the fuel
+ * (deceleration fuel cut-off). Load drops to almost nothing at a speed the
+ * engine never idles at, and some computers still report closed loop for a
+ * sample or two while the trims freeze or drop. Such samples are left out.
+ */
+const DFCO_RPM = 1400;
+const DFCO_LOAD = 10;
+/** Samples ignored right after open loop ends (trims are still settling). */
+const SETTLE_SAMPLES = 2;
 
 export interface TrimSample {
   rpm?: number;
@@ -66,13 +76,21 @@ export class TrimMap {
   skipped = 0;
   /** The car reports the loop state (better filtering). */
   knowsLoop = false;
+  private settle = 0;
 
   push(s: TrimSample) {
     if (s.rpm === undefined || s.load === undefined || s.stft === undefined || s.ltft === undefined) return;
     if (s.rpm < 400) return; // engine off
     if (s.closedLoop !== undefined) this.knowsLoop = true;
     const closed = s.closedLoop !== undefined ? s.closedLoop >= 1 : s.coolant === undefined || s.coolant >= WARM_C;
-    if (!closed) {
+    const fuelCut = s.rpm >= DFCO_RPM && s.load < DFCO_LOAD;
+    if (!closed || fuelCut) {
+      this.settle = SETTLE_SAMPLES;
+      this.skipped++;
+      return;
+    }
+    if (this.settle > 0) {
+      this.settle--;
       this.skipped++;
       return;
     }
