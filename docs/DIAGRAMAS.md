@@ -222,7 +222,7 @@ flowchart LR
     subgraph modulos["Módulos (src/)"]
         store["store.ts<br/>estado e avisos"]
         api["api.ts<br/>ponte com o Rust"]
-        trip["trip.ts<br/>consumo"]
+        trip["trip.ts + trips.ts<br/>consumo, Trip A e Trip B"]
         cost["cost.ts + fuels.ts<br/>custo em R$ e<br/>gasolina × etanol"]
         perf["perf.ts<br/>detecção 0-100 etc."]
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
