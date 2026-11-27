@@ -5,6 +5,7 @@ import { pidText, t } from "../i18n";
 import { displayKeys, hasLiveSource, on, state } from "../store";
 import { warmBadge, button, clear, fmtValue, h, notConnected, toast, errorText, unitOf } from "../ui";
 import { markButton, startPolling } from "./dashboard";
+import { enterMini } from "./mini";
 
 const MAX = 4;
 const PREFERRED = ["speed", "rpm", "coolant_temp", "battery_voltage"];
@@ -28,7 +29,7 @@ function available(): string[] {
   return displayKeys();
 }
 
-function initialKeys(): string[] {
+export function initialKeys(): string[] {
   const avail = available();
   let saved: string[] = [];
   try {
@@ -71,6 +72,7 @@ export function mount(root: HTMLElement) {
     renderToolbar();
     applyMirror();
   }, "secondary");
+  const miniBtn = button(t("mini.open"), () => void enterMini(), "secondary", { title: t("mini.help") });
   const fullBtn = button(t("hud.fullscreen"), async () => {
     try {
       await screen.requestFullscreen();
@@ -158,7 +160,7 @@ export function mount(root: HTMLElement) {
       "div",
       { class: "page-head" },
       h("h1", null, t("hud.title")),
-      h("div", { class: "toolbar" }, state.playback ? null : markButton(), mirrorBtn, fullBtn, state.playback ? null : pollBtn),
+      h("div", { class: "toolbar" }, state.playback ? null : markButton(), miniBtn, mirrorBtn, fullBtn, state.playback ? null : pollBtn),
     ),
     h("p", { class: "muted small" }, t("hud.help")),
     chips,

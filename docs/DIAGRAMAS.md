@@ -232,13 +232,16 @@ flowchart LR
         share["share.ts<br/>cartão 'Copiar imagem'"]
         warmup["warmup.ts<br/>motor frio / pronto"]
         summary["summary.ts + drive-summary.ts<br/>resumo ao desligar o motor"]
+        search["search.ts + views/search.ts<br/>busca Ctrl+F / Ctrl+K"]
+        mini["views/mini.ts<br/>mini janela por cima das outras"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup
-    hud --> warmup
+    hud --> warmup & mini
     diagnostics & charts --> share
     dashboard --> summary
     summary --> trip & cost & share
+    search --> glossary & diagnostics
     performance --> perf
     guided --> battery & o2test & trims
     sessions --> playback

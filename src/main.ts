@@ -11,6 +11,8 @@ import { prefs, setActiveProfile } from "./prefs";
 import { initAlerts } from "./alerts";
 import { initTrip } from "./trip";
 import { initDriveSummary } from "./views/drive-summary";
+import { initSearch, openSearch } from "./views/search";
+import { initMini } from "./views/mini";
 import { initKeepAwake } from "./awake";
 import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
 import { fmtNum } from "./i18n";
@@ -314,7 +316,19 @@ function layout() {
       nav,
       h("div", { class: "sidebar-foot" }, profileSelect, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}${state.portableData ? ` · ${t("settings.portableShort")}` : ""}` : "")),
     ),
-    h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl, dayNightEl), linkEl, playerEl, content),
+    h("div", { class: "main" }, h(
+        "header",
+        { class: "topbar" },
+        statusEl,
+        h(
+          "button",
+          { type: "button", class: "btn btn-ghost search-btn", title: t("search.button"), onclick: () => openSearch() },
+          icon("M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4.5-4.5"),
+          h("span", null, t("search.short")),
+          h("kbd", null, "Ctrl+F"),
+        ),
+        dayNightEl,
+      ), linkEl, playerEl, content),
   );
   content.tabIndex = -1;
   slider = null;
@@ -391,6 +405,8 @@ async function boot() {
 
   initTrip();
   initDriveSummary();
+  initSearch(ROUTES.map((r) => r.id));
+  initMini();
   initTrimCollector();
   initAlerts();
   initKeepAwake();

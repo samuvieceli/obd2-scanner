@@ -9,6 +9,8 @@
 
 O quadro **Primeiros passos**, no alto da tela Conexão, resume esse caminho com botões que levam a cada tela. Clique em **Entendi, esconder** quando não precisar mais; o link **Mostrar os primeiros passos** traz o quadro de volta.
 
+**Busca:** aperte **Ctrl+F** (ou **Ctrl+K**, ou o botão **Buscar** no alto) em qualquer tela e digite parte de um nome: uma tela ("gráficos"), um parâmetro ("temperatura", "sonda"), um termo do glossário ("malha fechada") ou um código de falha ("P0301"). Acentos não importam. Use ↑ ↓ e **Enter** para abrir; **Esc** fecha. Parâmetros e termos abrem no Glossário; códigos abrem a consulta na tela Códigos de falha, mesmo sem carro conectado.
+
 A opção *Simular adaptador clone com defeitos* imita um adaptador barato que responde de forma bagunçada. Serve para testar.
 
 ## 2. Com o carro e um adaptador Bluetooth clássico
@@ -35,6 +37,8 @@ Conecte o computador à rede Wi-Fi do adaptador (ex.: `WiFi_OBDII`). Use o IP `1
 ## 5. Head-up display (HUD)
 
 Na tela **Head-up display (HUD)**, escolha até 4 parâmetros (eles vêm da lista do Painel ao vivo) e clique em **Tela cheia**. Os valores aparecem enormes em fundo preto, fáceis de ler de relance. **Esc** sai da tela cheia. Ative **Espelhado** se for apoiar a tela no painel do carro para refletir no para-brisa à noite (a imagem é invertida para ficar certa no reflexo). Por segurança, deixe a tela posicionada antes de sair dirigindo.
+
+**Mini janela:** o botão **Mini janela** no HUD encolhe o programa para uma janelinha que fica **por cima das outras** (mapa, música, chamada), com os mesmos 3 ou 4 valores escolhidos no HUD. Se a leitura estiver parada, ela começa sozinha. Mova a janela pela barra do alto; **Voltar** (ou **Esc**) devolve o tamanho e o lugar de antes.
 
 ## 6. Computador de bordo, alertas e mostradores
 
