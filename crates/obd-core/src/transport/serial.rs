@@ -147,3 +147,99 @@ pub fn probe_baud_rate(name: &str, rates: &[u32]) -> Option<u32> {
     }
     None
 }
+
+/// What identifies a USB adapter whatever COM number Windows gives it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UsbIdentity {
+    pub vid: u16,
+    pub pid: u16,
+    /// Missing on many cheap clones (CH340 chips have none).
+    pub serial_number: Option<String>,
+}
+
+fn usb_ports() -> Vec<(String, UsbIdentity)> {
+    serialport::available_ports()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|p| match p.port_type {
+            SerialPortType::UsbPort(u) => Some((
+                p.port_name,
+                UsbIdentity {
+                    vid: u.vid,
+                    pid: u.pid,
+                    serial_number: u.serial_number.filter(|s| !s.trim().is_empty()),
+                },
+            )),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The USB identity of `port`, if it is a USB adapter plugged in now.
+pub fn usb_identity(port: &str) -> Option<UsbIdentity> {
+    usb_ports()
+        .into_iter()
+        .find(|(name, _)| name.eq_ignore_ascii_case(port))
+        .map(|(_, id)| id)
+}
+
+/// The port where the same USB adapter is now (after unplugging it, Windows
+/// may give it another COM number).
+pub fn find_usb_port(id: &UsbIdentity) -> Option<String> {
+    pick_usb_port(id, &usb_ports())
+}
+
+/// Same serial number; without one, the same chip (vendor and product ids)
+/// only when exactly one such port exists, so two identical clones are
+/// never mixed up.
+fn pick_usb_port(id: &UsbIdentity, ports: &[(String, UsbIdentity)]) -> Option<String> {
+    if id.serial_number.is_some() {
+        return ports
+            .iter()
+            .find(|(_, p)| p == id)
+            .map(|(name, _)| name.clone());
+    }
+    let mut same_chip = ports
+        .iter()
+        .filter(|(_, p)| p.vid == id.vid && p.pid == id.pid);
+    match (same_chip.next(), same_chip.next()) {
+        (Some((name, _)), None) => Some(name.clone()),
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn usb(vid: u16, pid: u16, serial: Option<&str>) -> UsbIdentity {
+        UsbIdentity {
+            vid,
+            pid,
+            serial_number: serial.map(String::from),
+        }
+    }
+
+    #[test]
+    fn finds_the_adapter_on_its_new_com_port() {
+        let ftdi = usb(0x0403, 0x6001, Some("A50285BI"));
+        let ports = vec![
+            ("COM3".to_string(), usb(0x0403, 0x6001, Some("OTHER"))),
+            ("COM7".to_string(), ftdi.clone()),
+        ];
+        assert_eq!(pick_usb_port(&ftdi, &ports).as_deref(), Some("COM7"));
+        assert_eq!(pick_usb_port(&ftdi, &ports[..1]), None);
+    }
+
+    #[test]
+    fn clones_without_serial_number_only_when_unambiguous() {
+        let ch340 = usb(0x1A86, 0x7523, None);
+        let one = vec![("COM5".to_string(), ch340.clone())];
+        assert_eq!(pick_usb_port(&ch340, &one).as_deref(), Some("COM5"));
+        let two = vec![
+            ("COM5".to_string(), ch340.clone()),
+            ("COM6".to_string(), ch340.clone()),
+        ];
+        assert_eq!(pick_usb_port(&ch340, &two), None);
+    }
+}
