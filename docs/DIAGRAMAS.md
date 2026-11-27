@@ -263,7 +263,7 @@ Nada é enviado para a internet.
 
 ## 9. Verificação automática (CI)
 
-A cada envio para o GitHub, dois computadores do GitHub testam o programa e montam o instalador.
+A cada envio para o GitHub, dois computadores do GitHub testam o programa e montam o instalador. Uma etiqueta de versão (tag `v1.0.0`) dispara o fluxo de lançamento, que cria um rascunho na página de download; ele só aparece para todos depois que alguém clica em **Publish release**.
 
 ```mermaid
 flowchart LR
@@ -274,4 +274,9 @@ flowchart LR
     subgraph windows["Windows"]
         wtest["cargo test"] --> build["npm run tauri build"] --> nsis["Instalador .exe<br/>em Artifacts"]
     end
+    tag["Tag de versão<br/>(v1.0.0)"] --> rel
+    subgraph rel["Release (release.yml, Windows)"]
+        rtest["testes"] --> rbuild["instalador .exe e .msi"] --> draft["Rascunho em Releases<br/>+ notas pt-BR / en-US"]
+    end
+    draft --> pub(["Você clica em<br/>Publish release"])
 ```

@@ -2501,7 +2501,7 @@ dependencies = [
 
 [[package]]
 name = "obd-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "btleplug",
  "futures",
@@ -2514,7 +2514,7 @@ dependencies = [
 
 [[package]]
 name = "obd2-scanner"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "obd-core",
  "serde",

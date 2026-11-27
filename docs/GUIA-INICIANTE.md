@@ -144,7 +144,21 @@ Você também não precisa rodar tudo isso sempre: **a cada envio, o GitHub roda
 
 ---
 
-## 10. Problemas comuns
+## 10. Lançar uma versão (página de download)
+
+A página **Releases** do GitHub é onde qualquer pessoa baixa o instalador. Uma versão nova é feita assim:
+
+1. A versão nova fica escrita em três arquivos (`package.json`, `src-tauri/tauri.conf.json` e `Cargo.toml`, no campo `version`) e as novidades ficam em `docs/release-notes/vX.Y.Z.md`. Pode pedir ao Claude no chat: "prepare a versão 1.1".
+2. Faça o merge do PR na `main`.
+3. Crie a **tag** da versão (uma etiqueta no histórico, por exemplo `v1.0.0`). Pode pedir ao Claude: "pode criar a tag v1.0.0".
+4. O GitHub monta o instalador sozinho (uns 10 minutos, aba **Actions**, fluxo **Release**) e cria um **rascunho** da versão. Rascunho ainda não aparece para ninguém.
+5. Abra **Releases** no repositório, clique no rascunho, confira o texto e os arquivos e clique em **Publish release**. Pronto: o link "Baixar a versão mais recente" do README passa a entregar essa versão.
+
+Se algo estiver errado no rascunho, é só apagar (botão **Delete**) e pedir a correção. Nada foi publicado.
+
+---
+
+## 11. Problemas comuns
 
 | Problema | Solução |
 | --- | --- |

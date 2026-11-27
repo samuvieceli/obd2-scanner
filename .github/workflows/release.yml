@@ -1,0 +1,61 @@
+# Builds the Windows installer for a version tag (e.g. v1.0.0) and creates a
+# DRAFT GitHub Release with it. Nothing is public until someone opens the
+# draft on GitHub and clicks "Publish release".
+#
+# How to release: update the version in package.json, src-tauri/tauri.conf.json
+# and Cargo.toml, write docs/release-notes/vX.Y.Z.md, merge to main, then
+# push the tag:  git tag v1.0.0 && git push origin v1.0.0
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    name: Instalador Windows e rascunho da versão
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir versão da tag
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          APP=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "v${APP}" != "${TAG}" ]; then
+            echo "A tag ${TAG} não bate com a versão ${APP} de tauri.conf.json" >&2
+            exit 1
+          fi
+          test -f "docs/release-notes/${TAG}.md" || { echo "Falta docs/release-notes/${TAG}.md" >&2; exit 1; }
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: cargo test -p obd-core --all-features
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run tauri build
+      - name: Nomes simples para os arquivos
+        shell: bash
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          mkdir dist-release
+          cp target/release/bundle/nsis/*.exe "dist-release/OBD2-Scanner-${V}-Windows-instalador.exe"
+          cp target/release/bundle/msi/*.msi "dist-release/OBD2-Scanner-${V}-Windows.msi"
+          cd dist-release && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Criar rascunho da versão
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          gh release create "${GITHUB_REF_NAME}" dist-release/* \
+            --draft \
+            --title "OBD2 Scanner ${V}" \
+            --notes-file "docs/release-notes/${GITHUB_REF_NAME}.md"

@@ -22,12 +22,18 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Gravações e relatórios**: CSV (inclusive no formato do Excel brasileiro), JSON, **reprodução de gravações** como se fosse ao vivo, e relatório para imprimir ou salvar como PDF.
 - Interface em **português (Brasil)** e **inglês (EUA)**, 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
 
-## Como instalar no Windows (sem programar)
+## Baixar e instalar (Windows 10 e 11)
+
+**[⬇ Baixar a versão mais recente](https://github.com/samuvieceli/obd2-scanner/releases/latest)**: na página que abrir, clique em `OBD2-Scanner-...-Windows-instalador.exe` (em *Assets*) e execute o arquivo baixado. O Windows pode avisar que o programa é de um editor desconhecido (o instalador ainda não é assinado digitalmente): clique em **Mais informações → Executar assim mesmo**.
+
+<details>
+<summary>Versão de teste, antes do lançamento (para quem acompanha o desenvolvimento)</summary>
 
 1. Abra a aba **Actions** deste repositório no GitHub e clique na execução mais recente do **CI** com sinal verde.
 2. No fim da página, em **Artifacts**, baixe `obd2-scanner-windows-instalador`.
-3. Descompacte o arquivo `.zip` e execute o instalador `OBD2 Scanner_..._x64-setup.exe`.
-4. O Windows pode avisar que o programa é de um editor desconhecido (o instalador ainda não é assinado digitalmente): clique em **Mais informações → Executar assim mesmo**.
+3. Descompacte o `.zip` e execute o instalador `OBD2 Scanner_..._x64-setup.exe`.
+
+</details>
 
 Detalhes e solução de problemas: [docs/COMO-USAR.md](docs/COMO-USAR.md).
 
@@ -68,4 +74,5 @@ It shows live data as cards or dials with
 explanations, automatic interpretation, alerts, a trip computer, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h) and a head-up display; charts; trouble codes (read/clear,
 freeze frame, 10 brand tables); Mode 06 test results; readiness monitors; VIN decoding; an AT terminal; recording,
 playback and export to CSV/JSON/PNG plus a printable report. UI in Brazilian Portuguese and US English with 8 themes.
+Download the Windows installer from [Releases](https://github.com/samuvieceli/obd2-scanner/releases/latest).
 See `docs/ARQUITETURA.md` (Portuguese) for the design.
