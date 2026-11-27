@@ -1,4 +1,4 @@
-//! Portable mode and start-up checks.
+//! Portable mode, start-up checks and other small Windows services.
 //!
 //! The portable version is the program file alone, in a zip, with no
 //! installer. When a file named [`MARKER`] sits next to the program, all
@@ -54,6 +54,26 @@ https://go.microsoft.com/fwlink/p/?LinkId=2124703\n\
 ou use o instalador do OBD2 Scanner, que já o instala sozinho.\n\n\
 OBD2 Scanner needs Microsoft Edge WebView2, which was not found on this computer.\n\
 Install the free \"WebView2 Runtime\" from the link above, or use the OBD2 Scanner installer, which adds it automatically.";
+
+/// Asks Windows to keep the screen on and not to sleep (`on = true`), or
+/// lifts that request. Applies to the calling thread, so it must always be
+/// called from the same long-lived thread (the main thread, see `keep_awake`).
+#[cfg(windows)]
+pub fn keep_awake(on: bool) {
+    use windows_sys::Win32::System::Power::{
+        SetThreadExecutionState, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
+    };
+    let flags = if on {
+        ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED
+    } else {
+        ES_CONTINUOUS
+    };
+    // SAFETY: plain flag call, no pointers.
+    unsafe { SetThreadExecutionState(flags) };
+}
+
+#[cfg(not(windows))]
+pub fn keep_awake(_on: bool) {}
 
 /// Shows a plain Windows message box (no window of the app exists yet).
 #[cfg(windows)]

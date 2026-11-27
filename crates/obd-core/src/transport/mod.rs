@@ -12,6 +12,7 @@ use crate::Result;
 
 #[cfg(feature = "ble")]
 pub mod ble;
+pub mod bt_ports;
 pub mod scripted;
 #[cfg(feature = "serial")]
 pub mod serial;
@@ -77,7 +78,8 @@ pub const COMMON_BAUD_RATES: [u32; 5] = [38_400, 9_600, 115_200, 57_600, 230_400
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PortInfo {
     pub name: String,
-    /// `usb`, `bluetooth`, `pci` or `unknown`.
+    /// `usb`, `bluetooth`, `bluetooth_in` (incoming Bluetooth port, never
+    /// answers), `pci` or `unknown`.
     pub kind: String,
     pub description: String,
 }

@@ -24,7 +24,7 @@ flowchart TB
         cmds["Comandos<br/>lib.rs"]
         worker["Trabalhador da conexão<br/>worker.rs"]
         rec["Gravação<br/>recorder.rs"]
-        port["Início e versão portátil<br/>portable.rs"]
+        port["Início, versão portátil<br/>e tela acesa<br/>portable.rs"]
     end
     subgraph CORE["Motor: crates/obd-core/ (Rust)"]
         elm["Conversa com o ELM327<br/>elm327.rs"]
@@ -90,6 +90,7 @@ Todas as conexões seguem a mesma regra (a interface `Transport`): só levar byt
 flowchart LR
     elm["elm327.rs"] --> T{{"Transport<br/>(mesma interface para todos)"}}
     T --> serial["serial.rs<br/>cabo USB e Bluetooth clássico<br/>(aparece como porta COM)"]
+    serial -. "qual porta COM<br/>é a de saída?" .-> btp["bt_ports.rs<br/>lê o registro do Windows:<br/>porta de saída x entrada<br/>e nome do adaptador"]
     T --> ble["ble.rs<br/>Bluetooth LE<br/>(iOS-Vlink, Vgate...)"]
     T --> tcp["tcp.rs<br/>Wi-Fi<br/>(192.168.0.10:35000)"]
     T --> sim["simulator.rs<br/>carro virtual<br/>(modo demonstração)"]

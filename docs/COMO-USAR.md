@@ -13,7 +13,7 @@ A opção *Simular adaptador clone com defeitos* imita um adaptador barato que r
 
 1. Encaixe o adaptador no conector OBD do carro (normalmente embaixo do painel, perto dos pedais) e **ligue a ignição**.
 2. No Windows: **Configurações → Bluetooth e dispositivos → Adicionar dispositivo → Bluetooth**. Escolha o adaptador (nomes comuns: `OBDII`, `OBD2`, `V-LINK`, `Vgate`). PIN: `1234` ou `0000`.
-3. No programa, escolha **USB / Bluetooth**, clique em **Atualizar** e escolha a porta COM marcada como **Bluetooth**. Se aparecerem duas, use a primeira; se não funcionar, tente a outra.
+3. No programa, escolha **USB / Bluetooth**, clique em **Atualizar** e escolha a porta COM marcada como **Bluetooth**, que já vem primeiro na lista, com o nome do adaptador ao lado. O Windows cria duas portas para cada adaptador pareado: a outra aparece no fim como **Bluetooth de entrada, não use**, porque nunca responde.
 4. Deixe a velocidade em **Automático** e clique em **Conectar**.
 
 > Se o adaptador não aparecer na lista de Bluetooth do Windows, ele provavelmente é **Bluetooth LE**: veja a seção seguinte.
@@ -80,6 +80,10 @@ Com a opção **Reconectar automaticamente se a conexão cair** ligada (na tela 
 
 - **Teste de compatibilidade do adaptador** (tela **Conexão**, com o adaptador conectado): descobre até qual versão do ELM327 o adaptador funciona de verdade. Clones costumam dizer "v2.1" e funcionar como v1.3. Só usa comandos que leem algo ou que o reinício desfaz; nada é gravado no adaptador.
 - **Centrais eletrônicas** (tela **Veículo e prontidão**): lista as centrais que respondem pelo OBD (motor, câmbio, sistema híbrido) e lê a identificação de cada uma (nome, número da peça, fornecedor, versão do software), quando o carro informa. Só leitura. ABS, airbag e carroceria usam endereços próprios de cada fabricante e não aparecem.
+
+## 13b. Tela acesa durante a leitura
+
+Enquanto a leitura ao vivo estiver ligada, uma gravação estiver em andamento ou a tela **HUD** estiver aberta, o programa pede ao Windows para não apagar a tela nem suspender o computador. Ao parar, o Windows volta ao normal. Assim a conexão não cai no meio de uma viagem.
 
 ## 14. Só leitura (segurança)
 

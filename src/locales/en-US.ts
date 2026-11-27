@@ -81,7 +81,7 @@ const enUS: Messages = {
     unsupportedAt: "Rejected commands",
     unsupportedAtHelp: "Setup commands this adapter did not recognize. The program carries on without them; only advanced features are affected (e.g. without ATAT1 reading is a bit slower).",
     noPorts: "No port found. Check the cable or the Bluetooth pairing and click Refresh.",
-    portKind: { usb: "USB", bluetooth: "Bluetooth", pci: "PCI", unknown: "Serial" },
+    portKind: { usb: "USB", bluetooth: "Bluetooth", bluetooth_in: "incoming Bluetooth, do not use", pci: "PCI", unknown: "Serial" },
     baud: "Speed (baud rate)",
     baudAuto: "Automatic (tries the common ones)",
     host: "IP address",

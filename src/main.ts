@@ -10,6 +10,7 @@ import { applyTheme } from "./theme";
 import { prefs, setActiveProfile } from "./prefs";
 import { initAlerts } from "./alerts";
 import { initTrip } from "./trip";
+import { initKeepAwake } from "./awake";
 import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
 import { fmtNum } from "./i18n";
 
@@ -316,6 +317,7 @@ async function boot() {
 
   initTrip();
   initAlerts();
+  initKeepAwake();
   on("connection", renderStatus);
   on("link", renderLink);
   // Another car: screens show its settings, alerts and results.
