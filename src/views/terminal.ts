@@ -10,7 +10,7 @@ const output: { kind: "tx" | "rx" | "err"; text: string }[] = [];
 export function mount(root: HTMLElement) {
   const page = h("div", { class: "page" });
   root.append(page);
-  page.append(h("h1", null, t("terminal.title")), h("p", { class: "lead" }, t("terminal.intro")));
+  page.append(h("h1", null, t("terminal.title")), h("p", { class: "lead" }, t("terminal.intro")), h("p", { class: "muted small" }, t("terminal.readOnly")));
   if (state.connection !== "connected") {
     page.append(notConnected());
     return;

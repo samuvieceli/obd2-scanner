@@ -3,7 +3,7 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { api, type DtcInfo, type TestResult } from "../api";
 import { fmtNum, getLang, pidText, t } from "../i18n";
 import { state } from "../store";
-import { busy, button, clear, fmtValue, h, infoTip, notConnected, pidTip, section, toast, unitOf } from "../ui";
+import { busy, button, clear, errorText, fmtValue, h, infoTip, notConnected, pidTip, section, toast, unitOf } from "../ui";
 
 function dtcItem(d: DtcInfo): HTMLElement {
   return h(
@@ -136,7 +136,14 @@ export function mount(root: HTMLElement) {
     const ok = await ask(t("dtc.clearConfirm"), { title: t("dtc.clearConfirmTitle"), kind: "warning", okLabel: t("dtc.clearCodes"), cancelLabel: t("common.cancel") });
     if (!ok) return;
     const res = await busy(clearBtn, async () => {
-      await api.clearDtcs();
+      try {
+        await api.clearDtcs();
+      } catch (e) {
+        // Demo: say where the virtual engine is switched off.
+        const demo = state.adapter?.transport.startsWith("Demo");
+        if (demo && (e as { code?: string })?.code === "engine_running") throw new Error(`${errorText(e)} ${t("dtc.engineRunningDemo")}`);
+        throw e;
+      }
       return true;
     });
     if (res) {

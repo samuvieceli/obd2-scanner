@@ -69,6 +69,13 @@ fn full_session_against_simulator() {
         assert!(r.mil_on);
         assert_eq!(r.dtc_count, 2);
 
+        // Engine running: clearing is refused and the codes stay.
+        assert!(matches!(
+            elm.clear_dtcs(),
+            Err(ObdError::Refused("engine_running"))
+        ));
+        assert_eq!(elm.read_stored_dtcs().unwrap().len(), 2);
+        elm.command("ATSIMOFF").unwrap();
         elm.clear_dtcs().unwrap();
         assert!(elm.read_stored_dtcs().unwrap().is_empty());
         let r = elm.read_readiness().unwrap();

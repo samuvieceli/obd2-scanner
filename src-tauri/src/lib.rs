@@ -481,6 +481,10 @@ async fn send_raw(
     command: String,
     timeout_ms: Option<u64>,
 ) -> CmdResult<String> {
+    // Read-only: commands that would write to the car or the adapter never
+    // leave the program (see obd_core::safety).
+    obd_core::safety::check_terminal_command(&command)
+        .map_err(|b| CmdError::other(b.code(), command.trim()))?;
     let t = Duration::from_millis(timeout_ms.unwrap_or(5_000).clamp(100, 60_000));
     on_worker(&state, move |elm| elm.raw_command(command.trim(), t))
         .await

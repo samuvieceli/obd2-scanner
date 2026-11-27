@@ -17,6 +17,8 @@ export function reportVin(vin: string | null) {
 
 /** Clone failures the demo can imitate (see simulator.rs). */
 const DEMO_FAULTS = ["hang", "reset", "freeze", "drop"] as const;
+/** Virtual engine stopped (demo). Reset on every new demo connection. */
+let demoEngineOff = false;
 
 type Kind = "demo" | "serial" | "tcp" | "ble";
 
@@ -378,6 +380,7 @@ export function mount(root: HTMLElement) {
     const res = await busy(btn, () => api.connect(target, form.config, form.quirky, prefs().autoReconnect));
     if (res) {
       resetLiveData();
+      demoEngineOff = false;
       state.connection = "connected";
       state.adapter = res.adapter;
       state.vehicleError = res.vehicleError;
@@ -505,8 +508,22 @@ export function mount(root: HTMLElement) {
           }, "ghost", { title: t(`link.demo.${f}Help`) });
           return b;
         }),
+        engineToggle(),
       ),
     );
+
+  /** Demo only: stops or starts the virtual engine (clearing codes needs it stopped). */
+  const engineToggle = () => {
+    const label = () => t(demoEngineOff ? "link.demo.engineOn" : "link.demo.engineOff");
+    const b: HTMLButtonElement = button(label(), async () => {
+      const off = !demoEngineOff;
+      if ((await busy(b, () => api.sendRaw(off ? "ATSIMOFF" : "ATSIMON", 1000))) === undefined) return;
+      demoEngineOff = off;
+      b.textContent = label();
+      toast(t(off ? "link.demo.engineOffDone" : "link.demo.engineOnDone"), "info");
+    }, "ghost", { title: t("link.demo.engineHelp") });
+    return b;
+  };
 
   const logBox = h("pre", { class: "log", "aria-live": "off" });
   const renderLog = () => {

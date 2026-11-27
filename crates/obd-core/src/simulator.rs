@@ -26,6 +26,9 @@
 //! | `ATSIMRESET` | reboot after a voltage dip (banner, settings lost) | setup again |
 //! | `ATSIMFREEZE` | adapter fully frozen, not even `ATI` answers | reopening (power cycle) |
 //! | `ATSIMDROP` | Bluetooth out of range: the port fails | reopening |
+//!
+//! `ATSIMOFF` stops the engine (ignition still on: RPM and speed 0, needed to
+//! clear codes) and `ATSIMON` starts it again.
 
 use std::collections::VecDeque;
 use std::f64::consts::PI;
@@ -160,6 +163,8 @@ pub struct Simulator {
     headers: bool,
     /// `ATSH`: request address (`7DF` = every unit).
     header: String,
+    /// `ATSIMOFF`: engine stopped, ignition on.
+    engine_off: bool,
 }
 
 const SUPPORTED: &[u8] = &[
@@ -202,7 +207,20 @@ impl Simulator {
             fault: Fault::None,
             headers: false,
             header: "7DF".into(),
+            engine_off: false,
         }
+    }
+
+    /// Engine values now (stopped engine: no RPM, speed, air flow or load).
+    fn engine(&self) -> EngineState {
+        let mut e = engine_at(self.now());
+        if self.engine_off {
+            e.rpm = 0.0;
+            e.speed = 0.0;
+            e.maf = 0.0;
+            e.load = 0.0;
+        }
+        e
     }
 
     fn now(&self) -> f64 {
@@ -430,6 +448,10 @@ impl Simulator {
                 };
                 ok()
             }
+            "SIMOFF" | "SIMON" => {
+                self.engine_off = at == "SIMOFF";
+                ok()
+            }
             "Z" | "WS" => {
                 if self.fault == Fault::Hang {
                     self.fault = Fault::None;
@@ -492,7 +514,7 @@ impl Simulator {
             "DPN" => vec!["A6".into()],
             "DP" => vec!["AUTO, ISO 15765-4 (CAN 11/500)".into()],
             "RV" => {
-                let e = engine_at(self.now());
+                let e = self.engine();
                 vec![format!("{:.1}V", e.module_voltage + 0.1)]
             }
             a if a.starts_with("SP")
@@ -578,7 +600,7 @@ impl Simulator {
     }
 
     fn engine_answer(&mut self, req: &[u8]) -> Option<Vec<u8>> {
-        let e = engine_at(self.now());
+        let e = self.engine();
         let mode = req[0];
         let resp: Option<Vec<u8>> = match mode {
             // Up to 6 PIDs per request, answered in one (multi-frame) message.

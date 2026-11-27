@@ -280,6 +280,7 @@ const ptBR = {
     time: "Tempo (s)",
   },
   dtc: {
+    engineRunningDemo: "No modo demonstração, use \"Desligar motor\" na tela Conexão.",
     title: "Códigos de falha (DTC)",
     intro: "Os códigos de falha são registrados pela central do motor quando ela detecta um problema. A luz de injeção (check engine) geralmente acende junto.",
     readCodes: "Ler códigos",
@@ -338,6 +339,7 @@ const ptBR = {
     state: { complete: "Completo", incomplete: "Incompleto", not_supported: "Não suportado" },
   },
   terminal: {
+    readOnly: "Só leitura: comandos que gravam no carro ou no adaptador são recusados.",
     quickHelp: {
       ATI: "Versão do adaptador",
       ATRV: "Tensão da bateria medida pelo adaptador",
@@ -463,6 +465,11 @@ const ptBR = {
     demoTitle: "Simular falhas de adaptador clone (demonstração)",
     demoIntro: "Faz o adaptador virtual falhar como um clone barato, para ver a recuperação automática. Deixe a leitura ligada no Painel ao vivo para ver o efeito.",
     demo: {
+      engineOff: "Desligar motor",
+      engineOn: "Ligar motor",
+      engineHelp: "Para o motor do carro virtual com a ignição ligada (giro e velocidade zero). Necessário para apagar códigos.",
+      engineOffDone: "Motor virtual desligado, ignição ligada. Agora dá para apagar os códigos.",
+      engineOnDone: "Motor virtual ligado de novo.",
       hang: "Travar",
       hangHelp: "O adaptador para de responder aos pedidos do carro, mas ainda aceita comandos AT.",
       hangDone: "Adaptador travado. Em poucos segundos o programa percebe e reinicia o adaptador.",
@@ -597,6 +604,11 @@ const ptBR = {
     vehicle: "Veículo",
   },
   errors: {
+    engine_running: "O motor está ligado ou o carro está andando. Desligue o motor, deixe só a ignição ligada e tente de novo.",
+    blocked_adapter_memory: "Comando bloqueado: ele grava na memória permanente do adaptador ou muda a velocidade da conexão.",
+    blocked_clear_codes: "Para apagar códigos, use o botão Apagar códigos na tela Códigos de falha: ele pede confirmação e confere se o motor está desligado.",
+    blocked_write: "Comando bloqueado: o programa só lê dados do carro e não envia pedidos que gravam, testam peças ou reiniciam centrais.",
+    blocked_unknown: "Comando bloqueado: use um comando AT ou um pedido em hexadecimal de leitura (por exemplo 010C).",
     adapter_reset: "O adaptador reiniciou sozinho (queda de tensão ou travamento) e perdeu as configurações.",
     io: "Erro de comunicação com o adaptador.",
     timeout: "O adaptador não respondeu a tempo. Verifique a conexão, a porta e a velocidade (baud rate).",

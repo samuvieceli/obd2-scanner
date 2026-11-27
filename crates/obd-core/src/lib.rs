@@ -29,6 +29,7 @@ pub mod mode06;
 pub mod pid;
 pub mod readiness;
 pub mod response;
+pub mod safety;
 pub mod session;
 pub mod simulator;
 pub mod transport;
