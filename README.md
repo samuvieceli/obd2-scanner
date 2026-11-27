@@ -28,6 +28,8 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 
 Detalhes e solução de problemas: [docs/COMO-USAR.md](docs/COMO-USAR.md).
 
+**Quer ver ou alterar o código sem saber programar?** Comece pelo [guia para iniciantes](docs/GUIA-INICIANTE.md).
+
 ## Para desenvolvedores
 
 Requisitos: [Rust](https://rustup.rs), [Node.js 22](https://nodejs.org) e, no Windows, as "Ferramentas de Build do Visual Studio" (C++). Veja os [pré-requisitos do Tauri](https://v2.tauri.app/start/prerequisites/).
