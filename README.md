@@ -11,7 +11,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Painel ao vivo** com mais de 80 parâmetros (rotação, temperatura, correção de combustível, sondas lambda e de banda larga, turbo, torque, filtro de partículas, hodômetro, tensão da bateria...), cada um com explicação curta.
 - **Cartões ou mostradores com ponteiro**, **alertas** com som quando um valor sai da faixa segura e **computador de bordo** (consumo em km/L, distância, combustível gasto).
 - **Testes de desempenho** 0–100, 100–0, 40–80 e 80–120 km/h com detecção automática do início e do fim reais de cada teste, distância e histórico.
-- **Testes guiados**: bateria e alternador passo a passo (repouso, partida e carga) e comparação das sondas lambda para avaliar o catalisador, com resultado em linguagem simples.
+- **Testes guiados**: bateria e alternador passo a passo (repouso, partida e carga), comparação das sondas lambda para avaliar o catalisador e mapa de correção de combustível por rotação e carga, com resultado em linguagem simples.
 - **Head-up display (HUD)**: até 4 valores enormes em fundo preto, em tela cheia, com opção espelhada para refletir no para-brisa.
 - **Interpretação automática** dos dados (superaquecimento, mistura pobre/rica, carga da bateria, sonda lambda, catalisador).
 - **Gráficos** em tempo real, sincronizados, com exportação para imagem PNG.
@@ -74,7 +74,7 @@ Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Parte
 classic (COM port), Bluetooth LE, Wi-Fi and a built-in demo simulator. It detects frozen clone adapters (reset and reconfigure),
 reconnects by itself when the link drops, keeps per-car profiles (matched by VIN) and offers metric or imperial units.
 It shows live data as cards or dials with
-explanations, automatic interpretation, alerts, a trip computer, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h) and a head-up display; charts; trouble codes (read/clear,
+explanations, automatic interpretation, alerts, a trip computer, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h), guided tests (battery and alternator, O2 sensors and catalytic converter, fuel trim map) and a head-up display; charts; trouble codes (read/clear,
 freeze frame, 10 brand tables); Mode 06 test results; readiness monitors; VIN decoding; an AT terminal; recording,
 playback and export to CSV/JSON/PNG plus a printable report. UI in Brazilian Portuguese and US English with 8 themes.
 Download the Windows installer from [Releases](https://github.com/samuvieceli/obd2-scanner/releases/latest), or the portable zip (`...-Windows-portatil.zip`) to run without installing; it keeps its settings in a folder next to the program.

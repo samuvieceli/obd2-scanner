@@ -160,6 +160,16 @@ fn temp_wide(d: &[u8]) -> f64 {
 
 /// Live-data PIDs supported by the app.
 pub static PIDS: &[PidDef] = &[
+    // Fuel system status, bank 1: 1 = closed loop (the computer corrects the
+    // mixture with the O2 sensor; bit 2 or bit 16 of A), 0 = open loop (cold
+    // engine, full load, slowing down, fault).
+    pidx!(0x03, "closed_loop_b1", "", 0.0, 1.0, 2, 0, 1, Fuel, |d| {
+        if a(d) as u8 & 0x12 != 0 {
+            1.0
+        } else {
+            0.0
+        }
+    }),
     pid!(0x04, "engine_load", "%", 0.0, 100.0, 1, Engine, percent),
     pid!(
         0x05,
@@ -707,6 +717,9 @@ mod tests {
         assert_eq!(decode("odometer", &[0x00, 0x01, 0xE2, 0x40]), 12_345.6);
         assert_eq!(decode("wb_current_s1", &[0x80, 0x00, 0x80, 0x00]), 0.0);
         assert_eq!(defs_for(0x34).count(), 2);
+        assert_eq!(decode("closed_loop_b1", &[0x02, 0x00]), 1.0);
+        assert_eq!(decode("closed_loop_b1", &[0x10, 0x00]), 1.0);
+        assert_eq!(decode("closed_loop_b1", &[0x04, 0x00]), 0.0);
     }
 
     #[test]

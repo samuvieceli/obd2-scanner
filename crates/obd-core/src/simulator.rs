@@ -120,7 +120,9 @@ pub fn engine_at(t: f64) -> EngineState {
     };
     let maf = rpm * load / 100.0 * 0.0166 + 0.4;
     let coolant = 25.0 + 65.0 * warm + noise(0.05) * 1.5 * warm;
-    let stft = 3.0 * (t * 2.0 * PI / 3.0).sin() + noise(4.0);
+    // Leaner at idle: the fuel trim map shows the "air leak" pattern.
+    let idle_lean = if phase == 0 { 8.0 } else { 0.0 };
+    let stft = 3.0 * (t * 2.0 * PI / 3.0).sin() + noise(4.0) + idle_lean;
     let o2 = (t * 2.0 * PI * 0.9).sin();
     EngineState {
         rpm: rpm.max(0.0),
@@ -178,9 +180,9 @@ pub struct Simulator {
 }
 
 const SUPPORTED: &[u8] = &[
-    0x01, 0x04, 0x05, 0x06, 0x07, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x14, 0x15, 0x1F, 0x20,
-    0x21, 0x2F, 0x30, 0x31, 0x33, 0x3C, 0x40, 0x42, 0x44, 0x46, 0x49, 0x4E, 0x52, 0x5C, 0x5E, 0x60,
-    0x80, 0xA0, 0xA6,
+    0x01, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x14, 0x15, 0x1F,
+    0x20, 0x21, 0x2F, 0x30, 0x31, 0x33, 0x3C, 0x40, 0x42, 0x44, 0x46, 0x49, 0x4E, 0x52, 0x5C, 0x5E,
+    0x60, 0x80, 0xA0, 0xA6,
 ];
 
 impl Simulator {
@@ -392,6 +394,17 @@ impl Simulator {
             0x0B => vec![u8c(e.map)],
             0x0C => u16c(e.rpm * 4.0),
             0x0D => vec![u8c(e.speed)],
+            // Fuel system: open loop while cold (1) or slowing down (4), closed loop (2).
+            0x03 => vec![
+                if e.coolant < 60.0 {
+                    1
+                } else if e.load < 10.0 {
+                    4
+                } else {
+                    2
+                },
+                0,
+            ],
             0x0E => vec![u8c((e.timing + 64.0) * 2.0)],
             0x0F => vec![u8c(e.intake_temp + 40.0)],
             0x10 => u16c(e.maf * 100.0),
