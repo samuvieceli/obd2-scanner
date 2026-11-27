@@ -34,8 +34,8 @@ export interface Profile {
   /** Volumetric efficiency (0-1) used with the displacement. */
   volumetricEff: number;
   alerts: AlertRule[];
-  /** Performance tests being watched; missing = all of them. */
-  perfTests?: PerfTestId[];
+  /** The one performance test being measured (see `chosenTest`). */
+  perfTest?: PerfTestId;
 }
 
 export interface Prefs {
