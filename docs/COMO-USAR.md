@@ -190,6 +190,9 @@ Diferenças em relação ao instalador: não aparece no menu Iniciar (crie um at
 | --- | --- |
 | "O adaptador não respondeu a tempo" | Porta errada ou adaptador sem energia. Confira a porta COM. Em *Opções avançadas*, aumente o tempo de espera do reset ATZ. |
 | "Adaptador OK, veículo sem resposta" | Ligue a ignição (ou o motor) e clique em **Tentar de novo**. Em carro mais antigo (em geral antes de 2008, protocolos ISO 9141/KWP), muitos clones baratos não têm o circuito da "linha K": troque por um adaptador de boa qualidade. |
+| "A porta está sendo usada por outro programa" | Feche outros apps de OBD e outras janelas deste programa; desconecte o adaptador do celular. |
+| "O Windows não alcançou o adaptador Bluetooth" | Adaptador fora do carro, ignição desligada, longe ou conectado a um celular. Clássico: se continuar, remova o pareamento no Windows e pareie de novo (PIN `1234` ou `0000`). |
+| Bluetooth LE não aparece na busca | Confira se o Bluetooth do Windows está ligado e se o adaptador não está conectado a um celular. Não precisa parear; se pareou antes e não funciona, remova o pareamento. |
 | Leituras lentas | Selecione menos parâmetros no Painel ou diminua o tempo de espera por comando. |
 | Faixa amarela "Reiniciando o adaptador" ou "Tentando reconectar" | Normal com clones: o programa está se recuperando sozinho. Se durar mais de um minuto, tire o adaptador da tomada por 10 segundos. Veja *Quando o clone trava*. |
 | Valores pulando ou travando com adaptador clone | Em *Opções avançadas*, desligue a **leitura rápida** e aumente o tempo de espera por comando. |

@@ -121,7 +121,7 @@ pub fn scan_ecus(elm: &mut Elm327) -> Result<Vec<EcuInfo>> {
     let restored = elm.reconfigure();
     let list = result?;
     match restored {
-        Err(e @ (ObdError::Io(_) | ObdError::Connection(_))) => Err(e),
+        Err(e @ (ObdError::Io(_) | ObdError::Connection(_) | ObdError::Port(..))) => Err(e),
         _ => Ok(list),
     }
 }
@@ -177,7 +177,9 @@ fn scan_inner(elm: &mut Elm327) -> Result<Vec<EcuInfo>> {
                 Err(ObdError::NegativeResponse(_)) => {}
                 // No answer at all: this unit does not speak UDS.
                 Err(ObdError::Timeout | ObdError::NoData) if ecu.ids.is_empty() => break,
-                Err(e @ (ObdError::Io(_) | ObdError::Connection(_))) => return Err(e),
+                Err(e @ (ObdError::Io(_) | ObdError::Connection(_) | ObdError::Port(..))) => {
+                    return Err(e);
+                }
                 Err(_) => {}
             }
         }

@@ -139,7 +139,7 @@ impl Drop for Worker {
 fn is_fatal(e: &ObdError) -> bool {
     matches!(
         e,
-        ObdError::Io(_) | ObdError::Connection(_) | ObdError::NotConnected
+        ObdError::Io(_) | ObdError::Connection(_) | ObdError::Port(..) | ObdError::NotConnected
     )
 }
 
