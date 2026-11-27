@@ -30,6 +30,9 @@ Mapa das pastas:
 | `src/locales/pt-BR.ts` e `en-US.ts` | **Todos os textos** do programa, em português e inglês. É o lugar mais fácil para começar a mexer. |
 | `src/styles.css` | Cores, tamanhos e temas. |
 | `src/trip.ts`, `src/trips.ts` e `src/refuel.ts` | O computador de bordo: a conta do consumo, a Trip A e a Trip B e o ajuste pelo abastecimento ("Tanque cheio" e "Abasteci"). |
+| `src/perf.ts` | Os testes de desempenho (0–100, retomadas, frenagem). |
+| `src/recording-diagnostics.ts` e `src/views/report.ts` | O que a gravação lê do carro (códigos, prontidão, Modo 06) e o relatório de diagnóstico. |
+| `crates/obd-core/src/interpret.rs` e `src/mode06hints.ts` | As regras da interpretação automática (indícios) dos dados ao vivo e dos testes da central (Modo 06). |
 | `crates/obd-core/` | O "motor": conversa com o adaptador ELM327, fórmulas dos sensores, códigos de falha, simulador. |
 | `crates/obd-core/data/` | Descrições dos códigos de falha (arquivos JSON). |
 | `src-tauri/` | A "casca" do programa para Windows (janela, instalador, ícones). |
@@ -109,8 +112,8 @@ No terminal do VS Code:
 | Comando | O que verifica | Tempo |
 | --- | --- | --- |
 | `npm run typecheck` | Erros de digitação no código da interface. | segundos |
-| `npm test` | A detecção dos testes de desempenho e a conversão de unidades. | segundos |
-| `cargo test -p obd-core --all-features` | O "motor": fórmulas, códigos de falha, simulador, adaptadores clones. | 1 a 3 min na primeira vez |
+| `npm test` | As contas da interface: testes de desempenho, testes guiados, consumo, Trip A/B, ajuste pelo abastecimento, relatório, unidades e mais. | segundos |
+| `cargo test -p obd-core --all-features` | O "motor": fórmulas, códigos de falha, interpretação automática, relatório, simulador, adaptadores clones. | 1 a 3 min na primeira vez |
 | `npm run tauri build` | Gera o instalador em `target\release\bundle\nsis\`. | 5 a 10 min |
 
 Se tudo terminar sem a palavra `error` (em vermelho), está ok.
