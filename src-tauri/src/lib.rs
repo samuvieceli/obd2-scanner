@@ -122,6 +122,14 @@ fn app_info(portable: State<'_, PortableData>) -> AppInfo {
     }
 }
 
+/// Keeps the screen on while reading, recording or showing the HUD. A sync
+/// command runs on the main thread, which lives as long as the program: the
+/// Windows request is tied to the thread that makes it.
+#[tauri::command]
+fn keep_awake(on: bool) {
+    portable::keep_awake(on);
+}
+
 #[tauri::command]
 fn list_ports() -> Vec<PortInfo> {
     obd_core::transport::serial::list_ports()
@@ -635,6 +643,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             app_info,
+            keep_awake,
             list_ports,
             scan_ble,
             pid_catalog,

@@ -5,11 +5,11 @@
 ```
 ┌──────────────────────── Interface (src/, TypeScript + Vite) ────────────────────────┐
 │ telas (views/) · textos pt-BR/en-US (locales/) · gráficos uPlot · estado (store.ts) │
-│ playback · trip · perf · alerts · prefs (perfis) · units · gauge · theme           │
+│ playback · trip · perf · alerts · prefs (perfis) · units · gauge · theme · awake   │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
-│ recorder.rs: gravação · portable.rs: versão portátil e aviso de WebView2            │
+│ recorder.rs: gravação · portable.rs: versão portátil, aviso de WebView2, tela acesa │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ┌──────────────────────── Núcleo (crates/obd-core, Rust, sem interface) ──────────────┐
 │ interpret · session (CSV/JSON) · health (travamento e queda da conexão)            │
@@ -30,6 +30,7 @@
 - **Uma thread dona do adaptador.** Portas seriais não podem ser usadas por dois lugares. Os comandos da interface viram tarefas na fila da thread e rodam entre as leituras ao vivo, sem travar a janela.
 - **Saúde da conexão separada da recuperação.** `health.rs` só classifica cada resposta (válida, suspeita, reinício do adaptador, conexão perdida) e decide a ação; `Elm327::recover` reinicia e reconfigura o adaptador no protocolo já conhecido; `worker.rs` reabre a porta com esperas crescentes (até 3 min), usando uma função `Reopen` criada no `connect` com a mesma porta, velocidade e protocolo. Durante a reconexão a porta antiga é fechada (`transport::Closed`), porque o Windows não deixa abrir a mesma porta COM duas vezes. O simulador imita as falhas (`ATSIMHANG`, `ATSIMRESET`, `ATSIMFREEZE`, `ATSIMDROP`).
 - **Ferramentas que mexem nas configurações do adaptador sempre o devolvem como estava.** O teste de compatibilidade (`adapter_test.rs`) e a busca de centrais (`ecu_scan.rs`, que liga os cabeçalhos com `ATH1` e muda o destino com `ATSH`) terminam com `Elm327::reconfigure` (ATZ, configuração e o protocolo já conhecido). Nenhum comando que grava na memória do adaptador (`ATPP`, `ATCV`, `ATSD`, `ATBRD`) nem serviço que escreve na central (UDS 0x2E, 0x31, 0x27...) é usado: só leitura (OBD modos 01/09 e UDS 0x22).
+- **Detalhes do Windows.** `transport/bt_ports.rs` lê do registro (só leitura) quais portas COM Bluetooth são de saída (as que funcionam) e o nome do adaptador; `list_ports` as põe primeiro e marca as de entrada como `bluetooth_in`. `awake.ts` chama `keep_awake`, que usa `SetThreadExecutionState` na thread principal enquanto há leitura, gravação ou HUD.
 - **Só leitura garantido no código.** O Terminal AT passa cada linha por `safety::check_terminal_command`: comandos AT que gravam no adaptador e serviços que escrevem, testam peças ou reiniciam centrais são recusados antes de sair do programa. `Elm327::clear_dtcs` pergunta giro (010C) e velocidade (010D) na hora e recusa (`ObdError::Refused("engine_running")`) com o motor girando ou o carro andando. No simulador, `ATSIMOFF`/`ATSIMON` desligam e ligam o motor virtual.
 - **Perfis e unidades só na interface.** O núcleo trabalha sempre em unidades métricas (as do padrão OBD2). `units.ts` converte apenas na exibição e na digitação de limites; `prefs.ts` guarda os perfis (combustível, cilindrada, alertas, VIN) e escolhe o perfil pelo VIN ao conectar. Resultados de desempenho levam o `profileId`.
 - **Textos fora do código Rust.** O núcleo devolve chaves (`coolant_temp`, `mixture_lean_b1`) e a interface traduz. Descrições de DTC ficam em `crates/obd-core/data/dtc_descriptions.json` (pt e en).

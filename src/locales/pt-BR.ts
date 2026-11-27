@@ -79,7 +79,7 @@ const ptBR = {
     unsupportedAt: "Comandos recusados",
     unsupportedAtHelp: "Comandos de configuração que este adaptador não reconheceu. O programa segue sem eles; só afeta recursos avançados (por exemplo, sem ATAT1 a leitura fica um pouco mais lenta).",
     noPorts: "Nenhuma porta encontrada. Verifique o cabo ou o pareamento Bluetooth e clique em Atualizar.",
-    portKind: { usb: "USB", bluetooth: "Bluetooth", pci: "PCI", unknown: "Serial" },
+    portKind: { usb: "USB", bluetooth: "Bluetooth", bluetooth_in: "Bluetooth de entrada, não use", pci: "PCI", unknown: "Serial" },
     baud: "Velocidade (baud rate)",
     baudAuto: "Automático (testa as mais comuns)",
     host: "Endereço IP",

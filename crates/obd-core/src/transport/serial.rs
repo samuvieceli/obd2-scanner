@@ -58,11 +58,15 @@ impl Transport for SerialTransport {
 }
 
 /// List serial ports, marking which ones look like Bluetooth or USB.
+/// On Windows the Bluetooth ports are told apart (see [`super::bt_ports`]):
+/// outgoing ones, which work, come first with the adapter's name; incoming
+/// ones (`bluetooth_in`) go last.
 pub fn list_ports() -> Vec<PortInfo> {
     let Ok(ports) = serialport::available_ports() else {
         return Vec::new();
     };
-    ports
+    let bt = super::bt_ports::bluetooth_ports();
+    let mut list: Vec<PortInfo> = ports
         .into_iter()
         .map(|p| {
             let (kind, description) = match &p.port_type {
@@ -78,13 +82,28 @@ pub fn list_ports() -> Vec<PortInfo> {
                 SerialPortType::PciPort => ("pci", String::new()),
                 SerialPortType::Unknown => ("unknown", String::new()),
             };
+            let known = bt
+                .iter()
+                .find(|b| b.port.eq_ignore_ascii_case(&p.port_name));
+            let kind = match known {
+                Some(b) if b.incoming => "bluetooth_in",
+                Some(_) => "bluetooth",
+                None => kind,
+            };
             PortInfo {
                 name: p.port_name,
                 kind: kind.into(),
-                description,
+                description: known.and_then(|b| b.device.clone()).unwrap_or(description),
             }
         })
-        .collect()
+        .collect();
+    list.sort_by_key(|p| match p.kind.as_str() {
+        "bluetooth" => 0,
+        "usb" => 1,
+        "bluetooth_in" => 3,
+        _ => 2,
+    });
+    list
 }
 
 /// Quickly finds the speed an ELM327 answers at: sends two harmless DEL
