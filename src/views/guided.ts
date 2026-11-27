@@ -6,6 +6,7 @@ import { api, type MonitorState } from "../api";
 import { fmtNum, pidText, t } from "../i18n";
 import { hasLiveSource, isSupported, on, state } from "../store";
 import { BatteryTest, overall, type BatteryResult, type Grade, type Reading } from "../battery";
+import { LOAD_BINS, MIN_SAMPLES, RPM_BINS, TrimMap, gradeTrim, type Pattern } from "../trims";
 import { O2Test, RPM_RANGE, WARM_C, WINDOW_S, type O2Result, type Verdict } from "../o2test";
 import { cssVar } from "../theme";
 import { button, clear, errorText, h, infoTip, notConnected, toast } from "../ui";
@@ -15,6 +16,7 @@ type Panel = (box: HTMLElement) => (() => void) | void;
 const TESTS: { id: string; panel: Panel }[] = [
   { id: "battery", panel: batteryPanel },
   { id: "o2", panel: o2Panel },
+  { id: "trims", panel: trimsPanel },
 ];
 
 let lastTab = "battery";
@@ -473,6 +475,142 @@ function o2Panel(box: HTMLElement): () => void {
     offs.forEach((f) => f());
     window.removeEventListener("resize", fitPlot);
     plot.destroy();
+    if (live) polling.restore();
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Fuel trim map. It fills in the background from any live frame that carries
+// the trims (the dashboard reads them by default), so a normal drive builds it.
+
+const TRIM_KEYS = ["rpm", "engine_load", "stft_b1", "ltft_b1", "closed_loop_b1", "coolant_temp"];
+let trimMap = new TrimMap();
+let trimSource: unknown = null;
+
+export function initTrimCollector() {
+  // A new connection or another recording starts a new map.
+  const sourceNow = () => state.playback ?? (state.connection === "connected" ? state.adapter : null);
+  const check = () => {
+    const src = sourceNow();
+    if (src && src !== trimSource) trimMap = new TrimMap();
+    trimSource = src;
+  };
+  on("connection", check);
+  on("playback", check);
+  on("frame", () => {
+    check();
+    trimMap.push({
+      rpm: fresh("rpm"),
+      load: fresh("engine_load"),
+      stft: fresh("stft_b1"),
+      ltft: fresh("ltft_b1"),
+      closedLoop: fresh("closed_loop_b1"),
+      coolant: state.latest.coolant_temp,
+    });
+  });
+}
+
+function trimsPanel(box: HTMLElement): () => void {
+  if (!isSupported("stft_b1") || !isSupported("ltft_b1")) {
+    box.append(h("div", { class: "alert" }, h("p", null, t("trims.noTrims"))));
+    return () => undefined;
+  }
+  const live = !state.playback;
+  const polling = focusPolling();
+  const gridEl = h("div", { class: "table-wrap" });
+  const verdictEl = h("section", { class: "card" });
+  const countEl = h("p", { class: "muted small" });
+
+  const fmtPct = (v: number) => `${v > 0 ? "+" : ""}${fmtNum(v, 1)}%`;
+  const rpmLabel = (i: number) =>
+    i === 0 ? `< ${fmtNum(RPM_BINS[0], 0)}` : i === RPM_BINS.length ? `≥ ${fmtNum(RPM_BINS[i - 1], 0)}` : `${fmtNum(RPM_BINS[i - 1], 0)}–${fmtNum(RPM_BINS[i], 0)}`;
+  const loadLabel = (i: number) =>
+    i === 0 ? `< ${LOAD_BINS[0]}%` : i === LOAD_BINS.length ? `≥ ${LOAD_BINS[i - 1]}%` : `${LOAD_BINS[i - 1]}–${LOAD_BINS[i]}%`;
+
+  let shownPattern: Pattern | "" = "";
+  const render = () => {
+    const m = trimMap;
+    clear(gridEl);
+    const rows = [...m.cells.keys()].reverse();
+    gridEl.append(
+      h(
+        "table",
+        { class: "table trim-map" },
+        h(
+          "thead",
+          null,
+          h("tr", null, h("th", null, t("trims.loadRpm")), ...RPM_BINS.concat([Infinity]).map((_x, c) => h("th", { class: "num" }, `${rpmLabel(c)} rpm`))),
+        ),
+        h(
+          "tbody",
+          null,
+          rows.map((r) =>
+            h(
+              "tr",
+              null,
+              h("th", { scope: "row" }, h("div", null, t(`trims.rows.${r}`)), h("div", { class: "muted small" }, `${t("trims.load")} ${loadLabel(r)}`)),
+              ...m.cells[r].map((cell, c) => {
+                const v = m.mean(r, c);
+                const g = v === undefined ? "none" : gradeTrim(v);
+                return h(
+                  "td",
+                  { class: `num trim-cell trim-${g}`, title: t("trims.cellTip", { n: cell.n, min: MIN_SAMPLES }) },
+                  h("strong", null, v === undefined ? "·" : fmtPct(v)),
+                  h("div", { class: "muted small" }, t("trims.samples", { n: cell.n })),
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+    );
+    countEl.textContent = t("trims.counts", { used: m.used, skipped: m.skipped }) + (m.knowsLoop ? "" : ` ${t("trims.noLoopInfo")}`);
+    const p = m.pattern();
+    if (p !== shownPattern) {
+      shownPattern = p;
+      clear(verdictEl);
+      const grade = p === "ok" ? "ok" : p === "not_enough" || p === "mixed" ? null : "warn";
+      verdictEl.append(
+        h("h2", null, t("trims.result"), " ", grade ? gradeBadge(grade) : null),
+        h("p", null, t(`trims.patterns.${p}`)),
+        h("p", { class: "muted small" }, t("trims.precision")),
+      );
+    }
+  };
+
+  box.append(
+    h("p", { class: "muted" }, t("trims.intro")),
+    h(
+      "ul",
+      { class: "legend-list small" },
+      h("li", null, gradeBadge("ok"), " ", t("trims.legend.ok")),
+      h("li", null, gradeBadge("warn"), " ", t("trims.legend.warn")),
+      h("li", null, gradeBadge("bad"), " ", t("trims.legend.bad")),
+    ),
+    gridEl,
+    countEl,
+    h("div", { class: "actions" }, button(t("battery.restart"), () => {
+      trimMap = new TrimMap();
+      shownPattern = "";
+      render();
+    }, "ghost")),
+    verdictEl,
+  );
+
+  render();
+  if (live) void polling.set(TRIM_KEYS.filter((k) => k === "rpm" || isSupported(k)));
+  let last = 0;
+  const offs = [
+    on("frame", () => {
+      // Redraw at most twice a second: the map changes slowly.
+      const now = Date.now();
+      if (now - last < 500) return;
+      last = now;
+      render();
+    }),
+  ];
+  return () => {
+    offs.forEach((f) => f());
     if (live) polling.restore();
   };
 }

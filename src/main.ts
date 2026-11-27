@@ -20,6 +20,7 @@ import * as charts from "./views/charts";
 import * as hud from "./views/hud";
 import * as performance from "./views/performance";
 import * as guided from "./views/guided";
+import { initTrimCollector } from "./views/guided";
 import * as diagnostics from "./views/diagnostics";
 import * as vehicle from "./views/vehicle";
 import * as terminal from "./views/terminal";
@@ -325,6 +326,7 @@ async function boot() {
   });
 
   initTrip();
+  initTrimCollector();
   initAlerts();
   initKeepAwake();
   on("connection", renderStatus);

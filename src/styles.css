@@ -440,3 +440,11 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 [role="tabpanel"] { display: grid; gap: 12px; }
 [role="tabpanel"] > * { margin-top: 0; margin-bottom: 0; }
 [role="tabpanel"] .chart-card { min-width: 0; }
+.trim-map td.trim-cell { text-align: center; min-width: 92px; }
+.trim-map th[scope="row"] { text-align: left; }
+.trim-ok { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.trim-warn { background: color-mix(in srgb, var(--warn) 20%, transparent); }
+.trim-bad { background: color-mix(in srgb, var(--danger) 22%, transparent); }
+.legend-list { list-style: none; padding: 0; margin: 0; display: flex; gap: 16px; flex-wrap: wrap; }
+.trim-map thead th { text-align: center; }
+.trim-map thead th:first-child { text-align: left; }

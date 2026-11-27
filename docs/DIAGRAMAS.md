@@ -204,7 +204,7 @@ flowchart LR
         dashboard["Painel ao vivo"]
         hud["HUD"]
         performance["Testes de desempenho"]
-        guided["Testes guiados<br/>bateria, sondas"]
+        guided["Testes guiados<br/>bateria, sondas,<br/>mapa de correção"]
         charts["Gráficos"]
         diagnostics["Códigos de falha<br/>+ Modo 06"]
         vehicle["Veículo e prontidão<br/>+ centrais"]
@@ -220,6 +220,7 @@ flowchart LR
         perf["perf.ts<br/>detecção 0-100 etc."]
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         o2test["o2test.ts<br/>sondas e catalisador"]
+        trims["trims.ts<br/>mapa de correção<br/>de combustível"]
         alerts["alerts.ts<br/>alertas e bipe"]
         playback["playback.ts<br/>reprodução"]
         prefs["prefs.ts<br/>preferências e perfis"]
@@ -230,7 +231,7 @@ flowchart LR
     end
     dashboard --> gauge & trip & alerts
     performance --> perf
-    guided --> battery & o2test
+    guided --> battery & o2test & trims
     sessions --> playback
     settings --> prefs & units & theme
     connection --> prefs

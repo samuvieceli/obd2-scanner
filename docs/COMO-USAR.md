@@ -82,6 +82,20 @@ A tensão vem do próprio adaptador (comando `ATRV`, medida no pino 16, ligado d
 
 O programa conta quantas vezes cada sonda cruza o meio da escala (com uma margem, para o ruído não contar) e compara o tamanho da oscilação das duas, em vez de exigir uma faixa fixa de tensão. Carros com sonda de banda larga na frente (lê o fator lambda, perto de 1,00) têm só a sonda de trás avaliada. Embaixo, a tela mostra o **monitor do catalisador** e os **km desde que os códigos foram apagados**: são o melhor sinal de que alguém apagou um defeito antes de vender o carro. Os testes da própria central (Modo 06) são mais confiáveis que o gráfico, porque a sonda responde em milissegundos, mais rápido do que o adaptador consegue ler.
 
+**Mapa de correção de combustível** (funciona também com uma gravação reproduzida):
+
+O mapa mostra a correção total que a central aplica na mistura (curto prazo + longo prazo) em 9 faixas: 3 de rotação (abaixo de 1.300, 1.300 a 2.500 e acima de 2.500 rpm) por 3 de carga (abaixo de 30%, 30 a 60% e acima de 60%). Ele se preenche sozinho enquanto você dirige, mesmo fora desta tela, porque o painel ao vivo já lê esses valores. Cada faixa mostra a média a partir de 10 leituras: verde até ±10%, amarelo de 10 a 20%, vermelho acima de 20%.
+
+Só contam as leituras em **malha fechada** (PID 03, quando a central corrige a mistura usando a sonda). Com o motor frio, o acelerador no fundo ou em desaceleração a correção fica parada e estragaria as médias. Se o carro não informa a malha, o programa usa só leituras com o motor acima de 70 °C.
+
+| Padrão | Indicação |
+| --- | --- |
+| Pobre (positivo) só em marcha lenta, normal com carga | Entrada falsa de ar (mangueira de vácuo, junta do coletor, respiro do óleo). Em motores com sensor MAP, comuns nos flex, o sinal é mais fraco. |
+| Pobre só com carga alta | Falta de combustível quando o motor pede mais (bomba fraca, filtro entupido, bicos sujos). |
+| Pobre em tudo | Flex ainda aprendendo a mistura depois de abastecer, combustível ruim, sensor de ar sujo, pressão baixa, vazamento no escapamento antes da sonda. |
+| Rica (negativo) só em marcha lenta | Válvula do cânister presa aberta, bico pingando. |
+| Rica em tudo | Bico vazando, pressão de combustível alta, sonda com leitura errada, combustível no óleo. |
+
 ## 7. Testes da central (Modo 06)
 
 Em **Códigos de falha → Testes da central**, clique em **Ler testes**. Cada linha é um autoteste da central com o valor medido e os limites aceitos. Um teste **reprovado** costuma indicar o componente com problema antes mesmo de aparecer um código de falha. Disponível em carros com rede CAN (a maioria a partir de 2008–2010).
