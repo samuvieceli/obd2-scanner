@@ -14,7 +14,9 @@ function fmtEconomy(kmPerL: number): string {
   const [v, unit] = consumption(kmPerL);
   return `${fmtNum(v, 1)} ${unit}`;
 }
-import { resetTrip, trip } from "../trip";
+import { meters, resetTrip, resetTripMeter, setTripRunning, trip } from "../trip";
+import { TRIP_IDS, average, type TripId } from "../trips";
+import { ask } from "@tauri-apps/plugin-dialog";
 import { lastDrive, showSummary } from "./drive-summary";
 import { tripCost } from "../cost";
 import { normalize } from "../search";
@@ -351,7 +353,8 @@ export function mount(root: HTMLElement) {
     // "auto" the program would silently assume gasoline and show too low a
     // consumption with ethanol in the tank. Ask instead, with one click.
     const flexBlind = profile().fuel === "auto" && !!state.adapter && !state.playback && !isSupported("ethanol_percent");
-    const key = `${missing.join()}|${!!state.playback}|${lastDrive?.endedAt ?? ""}|${noPrice}|${flexBlind}|${getLang()}`;
+    const m = meters();
+    const key = `${missing.join()}|${!!state.playback}|${lastDrive?.endedAt ?? ""}|${noPrice}|${flexBlind}|${getLang()}|${m.a.running}|${m.b.running}|${profile().id}`;
     if (key === actionsFor) return;
     actionsFor = key;
     clear(tripActions);
@@ -382,11 +385,30 @@ export function mount(root: HTMLElement) {
     if (noPrice && !(missing.length && !state.playback)) {
       tripActions.append(h("p", { class: "muted small" }, h("a", { href: "#/settings" }, t("cost.setPrices"))));
     }
+    if (!state.playback) {
+      const confirmReset = (id: TripId) => async () => {
+        const name = t(`trip.meter.${id}`);
+        const ok = await ask(t("trip.resetConfirm", { name }), { kind: "warning", okLabel: t("trip.resetMeter"), cancelLabel: t("common.cancel") }).catch(() => true);
+        if (ok) resetTripMeter(id);
+      };
+      for (const id of TRIP_IDS) {
+        const running = m[id].running;
+        tripActions.append(
+          h(
+            "div",
+            { class: "row trip-buttons" },
+            h("strong", null, t(`trip.meter.${id}`)),
+            button(t(running ? "trip.pause" : "trip.start"), () => setTripRunning(id, !running), running ? "ghost" : "secondary"),
+            button(t("trip.resetMeter"), confirmReset(id), "ghost"),
+          ),
+        );
+      }
+    }
     tripActions.append(
       h(
         "div",
         { class: "row" },
-        button(t("trip.reset"), resetTrip, "ghost"),
+        state.playback ? button(t("trip.reset"), resetTrip, "ghost") : "",
         lastDrive ? button(t("summary.open"), () => lastDrive && showSummary(lastDrive), "ghost") : "",
         h("a", { class: "btn btn-ghost", href: "#/performance" }, t("nav.performance")),
       ),
@@ -400,16 +422,58 @@ export function mount(root: HTMLElement) {
     const row = (label: string, value: string) => h("div", { class: "kv-row" }, h("span", { class: "muted" }, label), h("strong", null, value));
     if (missing.length && !state.playback) {
       tripBox.append(h("p", { class: "muted small" }, t("trip.needs", { names: missing.map((k) => pidText(k).short).join(", ") })));
-    } else {
+      return;
+    }
+    const instant = trip.kmpl !== undefined ? fmtEconomy(trip.kmpl) : trip.lph !== undefined ? `${fmtNum(toDisplay("L/h", trip.lph), 2)} ${displayUnit("L/h")}` : "—";
+    const money = (v: number) => `${t("cost.currency")} ${fmtNum(v, 2)}`;
+    const duration = (s: number) => {
+      const hrs = Math.floor(s / 3600);
+      const min = Math.floor((s % 3600) / 60);
+      return hrs ? `${hrs} h ${String(min).padStart(2, "0")} min` : `${min} min ${String(Math.floor(s % 60)).padStart(2, "0")} s`;
+    };
+    if (!state.playback) {
+      // Trip A and Trip B side by side, the instant consumption shared above.
+      const m = meters();
+      const cost = (fuelL: number) => tripCost(fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices).cost;
+      const line = (label: string, f: (id: TripId) => string) =>
+        h("tr", null, h("th", null, label), ...TRIP_IDS.map((id) => h("td", { class: "num" }, f(id))));
+      tripBox.append(
+        row(t("trip.instant"), instant),
+        h(
+          "table",
+          { class: "table trip-table" },
+          h(
+            "thead",
+            null,
+            h("tr", null, h("th", null, ""), ...TRIP_IDS.map((id) => h("th", { class: "num" }, t(`trip.meter.${id}`), h("br"), h("span", { class: `muted small ${m[id].running ? "ok-text" : ""}` }, t(m[id].running ? "trip.counting" : "trip.paused"))))),
+          ),
+          h(
+            "tbody",
+            null,
+            line(t("trip.average"), (id) => {
+              const a = average(m[id]);
+              return a !== undefined ? fmtEconomy(a) : "—";
+            }),
+            line(t("trip.distance"), (id) => `${fmtNum(toDisplay("km", m[id].distanceKm), 1)} ${displayUnit("km")}`),
+            line(t("trip.fuel"), (id) => `${fmtNum(toDisplay("L", m[id].fuelL), 2)} ${displayUnit("L")}`),
+            line(t("trip.time"), (id) => duration(m[id].timeS)),
+            ...(cost(1) !== undefined ? [line(t("cost.trip"), (id) => money(cost(m[id].fuelL) ?? 0))] : []),
+          ),
+        ),
+      );
+      if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
+      return;
+    }
+    {
       const avg = trip.fuelL > 0.001 ? trip.distanceKm / trip.fuelL : undefined;
       tripBox.append(
+        h("p", { class: "muted small" }, t("trip.replayNote")),
         row(t("trip.instant"), trip.kmpl !== undefined ? fmtEconomy(trip.kmpl) : trip.lph !== undefined ? `${fmtNum(toDisplay("L/h", trip.lph), 2)} ${displayUnit("L/h")}` : "—"),
         row(t("trip.average"), avg !== undefined && trip.distanceKm > 0.1 ? fmtEconomy(avg) : "—"),
         row(t("trip.distance"), `${fmtNum(toDisplay("km", trip.distanceKm), 2)} ${displayUnit("km")}`),
         row(t("trip.fuel"), `${fmtNum(toDisplay("L", trip.fuelL), 2)} ${displayUnit("L")}`),
-        row(t("trip.time"), `${Math.floor(trip.timeS / 60)} min ${String(Math.floor(trip.timeS % 60)).padStart(2, "0")} s`),
+        row(t("trip.time"), duration(trip.timeS)),
       );
-      const money = (v: number) => `${t("cost.currency")} ${fmtNum(v, 2)}`;
       const c = tripCost(trip.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices);
       if (c.cost !== undefined) tripBox.append(row(t("cost.trip"), money(c.cost)));
       if (c.asGasoline !== undefined && c.asEthanol !== undefined && trip.fuelL > 0.01) {

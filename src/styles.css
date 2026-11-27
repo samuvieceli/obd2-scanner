@@ -392,6 +392,10 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 
 /* Trip computer and alerts */
 .kv-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--border); }
+.trip-table { margin-top: 6px; }
+.trip-table th, .trip-table td { padding: 4px 6px; }
+.trip-buttons { align-items: center; gap: 6px; margin-top: 6px; }
+.trip-buttons strong { min-width: 52px; }
 .mt { margin-top: 18px; }
 .value-card.alarm { border-color: var(--danger); box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 45%, transparent); }
 .value-card.alarm .value { color: var(--danger); }
