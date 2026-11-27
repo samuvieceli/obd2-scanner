@@ -4,6 +4,13 @@ import { state } from "../store";
 import { clear, h, section, unitOf } from "../ui";
 import type { Category } from "../api";
 
+/** Set by the global search: text to put in the search box, entry to scroll to. */
+let pending: { query?: string; anchor?: string } | null = null;
+export function openGlossary(query?: string, anchor?: string) {
+  pending = { query, anchor };
+  location.hash = "#/glossary";
+}
+
 const CATS: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
 
 export function mount(root: HTMLElement) {
@@ -58,5 +65,15 @@ export function mount(root: HTMLElement) {
     }
   };
   search.addEventListener("input", render);
+  const want = pending;
+  pending = null;
+  if (want?.query) search.value = want.query;
   render();
+  if (want?.anchor) {
+    const el = document.getElementById(want.anchor);
+    if (el) {
+      el.classList.add("flash");
+      requestAnimationFrame(() => el.scrollIntoView({ block: "center" }));
+    }
+  }
 }

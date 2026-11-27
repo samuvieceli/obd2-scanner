@@ -48,6 +48,13 @@ export function fmtTest(r: TestResult, v: number): string {
   return `${fmtNum(v, decimals(r))}${r.unit ? ` ${r.unit}` : ""}`;
 }
 
+/** Set by the global search: a code to look up when the screen opens. */
+let pendingCode: string | null = null;
+export function openDtcLookup(code: string) {
+  pendingCode = code;
+  location.hash = "#/diagnostics";
+}
+
 export function mount(root: HTMLElement) {
   const page = h("div", { class: "page" });
   root.append(page);
@@ -67,6 +74,12 @@ export function mount(root: HTMLElement) {
     lookupResult.append(h("ul", { class: "dtc-list" }, dtcItem(d)));
   };
   lookupInput.addEventListener("keydown", (e) => e.key === "Enter" && doLookup());
+  if (pendingCode) {
+    lookupInput.value = pendingCode;
+    pendingCode = null;
+    void doLookup();
+    requestAnimationFrame(() => lookupInput.scrollIntoView({ block: "center" }));
+  }
   const lookupCard = section(
     t("dtc.lookup"),
     h("div", { class: "row" }, lookupInput, button(t("common.search"), doLookup, "secondary")),
