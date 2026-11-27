@@ -193,7 +193,10 @@ impl Elm327 {
 
     /// Notes transport failures so the worker can reconnect.
     fn io<T>(&mut self, r: Result<T>) -> Result<T> {
-        if let Err(ObdError::Io(_) | ObdError::Connection(_) | ObdError::NotConnected) = &r {
+        if let Err(
+            ObdError::Io(_) | ObdError::Connection(_) | ObdError::Port(..) | ObdError::NotConnected,
+        ) = &r
+        {
             self.link_lost = true;
         }
         r

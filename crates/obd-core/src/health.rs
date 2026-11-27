@@ -46,7 +46,10 @@ impl Outcome {
             | ObdError::Refused(_) => Outcome::Answered,
             ObdError::Timeout | ObdError::Bus(_) | ObdError::Parse(_) => Outcome::Suspicious,
             ObdError::AdapterReset => Outcome::AdapterReset,
-            ObdError::Io(_) | ObdError::Connection(_) | ObdError::NotConnected => Outcome::LinkLost,
+            ObdError::Io(_)
+            | ObdError::Connection(_)
+            | ObdError::Port(..)
+            | ObdError::NotConnected => Outcome::LinkLost,
         }
     }
 }

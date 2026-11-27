@@ -30,6 +30,10 @@ pub enum ObdError {
     /// (e.g. `engine_running`).
     #[error("request refused: {0}")]
     Refused(&'static str),
+    /// A port could not be opened, with a known reason (code such as
+    /// `port_busy`) and the system's own message.
+    #[error("{1}")]
+    Port(&'static str, String),
 }
 
 impl ObdError {
@@ -48,6 +52,7 @@ impl ObdError {
             ObdError::Connection(_) => "connection",
             ObdError::AdapterReset => "adapter_reset",
             ObdError::Refused(code) => code,
+            ObdError::Port(code, _) => code,
         }
     }
 }

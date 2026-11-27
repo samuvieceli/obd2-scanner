@@ -238,17 +238,7 @@ fn open_adapter(req: &ConnectRequest, app: &AppHandle) -> CmdResult<Elm327> {
             Ok(setup(Box::new(t))?)
         }
         ConnectionTarget::Serial { port, baud_rate } => {
-            let rates: Vec<u32> = if *baud_rate != 0 {
-                vec![*baud_rate]
-            } else {
-                // Quick probe first; fall back to a full ATZ at every speed.
-                match obd_core::transport::serial::probe_baud_rate(port, &COMMON_BAUD_RATES) {
-                    Some(found) => vec![found],
-                    None => COMMON_BAUD_RATES.to_vec(),
-                }
-            };
-            let mut last = ObdError::Timeout;
-            for rate in rates {
+            let log = |rate: u32| {
                 let _ = app.emit(
                     "elm-log",
                     LogEvent {
@@ -256,12 +246,38 @@ fn open_adapter(req: &ConnectRequest, app: &AppHandle) -> CmdResult<Elm327> {
                         text: format!("{port} @ {rate}"),
                     },
                 );
+            };
+            let retryable = |e: &ObdError| {
+                matches!(
+                    e,
+                    ObdError::Timeout | ObdError::UnknownCommand | ObdError::Parse(_)
+                )
+            };
+            if *baud_rate != 0 {
+                log(*baud_rate);
+                let t = obd_core::transport::serial::SerialTransport::open(port, *baud_rate)?;
+                return Ok(setup(Box::new(t))?);
+            }
+            // One opening: the quick speed probe runs on the same port.
+            let (t, found) = obd_core::transport::serial::open_auto(port, &COMMON_BAUD_RATES)?;
+            log(found.unwrap_or(COMMON_BAUD_RATES[0]));
+            let mut last = match setup(Box::new(t)) {
+                Ok(elm) => return Ok(elm),
+                Err(e) if retryable(&e) => e,
+                Err(e) => return Err(e.into()),
+            };
+            // No quick answer: a full ATZ at every other speed, but only on a
+            // cable. On Bluetooth the speed does not matter, and reopening
+            // just reconnects the radio for nothing.
+            if found.is_some() || obd_core::transport::serial::is_bluetooth(port) {
+                return Err(last.into());
+            }
+            for &rate in &COMMON_BAUD_RATES[1..] {
+                log(rate);
                 let t = obd_core::transport::serial::SerialTransport::open(port, rate)?;
                 match setup(Box::new(t)) {
                     Ok(elm) => return Ok(elm),
-                    Err(
-                        e @ (ObdError::Timeout | ObdError::UnknownCommand | ObdError::Parse(_)),
-                    ) => last = e,
+                    Err(e) if retryable(&e) => last = e,
                     Err(e) => return Err(e.into()),
                 }
             }

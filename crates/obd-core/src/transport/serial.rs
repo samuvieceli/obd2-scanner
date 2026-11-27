@@ -20,7 +20,13 @@ impl SerialTransport {
         let port = serialport::new(name, baud_rate)
             .timeout(Duration::from_millis(50))
             .open()
-            .map_err(|e| ObdError::Connection(format!("{name}: {e}")))?;
+            .map_err(|e| {
+                let detail = format!("{name}: {e}");
+                match open_problem(name, &e) {
+                    Some(code) => ObdError::Port(code, detail),
+                    None => ObdError::Connection(detail),
+                }
+            })?;
         Ok(Self {
             port,
             label: format!("{name} @ {baud_rate}"),
@@ -106,15 +112,30 @@ pub fn list_ports() -> Vec<PortInfo> {
     list
 }
 
+/// Opens `name` once and finds the speed an ELM327 answers at on that same
+/// handle. Opening a Bluetooth COM port makes Windows connect to the adapter
+/// (several seconds), and some clones refuse a second connection right after
+/// the first one is closed, so the port is never opened twice to probe.
+/// Returns the open port and the speed found (`None`: no quick answer).
+pub fn open_auto(name: &str, rates: &[u32]) -> Result<(SerialTransport, Option<u32>)> {
+    let first = rates.first().copied().unwrap_or(38_400);
+    let mut t = SerialTransport::open(name, first)?;
+    let found = probe_baud_rate(t.port.as_mut(), rates);
+    let rate = found.unwrap_or(first);
+    if t.port.baud_rate().ok() != Some(rate) {
+        t.port
+            .set_baud_rate(rate)
+            .map_err(|e| ObdError::Connection(format!("{name}: {e}")))?;
+    }
+    t.label = format!("{name} @ {rate}");
+    Ok((t, found))
+}
+
 /// Quickly finds the speed an ELM327 answers at: sends two harmless DEL
 /// characters plus CR (never repeats a previous command) and waits briefly for
 /// the `>` prompt. Much faster than a full `ATZ` per speed.
 /// Technique from python-OBD / pyOBD (GPL-2.0-or-later).
-pub fn probe_baud_rate(name: &str, rates: &[u32]) -> Option<u32> {
-    let mut port = serialport::new(name, rates.first().copied().unwrap_or(38_400))
-        .timeout(Duration::from_millis(50))
-        .open()
-        .ok()?;
+fn probe_baud_rate(port: &mut dyn SerialPort, rates: &[u32]) -> Option<u32> {
     for &rate in rates {
         if port.set_baud_rate(rate).is_err() {
             continue;
@@ -146,6 +167,36 @@ pub fn probe_baud_rate(name: &str, rates: &[u32]) -> Option<u32> {
         }
     }
     None
+}
+
+/// The port is a Bluetooth classic one: its speed setting does not matter
+/// (the link is radio, not a wire), so trying other speeds is pointless.
+pub fn is_bluetooth(name: &str) -> bool {
+    list_ports()
+        .iter()
+        .any(|p| p.name.eq_ignore_ascii_case(name) && p.kind.starts_with("bluetooth"))
+}
+
+/// Why a port could not be opened, as a code the interface explains:
+/// `port_missing` (unplugged, or the pairing was removed), `port_busy`
+/// (another program has it open) or `bt_unreachable` (a Bluetooth adapter
+/// that is off, out of range or in a car with the ignition off).
+/// `None`: no better explanation than the system message.
+pub fn open_problem(name: &str, err: &serialport::Error) -> Option<&'static str> {
+    let port = list_ports()
+        .into_iter()
+        .find(|p| p.name.eq_ignore_ascii_case(name));
+    classify_open_error(port.as_ref().map(|p| p.kind.as_str()), &err.kind)
+}
+
+fn classify_open_error(kind: Option<&str>, err: &serialport::ErrorKind) -> Option<&'static str> {
+    match (kind, err) {
+        (None, _) => Some("port_missing"),
+        // The port exists, so "not found / access denied" means it is in use.
+        (Some(_), serialport::ErrorKind::NoDevice) => Some("port_busy"),
+        (Some(k), _) if k.starts_with("bluetooth") => Some("bt_unreachable"),
+        _ => None,
+    }
 }
 
 /// What identifies a USB adapter whatever COM number Windows gives it.
@@ -229,6 +280,25 @@ mod tests {
         ];
         assert_eq!(pick_usb_port(&ftdi, &ports).as_deref(), Some("COM7"));
         assert_eq!(pick_usb_port(&ftdi, &ports[..1]), None);
+    }
+
+    #[test]
+    fn explains_why_a_port_did_not_open() {
+        use serialport::ErrorKind as K;
+        assert_eq!(
+            classify_open_error(None, &K::NoDevice),
+            Some("port_missing")
+        );
+        assert_eq!(
+            classify_open_error(Some("usb"), &K::NoDevice),
+            Some("port_busy")
+        );
+        let other = K::Io(std::io::ErrorKind::Other);
+        assert_eq!(
+            classify_open_error(Some("bluetooth"), &other),
+            Some("bt_unreachable")
+        );
+        assert_eq!(classify_open_error(Some("usb"), &other), None);
     }
 
     #[test]
