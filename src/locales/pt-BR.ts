@@ -511,6 +511,7 @@ const ptBR = {
     selectDefault: "Recomendados",
   },
   mode06: {
+    hints: "O que os testes indicam",
     title: "Testes da central (Modo 06)",
     desc: "A central testa sozinha vários componentes (sondas, catalisador, falhas de combustão, EVAP...) e guarda o último valor medido e os limites aceitos. Um teste reprovado costuma virar código de falha depois, então aqui dá para ver o problema antes de a luz de injeção acender.",
     read: "Ler testes",
@@ -970,6 +971,12 @@ const ptBR = {
     o2_not_switching: "Sonda lambda dianteira quase parada ({min}–{max} V) com o motor quente. Indício de sonda desgastada ou aquecedor com defeito; o teste guiado de sonda confirma.",
     catalyst_efficiency_suspect: "A sonda traseira oscila quase tanto quanto a dianteira ({down} contra {up} oscilações em 20 s). Indício de catalisador com baixa eficiência; o teste guiado de sonda e catalisador confirma.",
     fuel_low: "Combustível na reserva ({value}%).",
+    misfire_cylinder: "A central contou falhas de combustão no cilindro {cyl} (média {avg}, último ciclo {recent}), bem mais que nos outros. Indício de vela, bobina, cabo ou bico desse cilindro; trocar a bobina de lugar com a de outro cilindro ajuda a confirmar.",
+    misfire_multiple: "A central contou falhas de combustão em {count} cilindros. Indício de algo que eles compartilham: combustível ruim ou pressão baixa, entrada falsa de ar ou bobina única. Veja também os códigos de falha.",
+    catalyst_test_failed: "O teste do catalisador (banco {bank}) foi reprovado pela central. Indício de catalisador com baixa eficiência (o código P0420/P0430 costuma vir depois); antes, descarte falha de combustão, mistura errada e vazamento no escapamento.",
+    catalyst_near_limit: "O teste do catalisador (banco {bank}) passou, mas perto do limite. O catalisador pode estar envelhecendo; acompanhe.",
+    o2_test_failed: "Um teste da sonda lambda banco {bank} sensor {sensor} foi reprovado. Indício de sonda lenta ou com defeito; verifique também vazamentos no escapamento antes dela.",
+    o2_heater_test_failed: "O teste do aquecedor da sonda banco {bank} sensor {sensor} foi reprovado. Indício de aquecedor queimado, fusível ou fiação.",
   },
   monitors: {
     misfire: { name: "Falha de combustão", desc: "Verifica se todos os cilindros estão queimando a mistura corretamente." },

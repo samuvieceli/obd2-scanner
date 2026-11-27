@@ -149,6 +149,17 @@ Quando a regra deixa de valer por um instante (uma acelerada, uma freada), o úl
 
 Em **Códigos de falha → Testes da central**, clique em **Ler testes**. Cada linha é um autoteste da central com o valor medido e os limites aceitos. Um teste **reprovado** costuma indicar o componente com problema antes mesmo de aparecer um código de falha. Disponível em carros com rede CAN (a maioria a partir de 2008–2010).
 
+Acima da tabela, **O que os testes indicam** resume os padrões conhecidos, sempre como indício:
+
+| Indício | Quando aparece |
+| --- | --- |
+| Falha de combustão em um cilindro | Um cilindro com contagem de falhas (média de 10 ciclos ≥ 5 ou último ciclo ≥ 10) pelo menos 3 vezes maior que a dos outros. Aponta vela, bobina, cabo ou bico daquele cilindro. |
+| Falha de combustão em vários cilindros | Vários cilindros acima desses números. Aponta algo comum: combustível, pressão, entrada de ar, bobina única. |
+| Catalisador reprovado / perto do limite | Teste do catalisador reprovado, ou aprovado a menos de 10% do limite superior (só quando o limite começa em zero). |
+| Sonda lambda ou aquecedor reprovado | Algum teste daquela sonda ou do aquecedor dela fora dos limites. |
+
+Valores sem escala conhecida (marcados com *) não entram nessas conclusões.
+
 ## 8. Reproduzir uma gravação
 
 Salve a gravação em **JSON** e depois use **Gravações → Reproduzir gravação**. O painel, o HUD, os gráficos e a interpretação mostram a gravação como se fosse ao vivo, com pausa, velocidade (até 8×) e barra de posição no topo. **Fechar gravação** volta ao normal.

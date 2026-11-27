@@ -3,7 +3,9 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { api, type DtcInfo, type TestResult } from "../api";
 import { fmtNum, getLang, pidText, t } from "../i18n";
 import { state } from "../store";
+import { mode06Hints } from "../mode06hints";
 import { copyCard, drawCard, type Line } from "../share";
+import { findingList } from "./findings";
 import { busy, button, clear, errorText, fmtValue, h, infoTip, notConnected, pidTip, section, toast, unitOf } from "../ui";
 
 function dtcItem(d: DtcInfo): HTMLElement {
@@ -236,6 +238,10 @@ export function mount(root: HTMLElement) {
         { class: failed ? "warn-text" : "ok-text" },
         failed ? t("mode06.summaryFailed", { failed, total: list.length }) : t("mode06.summaryOk", { total: list.length }),
       ),
+    );
+    const hints = mode06Hints(list);
+    if (hints.length) m06Box.append(h("h4", null, t("mode06.hints")), findingList(hints));
+    m06Box.append(
       h(
         "div",
         { class: "table-wrap" },

@@ -228,6 +228,7 @@ flowchart LR
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         o2test["o2test.ts<br/>sondas e catalisador"]
         trims["trims.ts<br/>mapa de correção<br/>de combustível"]
+        m06hints["mode06hints.ts<br/>indícios dos testes<br/>da central (Modo 06)"]
         alerts["alerts.ts<br/>alertas e bipe"]
         playback["playback.ts<br/>reprodução"]
         prefs["prefs.ts<br/>preferências e perfis"]
@@ -246,6 +247,7 @@ flowchart LR
     dashboard --> gauge & trip & alerts & presets & warmup
     hud --> warmup & mini
     diagnostics & charts --> share
+    diagnostics --> m06hints
     dashboard --> summary
     summary --> trip & cost & share
     summary --> drives
