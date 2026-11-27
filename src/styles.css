@@ -374,6 +374,7 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 /* Mode 06 table */
 .table .warn-text { font-weight: 600; }
 .table-wrap { overflow-x: auto; }
+.plain-list { list-style: none; padding: 0; margin: 8px 0 12px; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
 .row-fail td { background: color-mix(in srgb, var(--danger) 8%, transparent); }
 
 /* Bluetooth LE device list */

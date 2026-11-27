@@ -5,6 +5,7 @@ import { activeAlerts } from "../alerts";
 import { tripCost } from "../cost";
 import { fmtNum, getLang, pidText, t } from "../i18n";
 import { prefs, profile } from "../prefs";
+import { addDrive } from "../drives";
 import { copyCard, drawCard, type Line } from "../share";
 import { emit, on, recentValues, state } from "../store";
 import { Drive, type DriveSummary } from "../summary";
@@ -98,6 +99,11 @@ export function showSummary(s: DriveSummary) {
 function finished(s: DriveSummary | undefined) {
   if (!s) return;
   lastDrive = s;
+  // Real drives go to the trip history; replays of recordings do not.
+  if (!state.playback) {
+    const p = profile();
+    addDrive({ ...s, profileId: p.id, fuel: p.fuel, ethanolPercent: state.latest.ethanol_percent });
+  }
   emit("trip");
   // A jump in a replay passes over old drives: keep them without a pop-up.
   if (!isSeeking()) showSummary(s);

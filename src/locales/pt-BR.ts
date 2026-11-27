@@ -111,6 +111,17 @@ const ptBR = {
     noAlerts: "Nenhum valor saiu da faixa de alerta.",
     note: "Conta do momento em que o motor ligou até ele desligar. Consumo e custo são estimativas.",
   },
+  history: {
+    title: "Histórico de viagens: {car}",
+    intro: "Cada viagem de 2 minutos ou mais fica guardada aqui, com o combustível escolhido nas Configurações. Assim dá para comparar o consumo real com gasolina e com etanol.",
+    empty: "Nenhuma viagem guardada ainda. Conecte no carro e dirija: o resumo aparece ao desligar o motor e fica salvo aqui.",
+    note: "Médias calculadas pelo programa a partir dos sensores (estimativa). Para a comparação ser justa, escolha o combustível certo em Configurações a cada abastecimento.",
+    latest: "Últimas viagens",
+    clear: "Apagar o histórico deste carro",
+    clearConfirm: "Clique de novo para confirmar",
+    col: { fuel: "Combustível", drives: "Viagens", distance: "Distância", economy: "Consumo médio", idle: "Tempo parado", maxCoolant: "Temp. máxima" },
+    group: { gasoline: "Gasolina", ethanol: "Etanol", mixed: "Mistura (flex)", other: "Não informado" },
+  },
   search: {
     title: "Busca",
     short: "Buscar",

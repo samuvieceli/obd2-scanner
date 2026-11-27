@@ -6,6 +6,7 @@ import { emit, on, state } from "../store";
 import { busy, button, clear, errorText, h, section, timestampForFile, toast } from "../ui";
 import { startPlayback } from "../playback";
 import { buildReportHtml } from "./report";
+import { driveHistorySection } from "./drive-history";
 import { toggleRecording } from "./dashboard";
 
 function duration(s: number): string {
@@ -147,6 +148,7 @@ export function mount(root: HTMLElement) {
         h("div", { class: "option" }, button(t("sessions.reportHtml"), saveReport, "secondary")),
       ),
     ),
+    driveHistorySection(),
   );
 
   renderStatus();

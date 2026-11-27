@@ -236,6 +236,7 @@ flowchart LR
         share["share.ts<br/>cartão 'Copiar imagem'"]
         warmup["warmup.ts<br/>motor frio / pronto"]
         summary["summary.ts + drive-summary.ts<br/>resumo ao desligar o motor"]
+        drives["drives.ts + views/drive-history.ts<br/>histórico de viagens,<br/>gasolina × etanol"]
         search["search.ts + views/search.ts<br/>busca Ctrl+F / Ctrl+K"]
         mini["views/mini.ts<br/>mini janela por cima das outras"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
@@ -245,6 +246,8 @@ flowchart LR
     diagnostics & charts --> share
     dashboard --> summary
     summary --> trip & cost & share
+    summary --> drives
+    sessions --> drives
     search --> glossary & diagnostics
     performance --> perf
     guided --> battery & o2test & trims
