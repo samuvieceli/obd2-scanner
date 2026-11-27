@@ -22,7 +22,7 @@ use obd_core::transport::{ConnectionTarget, PortInfo, Transport, COMMON_BAUD_RAT
 use obd_core::vin::{decode_vin, VinInfo};
 use obd_core::ObdError;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use recorder::Recorder;
 use worker::Worker;
@@ -60,6 +60,8 @@ struct AppState {
     recorder: Arc<Mutex<Recorder>>,
     adapter: Mutex<Option<AdapterInfo>>,
     identity: Mutex<VehicleIdentity>,
+    /// Frames of a recording recovered at start-up, shown once to the user.
+    recovered: Mutex<Option<usize>>,
 }
 
 /// Runs blocking work off the async runtime.
@@ -547,6 +549,13 @@ fn stop_recording(state: State<'_, AppState>) -> RecordingStatus {
     recording_status(&r)
 }
 
+/// Frames of a recording interrupted last time (program closed or crashed
+/// while recording), now available for export. Answers only once.
+#[tauri::command]
+fn recovered_recording(state: State<'_, AppState>) -> Option<usize> {
+    state.recovered.lock().unwrap().take()
+}
+
 #[tauri::command]
 fn get_recording_status(state: State<'_, AppState>) -> RecordingStatus {
     recording_status(&state.recorder.lock().unwrap())
@@ -634,6 +643,18 @@ pub fn run() {
                 .first()
                 .cloned()
                 .ok_or("no window in tauri.conf.json")?;
+            // Safety copy of recordings: in the portable folder or the
+            // program's data folder in the user's Windows profile.
+            let data_dir = match &portable_data {
+                Some(dir) => Some(dir.clone()),
+                None => app.path().app_local_data_dir().ok(),
+            };
+            if let Some(dir) = data_dir {
+                let state = app.state::<AppState>();
+                let mut recorder = Recorder::with_backup(dir);
+                *state.recovered.lock().unwrap() = recorder.recover();
+                *state.recorder.lock().unwrap() = recorder;
+            }
             let mut window = tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?;
             if let Some(dir) = portable_data {
                 window = window.data_directory(dir);
@@ -664,6 +685,7 @@ pub fn run() {
             start_recording,
             stop_recording,
             get_recording_status,
+            recovered_recording,
             export_session,
             load_session,
             interpret_frames,

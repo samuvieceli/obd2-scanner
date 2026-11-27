@@ -136,6 +136,8 @@ Diferenças em relação ao instalador: não aparece no menu Iniciar (crie um at
 
 ## Arquivos exportados
 
+Enquanto grava, o programa também guarda uma **cópia de segurança** no disco, atualizada pelo menos a cada minuto, no arquivo `gravacao-em-andamento.jsonl` da pasta de dados (na versão portátil, em `OBD2-Scanner-dados`). Se o programa ou o computador desligar no meio da gravação, na próxima abertura ela volta como "última gravação", pronta para exportar em **Gravações e relatórios**. A próxima gravação substitui essa cópia.
+
 - **Planilha CSV (Excel em português)**: separador `;` e vírgula decimal. Abre com dois cliques no Excel brasileiro.
 - **CSV padrão**: separador `,` e ponto decimal.
 - **JSON**: gravação completa, pode ser reaberta e reproduzida no programa (*Gravações → Abrir gravação*).
