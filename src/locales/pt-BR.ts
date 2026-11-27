@@ -677,6 +677,8 @@ const ptBR = {
     lookupPlaceholder: "Ex.: P0301",
     brandTable: "Tabela {brand}",
     notTranslated: "Descrição ainda sem tradução, mostrada em inglês.",
+    makerInfo: "{codes}: código próprio da montadora. O programa não tem uma lista confiável com o significado exato dele. Para saber o que ele indica, pesquise o código junto com a marca e o modelo do carro (por exemplo, \"{example}\" e o modelo), consulte o manual de serviço ou pergunte na concessionária ou em uma oficina especializada na marca.",
+    makerInfoBrand: "{codes}: código próprio da {brand}. O programa não tem uma lista confiável com o significado exato dos códigos próprios dessa marca. Para saber o que ele indica, pesquise o código junto com a marca e o modelo do carro (por exemplo, \"{example}\" e o modelo), consulte o manual de serviço ou pergunte na concessionária ou em uma oficina especializada na {brand}.",
     lookupInvalid: "Digite um código no formato P0301, C0035, B0001 ou U0100.",
   },
   vehicle: {

@@ -17,8 +17,11 @@ Total: cerca de 9.840 códigos genéricos. Um código que não está na base ain
 rede...), deduzido da estrutura do código.
 
 **Lacuna conhecida:** não encontramos tabela aberta e confiável de códigos próprios de Fiat, Chevrolet/GM, Renault,
-Peugeot/Citroën e Jeep. Carros dessas marcas mostram o significado genérico (que vale para todos) e, nos códigos
-próprios, o sistema afetado com a sugestão de consultar o manual de serviço. Não copiamos bancos pagos.
+Peugeot/Citroën e Jeep. Carros dessas marcas mostram o significado genérico (que vale para todos). Nos códigos
+próprios sem descrição confiável, a tela **Códigos de falha** e o relatório mostram o sistema afetado e um aviso: o
+programa não sabe o significado exato, então vale pesquisar o código junto com a marca e o modelo, consultar o
+manual de serviço ou perguntar na concessionária ou numa oficina especializada na marca (`src/dtcadvice.ts`).
+Não copiamos bancos pagos.
 
 ## 2. Chassi (VIN) e fabricantes
 

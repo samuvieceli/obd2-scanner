@@ -6,7 +6,8 @@
 ┌──────────────────────── Interface (src/, TypeScript + Vite) ────────────────────────┐
 │ telas (views/) · textos pt-BR/en-US (locales/) · gráficos uPlot · estado (store.ts) │
 │ playback · trip · trips · refuel · summary · drives · perf · battery · o2test       │
-│ trims · alerts · mode06hints · recording-diagnostics · prefs · units · fuels · cost │
+│ trims · alerts · mode06hints · dtcadvice · recording-diagnostics · prefs · units ·  │
+│ fuels · cost                                                                        │
 │ presets · calc · warmup · search · share · gauge · theme · awake                    │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐

@@ -7,6 +7,7 @@ import { escapeHtml as e, displayValue, fmtValue, unitOf } from "../ui";
 import { findingText } from "./findings";
 import { fmtTest, monitorName, testName } from "./diagnostics";
 import type { DiagnosticSnapshot, DtcInfo, RecordingReport } from "../api";
+import { makerInfoAdvice, needsMakerInfo } from "../dtcadvice";
 
 /** "m:ss" (or "h:mm:ss") since the start of the recording. */
 export function clock(s: number): string {
@@ -70,6 +71,16 @@ export function buildReportHtml(r: RecordingReport, name?: string): string {
       (items.length ? dtcList(items) : `<p>${e(t("dtc.noCodes"))}</p>`);
     parts.push(list(t("dtc.stored"), startDtcs.stored), list(t("dtc.pending"), startDtcs.pending), list(t("dtc.permanent"), startDtcs.permanent));
   } else parts.push(notSaved);
+  // Carmaker's own codes with no reliable description: tell where to look.
+  const makerCodes = [
+    ...new Set(
+      [startDtcs, endDtcs]
+        .flatMap((r) => (r ? [...r.stored, ...r.pending, ...r.permanent] : []))
+        .filter(needsMakerInfo)
+        .map((d) => d.code),
+    ),
+  ];
+  if (makerCodes.length) parts.push(`<p class="sev-warning">${e(makerInfoAdvice(makerCodes, v?.vinInfo?.manufacturer))}</p>`);
   if (endDtcs) {
     const before = new Set(startDtcs ? [...startDtcs.stored, ...startDtcs.pending, ...startDtcs.permanent].map((d) => d.code) : []);
     const seen = new Set<string>();

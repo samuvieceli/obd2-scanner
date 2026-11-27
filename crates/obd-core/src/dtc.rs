@@ -250,11 +250,11 @@ pub fn describe_for(code: &str, lang: &str, brand: Option<&str>) -> DtcInfo {
             let text = match (pt, generic) {
                 (true, true) => format!("Código genérico sem descrição na base. Sistema: {system}"),
                 (true, false) => format!(
-                    "Código específico do fabricante. Sistema: {system}. Consulte o manual de serviço do veículo."
+                    "Código próprio da montadora, sem descrição confiável na base. Sistema afetado: {system}."
                 ),
                 (false, true) => format!("Generic code not in the database. System: {system}"),
                 (false, false) => format!(
-                    "Manufacturer-specific code. System: {system}. Check the vehicle service manual."
+                    "Carmaker's own code, no reliable description in the database. System affected: {system}."
                 ),
             };
             (text, false)
@@ -317,7 +317,7 @@ mod tests {
         assert!(d.description.contains("Cylinder 1"));
         let d = describe("P1234", "pt-BR");
         assert!(!d.known && !d.generic);
-        assert!(d.description.contains("fabricante"));
+        assert!(d.description.contains("montadora"));
     }
 
     #[test]

@@ -39,7 +39,7 @@ Não precisa parear no Windows. Escolha **Bluetooth LE**: a busca começa sozinh
 3. Conecte: deve mostrar a versão do ELM327 e o protocolo do carro.
 4. Deixe o painel ao vivo aberto por 1 a 2 minutos: os valores devem atualizar sem travar.
 5. Desligue e religue o adaptador (ou afaste-se): o programa deve avisar e reconectar.
-6. Leia os códigos de falha (DTC) e desconecte.
+6. Leia os códigos de falha (DTC) e desconecte. Se aparecer um código próprio da montadora que o programa não conhece (comum em Fiat, Chevrolet, Renault, Peugeot/Citroën e Jeep), um aviso explica onde buscar o significado: pesquisa com marca e modelo, manual de serviço, concessionária ou oficina da marca.
 
 ## 3. Adaptador USB
 

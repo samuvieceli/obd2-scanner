@@ -679,6 +679,8 @@ const enUS: Messages = {
     lookupPlaceholder: "E.g. P0301",
     brandTable: "{brand} table",
     notTranslated: "",
+    makerInfo: "{codes}: the carmaker's own code. The program has no reliable list with its exact meaning. To find out what it means, search the code together with the car's make and model (for example, \"{example}\" plus the model), check the service manual or ask a dealer or a shop that specializes in the brand.",
+    makerInfoBrand: "{codes}: a {brand}-specific code. The program has no reliable list with the exact meaning of this brand's own codes. To find out what it means, search the code together with the make and model (for example, \"{example}\" plus the model), check the service manual or ask a {brand} dealer or a shop that specializes in the brand.",
     lookupInvalid: "Type a code like P0301, C0035, B0001 or U0100.",
   },
   vehicle: {

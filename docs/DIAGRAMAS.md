@@ -236,6 +236,7 @@ flowchart LR
         o2test["o2test.ts<br/>sondas e catalisador"]
         trims["trims.ts<br/>mapa de correção<br/>de combustível"]
         m06hints["mode06hints.ts<br/>indícios dos testes<br/>da central (Modo 06)"]
+        dtcadvice["dtcadvice.ts<br/>aviso de código da montadora<br/>sem descrição confiável"]
         alerts["alerts.ts<br/>alertas e bipe"]
         playback["playback.ts<br/>reprodução"]
         prefs["prefs.ts<br/>preferências e perfis"]
@@ -255,6 +256,8 @@ flowchart LR
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup & findings
+    diagnostics --> dtcadvice
+    reportview --> dtcadvice
     trip --> refuel
     dashboard --> refueldlg
     refueldlg --> refuel
