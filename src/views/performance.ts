@@ -1,5 +1,6 @@
 // Performance tests screen: 0–100, 100–0, 40–80 and 80–120 km/h, detected
 // automatically while driving (see perf.ts for the detection rules).
+import { ask } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { fmtNum, getLang, t } from "../i18n";
 import { hasLiveSource, on, state } from "../store";
@@ -142,7 +143,9 @@ export function mount(root: HTMLElement) {
           ),
         ),
       ),
-      button(t("perf.clear"), () => {
+      button(t("perf.clear"), async () => {
+        const ok = await ask(t("perf.clearConfirm", { name: me.name }), { kind: "warning", okLabel: t("perf.clear"), cancelLabel: t("common.cancel") }).catch(() => true);
+        if (!ok) return;
         history = [];
         store();
         renderHistory();

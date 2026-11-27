@@ -125,6 +125,8 @@ export function seek(ms: number) {
   state.findings = keepFindings;
   p.idx = 0;
   p.posMs = Math.max(0, Math.min(p.durationMs, ms));
+  // Totals (trip, fuel trim map, drive summary) are rebuilt from the start.
+  emit("seek");
   emitUpTo(p, p.posMs, rateOf(p.session));
   void refreshFindings(p);
   emit("playback");

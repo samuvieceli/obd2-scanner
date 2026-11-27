@@ -17,7 +17,6 @@ export function reportVin(vin: string | null) {
 
 /** Clone failures the demo can imitate (see simulator.rs). */
 const DEMO_FAULTS = ["hang", "reset", "freeze", "drop"] as const;
-/** Virtual engine stopped (demo). Reset on every new demo connection. */
 type Kind = "demo" | "serial" | "tcp" | "ble";
 
 interface Form {
@@ -583,8 +582,18 @@ export function mount(root: HTMLElement) {
     return h("details", { class: "card log-card" }, h("summary", null, t("connection.log")), logBox);
   };
 
+  // Redraw only when the connection really changes: reading on/off and link
+  // banners also announce "connection", and a redraw would close the open
+  // sections (adapter test, demo faults, log) under the user's mouse.
+  const shownFor = () => `${state.connection}|${state.adapter?.transport ?? ""}|${state.adapter?.supported_pids.length ?? 0}|${!!state.vehicleError}`;
+  let shown = shownFor();
+  const onConnection = () => {
+    if (shownFor() === shown) return;
+    shown = shownFor();
+    render();
+  };
   render();
   if (form.kind === "serial") refreshPorts();
-  const offs = [on("connection", render), on("log", renderLog)];
+  const offs = [on("connection", onConnection), on("log", renderLog)];
   return () => offs.forEach((f) => f());
 }

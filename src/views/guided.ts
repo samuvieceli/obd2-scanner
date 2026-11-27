@@ -497,6 +497,7 @@ export function initTrimCollector() {
   };
   on("connection", check);
   on("playback", check);
+  on("seek", () => (trimMap = new TrimMap()));
   on("frame", () => {
     check();
     trimMap.push({
