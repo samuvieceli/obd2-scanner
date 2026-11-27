@@ -100,6 +100,7 @@ const ptBR = {
     adapterVersion: "Adaptador",
     protocolDetected: "Protocolo do veículo",
     supportedPids: "Parâmetros suportados",
+    kLineHint: "Carro mais antigo (em geral antes de 2008, protocolos ISO 9141 ou KWP)? Esses carros usam a \"linha K\", e muitos adaptadores clones baratos não têm esse circuito. Se a ignição estiver ligada e mesmo assim não funcionar, o problema provavelmente é o adaptador: prefira um modelo de boa qualidade (OBDLink, Vgate iCar Pro, Veepeak).",
     vehicleNoResponse: "O adaptador respondeu, mas o veículo não. Ligue a ignição (ou o motor) e clique em Tentar de novo.",
     retryVehicle: "Tentar de novo",
     log: "Registro de comunicação",
@@ -280,6 +281,8 @@ const ptBR = {
     time: "Tempo (s)",
   },
   dtc: {
+    clearedConfirmed: "Códigos apagados e conferidos: o carro não informa mais nenhum código ativo ou pendente.",
+    clearedSomeBack: "Códigos apagados, mas {count} voltou ou continua: o defeito ainda está presente. Veja a lista abaixo.",
     engineRunningDemo: "No modo demonstração, use \"Desligar motor\" na tela Conexão.",
     title: "Códigos de falha (DTC)",
     intro: "Os códigos de falha são registrados pela central do motor quando ela detecta um problema. A luz de injeção (check engine) geralmente acende junto.",
@@ -607,6 +610,7 @@ const ptBR = {
     vehicle: "Veículo",
   },
   errors: {
+    engine_unknown: "O carro não respondeu ao giro nem à velocidade, então não dá para confirmar que o motor está desligado. Gire a chave até a ignição ligada (luzes do painel acesas, motor parado) e tente de novo.",
     engine_running: "O motor está ligado ou o carro está andando. Desligue o motor, deixe só a ignição ligada e tente de novo.",
     blocked_adapter_memory: "Comando bloqueado: ele grava na memória permanente do adaptador ou muda a velocidade da conexão.",
     blocked_clear_codes: "Para apagar códigos, use o botão Apagar códigos na tela Códigos de falha: ele pede confirmação e confere se o motor está desligado.",

@@ -102,6 +102,7 @@ const enUS: Messages = {
     adapterVersion: "Adapter",
     protocolDetected: "Vehicle protocol",
     supportedPids: "Supported parameters",
+    kLineHint: "Older car (usually before 2008, ISO 9141 or KWP protocols)? These cars use the \"K-line\", and many cheap clone adapters lack that circuit. If the ignition is on and it still fails, the adapter is the likely cause: prefer a good-quality model (OBDLink, Vgate iCar Pro, Veepeak).",
     vehicleNoResponse: "The adapter answered but the vehicle did not. Turn the ignition (or engine) on and click Try again.",
     retryVehicle: "Try again",
     log: "Communication log",
@@ -282,6 +283,8 @@ const enUS: Messages = {
     time: "Time (s)",
   },
   dtc: {
+    clearedConfirmed: "Codes cleared and checked: the car reports no active or pending code anymore.",
+    clearedSomeBack: "Codes cleared, but {count} came back or remain: the fault is still present. See the list below.",
     engineRunningDemo: "In demo mode, use \"Stop engine\" on the Connection screen.",
     title: "Trouble codes (DTC)",
     intro: "Trouble codes are stored by the engine computer when it detects a problem. The check engine light usually turns on too.",
@@ -609,6 +612,7 @@ const enUS: Messages = {
     vehicle: "Vehicle",
   },
   errors: {
+    engine_unknown: "The car answered neither RPM nor speed, so the engine cannot be confirmed off. Turn the key to ignition on (dashboard lights on, engine stopped) and try again.",
     engine_running: "The engine is running or the car is moving. Stop the engine, leave only the ignition on and try again.",
     blocked_adapter_memory: "Command blocked: it writes to the adapter's permanent memory or changes the connection speed.",
     blocked_clear_codes: "To clear codes, use the Clear codes button on the Trouble codes screen: it asks for confirmation and checks that the engine is off.",

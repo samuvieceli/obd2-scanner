@@ -88,7 +88,7 @@ Enquanto a leitura ao vivo estiver ligada, uma gravação estiver em andamento o
 
 ## 14. Só leitura (segurança)
 
-O programa nunca grava nada nas centrais do carro. No **Terminal AT**, comandos que gravariam no carro ou na memória do adaptador são recusados com uma explicação. **Apagar códigos** só funciona com o motor desligado e a ignição ligada: o programa pergunta ao carro o giro e a velocidade antes de apagar. No modo demonstração, use **Desligar motor** em *Simular falhas* (tela Conexão).
+O programa nunca grava nada nas centrais do carro. No **Terminal AT**, comandos que gravariam no carro ou na memória do adaptador são recusados com uma explicação. **Apagar códigos** só funciona com o motor desligado e a ignição ligada: o programa pergunta ao carro o giro e a velocidade antes de apagar e recusa se o carro não responder (chave só em acessórios). Depois de apagar, ele lê os códigos de novo e avisa se algum voltou, sinal de que o defeito continua. Códigos *permanentes* só somem sozinhos, depois de alguns ciclos de uso sem o defeito. No modo demonstração, use **Desligar motor** em *Simular falhas* (tela Conexão).
 
 ## Adaptadores clones
 
@@ -126,7 +126,7 @@ Diferenças em relação ao instalador: não aparece no menu Iniciar (crie um at
 | Sintoma | O que fazer |
 | --- | --- |
 | "O adaptador não respondeu a tempo" | Porta errada ou adaptador sem energia. Confira a porta COM. Em *Opções avançadas*, aumente o tempo de espera do reset ATZ. |
-| "Adaptador OK, veículo sem resposta" | Ligue a ignição (ou o motor) e clique em **Tentar de novo**. |
+| "Adaptador OK, veículo sem resposta" | Ligue a ignição (ou o motor) e clique em **Tentar de novo**. Em carro mais antigo (em geral antes de 2008, protocolos ISO 9141/KWP), muitos clones baratos não têm o circuito da "linha K": troque por um adaptador de boa qualidade. |
 | Leituras lentas | Selecione menos parâmetros no Painel ou diminua o tempo de espera por comando. |
 | Faixa amarela "Reiniciando o adaptador" ou "Tentando reconectar" | Normal com clones: o programa está se recuperando sozinho. Se durar mais de um minuto, tire o adaptador da tomada por 10 segundos. Veja *Quando o clone trava*. |
 | Valores pulando ou travando com adaptador clone | Em *Opções avançadas*, desligue a **leitura rápida** e aumente o tempo de espera por comando. |

@@ -8,7 +8,10 @@
 //! - AT commands are allowed, except those that write to the adapter's own
 //!   permanent memory or cut the link: `ATPP xx SV/ON/OFF` (`ATPPS` only
 //!   lists them and stays allowed), `ATSD` (save data byte), `ATCV`
-//!   (voltage calibration), `ATBRD`/`ATBRT` (baud rate change).
+//!   (voltage calibration), `ATBRD`/`ATBRT` (baud rate change), plus `ATCAF0`,
+//!   which would let a raw CAN frame hide a write behind a read service.
+//! - The line is sent exactly as checked ([`normalize`]): no spaces, line
+//!   breaks or invisible characters, so it cannot carry a second command.
 //! - Car requests are allowed only for services that read: OBD modes 01, 02,
 //!   03, 05, 06, 07, 09, 0A, KWP 1A/21 and UDS 19/22.
 //! - Mode 04 / UDS 14 (clear codes) are refused here: the Trouble codes
@@ -47,19 +50,29 @@ impl Blocked {
     }
 }
 
-/// Checks one terminal line (spaces and letter case do not matter).
-pub fn check_terminal_command(cmd: &str) -> Result<(), Blocked> {
-    let c: String = cmd
-        .chars()
-        .filter(|c| !c.is_whitespace())
+/// The command as it is checked and sent: printable ASCII only, upper case.
+/// Spaces, line breaks and invisible characters are removed, so one line can
+/// never carry a second command (the ELM327 runs whatever follows a CR).
+pub fn normalize(cmd: &str) -> String {
+    cmd.chars()
+        .filter(char::is_ascii_graphic)
         .collect::<String>()
-        .to_ascii_uppercase();
+        .to_ascii_uppercase()
+}
+
+/// Checks one terminal line; send [`normalize`]`(cmd)`, never the raw text.
+pub fn check_terminal_command(cmd: &str) -> Result<(), Blocked> {
+    let c = normalize(cmd);
     if c.is_empty() {
         return Ok(());
     }
     if let Some(at) = c.strip_prefix("AT") {
+        // CAF0 turns CAN auto-formatting off: the first data byte typed is
+        // then the frame length, so a write could pass as a mode 01-0A read.
         let writes = (at.starts_with("PP") && at != "PPS")
-            || ["SD", "CV", "BRD", "BRT"].iter().any(|p| at.starts_with(p));
+            || ["SD", "CV", "BRD", "BRT", "CAF0"]
+                .iter()
+                .any(|p| at.starts_with(p));
         return if writes {
             Err(Blocked::AdapterMemory)
         } else {
@@ -147,5 +160,23 @@ mod tests {
             Err(Blocked::Unknown)
         );
         assert_eq!(check_terminal_command("hello"), Err(Blocked::Unknown));
+        assert_eq!(
+            check_terminal_command("AT CAF0"),
+            Err(Blocked::AdapterMemory)
+        );
+        assert_eq!(check_terminal_command("ATCAF1"), Ok(()));
+    }
+
+    #[test]
+    fn one_line_is_one_command() {
+        // A second command after a line break or hidden by NUL bytes is
+        // glued to the first one and checked as a whole.
+        assert_eq!(normalize("ati\r\natpp0csv23"), "ATIATPP0CSV23");
+        assert_eq!(normalize("AT\0PP 0C SV 23"), "ATPP0CSV23");
+        assert_eq!(
+            check_terminal_command("AT\0PP 0C SV 23"),
+            Err(Blocked::AdapterMemory)
+        );
+        assert_eq!(normalize("01 0c"), "010C");
     }
 }
