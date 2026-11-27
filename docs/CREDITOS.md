@@ -1,0 +1,16 @@
+# Créditos e material de terceiros
+
+| Origem | Licença | O que foi aproveitado | Onde está |
+| --- | --- | --- | --- |
+| [pyOBD](https://github.com/alexfare/pyobd) (Donour Sizemore, Secons Ltd., Jure Poljsak, FareBrothers) | GPL-2.0-or-later | Descrições em inglês de ~1.900 códigos genéricos (`obd2_codes.py`) | `crates/obd-core/data/dtc_descriptions.json` (entradas só com `en`) |
+| pyOBD / [python-OBD](https://github.com/brendan-w/python-OBD) | GPL-2.0-or-later | Ideia da sonda rápida de baud rate (`\x7F\x7F\r`) e da tentativa de protocolos um por um (`ATTP`) | `transport/serial.rs` (`probe_baud_rate`), `elm327.rs` (`try_protocols_one_by_one`), reescritos em Rust |
+| [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) | AGPL-3.0 | Tabelas de códigos específicos por marca (Audi, BMW, Ford, Honda, Hyundai, Kia, Mazda, Nissan, Toyota, Volkswagen) | `crates/obd-core/data/dtc_brands.json` |
+| [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (Erwin Scheuch-Heilig e tradutores) | GPL-3.0 | Descrições de ~2.500 códigos em português do Brasil e ~1.500 em inglês (`codes*.properties`); `pids.csv` usado para conferir as fórmulas dos PIDs de vários valores; ideia do modo head-up display | `crates/obd-core/data/dtc_descriptions.json`, `pid.rs`, `src/views/hud.ts` |
+| [ELMduino](https://github.com/PowerBroker2/ELMduino) | MIT | Ideia de pedir vários PIDs por requisição (leitura rápida) | `elm327.rs` (`read_pids_multi`), reescrito em Rust |
+| [DDT4ALL](https://github.com/cedricp/ddt4all) (Cedric Paille e colaboradores) | GPL-3.0 | Ideia do teste de versão real do adaptador (comandos AT por versão do ELM327, `elm_checker`) e da busca de centrais com identificação (`ecu_scanner`); lista reduzida a comandos seguros e reescrita em Rust | `adapter_test.rs`, `ecu_scan.rs` |
+| [obdium](https://github.com/provrb/obdium) | GPL-3.0 | Referência de fórmulas e da ideia de modo demonstração | — |
+| [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) | MIT | Referência de descrições de códigos P | — |
+| [uPlot](https://github.com/leeoniya/uPlot) | MIT | Biblioteca de gráficos | dependência npm |
+
+As licenças GPL-2.0-or-later e AGPL-3.0 são compatíveis com a GPL-3.0-or-later deste projeto (GPLv3, seção 13).
+As ~150 descrições em português dos códigos mais comuns foram escritas para este projeto; as demais em português vêm do AndrOBD.
