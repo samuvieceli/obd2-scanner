@@ -120,6 +120,7 @@ flowchart TB
         simulator["simulator.rs<br/>carro virtual com defeitos,<br/>falhas de clone e 2 centrais"]
         adaptertest["adapter_test.rs<br/>versão real do ELM327"]
         ecuscan["ecu_scan.rs<br/>centrais e identificação"]
+        safety["safety.rs<br/>filtro só leitura<br/>do Terminal AT"]
     end
     adaptertest --> elm327
     ecuscan --> elm327
@@ -144,6 +145,22 @@ flowchart LR
         b1["ATH1: liga os endereços<br/>nas respostas"] --> b2["0100 para todas:<br/>quem respondeu?<br/>(7E8 motor, 7E9 câmbio...)"] --> b3["Para cada uma (ATSH):<br/>nome (09 0A) e<br/>identificação UDS (22 F1xx)"]
     end
     t3 & b3 --> r["ATZ + configuração<br/>(Elm327::reconfigure)"]
+```
+
+### Só leitura: o que nunca sai do programa
+
+O programa só lê o carro. O Terminal AT é o único lugar onde se digita um comando livre, então cada linha passa por `safety.rs` antes de ir ao adaptador. Apagar códigos tem botão próprio, que pede confirmação e confere na hora se o motor está parado.
+
+```mermaid
+flowchart TB
+    typed["Comando digitado<br/>no Terminal AT"] --> chk{"safety.rs"}
+    chk -- "AT comum (ATI, ATRV, ATSP...)<br/>ou leitura (01, 02, 03, 06, 09, 22...)" --> send["Vai ao adaptador"]
+    chk -- "grava no adaptador<br/>(ATPP, ATSD, ATCV, ATBRD)" --> no1["Recusado"]
+    chk -- "apagar códigos (04, 14)" --> no2["Recusado: use o botão<br/>Apagar códigos"]
+    chk -- "grava, testa peças ou reinicia<br/>central (2E, 31, 27, 11, 08...)" --> no3["Recusado"]
+    btn["Botão Apagar códigos"] --> confirm["Confirmação"] --> eng{"Pergunta ao carro agora:<br/>giro e velocidade"}
+    eng -- "motor parado" --> clear["Envia 04"]
+    eng -- "motor girando<br/>ou carro andando" --> no4["Recusado: desligue o motor"]
 ```
 
 ---

@@ -26,6 +26,10 @@ pub enum ObdError {
     Connection(String),
     #[error("the adapter restarted by itself (voltage dip or crash) and lost its settings")]
     AdapterReset,
+    /// The program refused to send the request; the text is the reason code
+    /// (e.g. `engine_running`).
+    #[error("request refused: {0}")]
+    Refused(&'static str),
 }
 
 impl ObdError {
@@ -43,6 +47,7 @@ impl ObdError {
             ObdError::NotConnected => "not_connected",
             ObdError::Connection(_) => "connection",
             ObdError::AdapterReset => "adapter_reset",
+            ObdError::Refused(code) => code,
         }
     }
 }

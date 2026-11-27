@@ -282,6 +282,7 @@ const enUS: Messages = {
     time: "Time (s)",
   },
   dtc: {
+    engineRunningDemo: "In demo mode, use \"Stop engine\" on the Connection screen.",
     title: "Trouble codes (DTC)",
     intro: "Trouble codes are stored by the engine computer when it detects a problem. The check engine light usually turns on too.",
     readCodes: "Read codes",
@@ -340,6 +341,7 @@ const enUS: Messages = {
     state: { complete: "Complete", incomplete: "Incomplete", not_supported: "Not supported" },
   },
   terminal: {
+    readOnly: "Read-only: commands that write to the car or the adapter are refused.",
     quickHelp: {
       ATI: "Adapter version",
       ATRV: "Battery voltage measured by the adapter",
@@ -465,6 +467,11 @@ const enUS: Messages = {
     demoTitle: "Simulate clone adapter failures (demo)",
     demoIntro: "Makes the virtual adapter fail like a cheap clone, to see the automatic recovery. Keep reading on in the Live dashboard to see the effect.",
     demo: {
+      engineOff: "Stop engine",
+      engineOn: "Start engine",
+      engineHelp: "Stops the virtual car's engine with the ignition on (zero RPM and speed). Needed to clear codes.",
+      engineOffDone: "Virtual engine stopped, ignition on. Codes can be cleared now.",
+      engineOnDone: "Virtual engine running again.",
       hang: "Hang",
       hangHelp: "The adapter stops answering car requests but still accepts AT commands.",
       hangDone: "Adapter hung. In a few seconds the program notices and restarts it.",
@@ -599,6 +606,11 @@ const enUS: Messages = {
     vehicle: "Vehicle",
   },
   errors: {
+    engine_running: "The engine is running or the car is moving. Stop the engine, leave only the ignition on and try again.",
+    blocked_adapter_memory: "Command blocked: it writes to the adapter's permanent memory or changes the connection speed.",
+    blocked_clear_codes: "To clear codes, use the Clear codes button on the Trouble codes screen: it asks for confirmation and checks that the engine is off.",
+    blocked_write: "Command blocked: the program only reads car data and never sends requests that write, test parts or reset control units.",
+    blocked_unknown: "Command blocked: use an AT command or a hexadecimal read request (e.g. 010C).",
     adapter_reset: "The adapter restarted by itself (voltage dip or crash) and lost its settings.",
     io: "Communication error with the adapter.",
     timeout: "The adapter did not answer in time. Check the connection, port and baud rate.",
