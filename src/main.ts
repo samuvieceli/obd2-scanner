@@ -5,7 +5,7 @@ import "./styles.css";
 import { api, events, isTauri } from "./api";
 import { getLang, onLangChange, setLang, t } from "./i18n";
 import { emit, on, pushFrame, pushLog, state } from "./store";
-import { clear, h, toast, errorText } from "./ui";
+import { clear, h, installTooltips, toast, errorText } from "./ui";
 import { applyTheme } from "./theme";
 import { prefs, setActiveProfile } from "./prefs";
 import { initAlerts } from "./alerts";
@@ -260,6 +260,7 @@ function layout() {
 async function boot() {
   document.documentElement.lang = getLang();
   applyTheme();
+  installTooltips();
   if (!isTauri()) {
     app.append(h("div", { class: "empty" }, h("p", null, t("errors.noTauri"))));
     return;

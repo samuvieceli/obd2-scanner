@@ -255,10 +255,13 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 /* Tooltip bubble */
 .tip { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1px solid var(--muted); color: var(--muted); font-size: 11px; font-weight: 700; font-style: italic; font-family: Georgia, serif; cursor: help; position: relative; flex-shrink: 0; }
 .tip:hover, .tip:focus { color: var(--accent); border-color: var(--accent); }
-.tip:hover::after, .tip:focus::after {
-  content: attr(data-tip); position: absolute; z-index: 50; top: 24px; right: -8px; width: max-content; max-width: 300px;
-  background: var(--text); color: var(--bg); padding: 8px 10px; border-radius: 8px; font: 400 0.82rem/1.4 "Segoe UI", system-ui, sans-serif; white-space: pre-line; box-shadow: var(--shadow); text-transform: none; letter-spacing: 0;
+/* The bubble itself is one floating element placed by `installTooltips` (ui.ts),
+   so cards and scrolling areas never cut it. */
+.tip-bubble {
+  position: fixed; z-index: 1000; top: 0; left: 0; max-width: min(320px, calc(100vw - 16px)); pointer-events: none;
+  background: var(--text); color: var(--bg); padding: 8px 10px; border-radius: 8px; font: 400 0.82rem/1.4 "Segoe UI", system-ui, sans-serif; white-space: pre-line; box-shadow: var(--shadow);
 }
+.tip-bubble[hidden] { display: none; }
 
 /* Charts */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
