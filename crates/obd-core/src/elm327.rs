@@ -326,8 +326,9 @@ impl Elm327 {
     }
 
     /// Reads several mode 01 PIDs in one request (CAN allows up to 6).
-    /// PIDs missing from the answer are simply absent from the result.
-    pub fn read_pids_multi(&mut self, pids: &[u8]) -> Result<Vec<PidValue>> {
+    /// Returns `(key, value)` for every key of every PID answered; PIDs
+    /// missing from the answer are simply absent.
+    pub fn read_pids_multi(&mut self, pids: &[u8]) -> Result<Vec<(String, f64)>> {
         let pids = &pids[..pids.len().min(6)];
         let mut cmd = String::from("01");
         for p in pids {
@@ -335,7 +336,8 @@ impl Elm327 {
         }
         let lines = self.command(&cmd)?;
         check_errors(&lines)?;
-        let mut out: Vec<PidValue> = Vec::new();
+        let mut out: Vec<(String, f64)> = Vec::new();
+        let mut seen: Vec<u8> = Vec::new();
         for m in assemble_messages(&lines) {
             if m.first() != Some(&0x41) {
                 continue;
@@ -343,20 +345,38 @@ impl Elm327 {
             let mut i = 1;
             while i < m.len() {
                 let pid = m[i];
-                let Some(def) = PIDS.iter().find(|d| d.pid == pid) else {
+                let Some(first) = PIDS.iter().find(|d| d.pid == pid) else {
                     break;
                 };
-                if !pids.contains(&pid) || i + 1 + def.bytes > m.len() {
+                if !pids.contains(&pid) || i + 1 + first.bytes > m.len() {
                     break;
                 }
-                if !out.iter().any(|v| v.pid == pid) {
-                    out.push(def.decode_value(&m[i + 1..i + 1 + def.bytes])?);
+                if !seen.contains(&pid) {
+                    seen.push(pid);
+                    let data = &m[i + 1..i + 1 + first.bytes];
+                    for def in crate::pid::defs_for(pid) {
+                        out.push((def.key.to_string(), def.decode_value(data)?.value));
+                    }
                 }
-                i += 1 + def.bytes;
+                i += 1 + first.bytes;
             }
         }
         if out.is_empty() {
             return Err(ObdError::NoData);
+        }
+        Ok(out)
+    }
+
+    /// Reads one PID and returns every key it carries.
+    pub fn read_pid_values(&mut self, pid: u8) -> Result<Vec<(String, f64)>> {
+        let msgs = self.request(0x01, &[pid])?;
+        let data = &msgs[0][2..];
+        let mut out = Vec::new();
+        for def in crate::pid::defs_for(pid) {
+            out.push((def.key.to_string(), def.decode_value(data)?.value));
+        }
+        if out.is_empty() {
+            return Err(ObdError::Parse(format!("PID {pid:02X} not in catalog")));
         }
         Ok(out)
     }

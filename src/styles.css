@@ -274,3 +274,16 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .lang-select { min-height: 30px; padding: 4px 6px; font-size: 0.8rem; }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* Head-up display */
+.hud-screen { margin-top: 12px; background: #000; color: #fff; border-radius: var(--radius); min-height: 60vh; display: grid; grid-template-columns: 1fr; gap: 8px; padding: 16px; align-content: center; outline: none; container-type: inline-size; }
+.hud-screen[data-count="2"] { grid-template-columns: 1fr 1fr; }
+.hud-screen[data-count="3"], .hud-screen[data-count="4"] { grid-template-columns: 1fr 1fr; }
+.hud-screen[data-count="3"] .hud-cell:first-child { grid-column: 1 / -1; }
+.hud-screen.mirror { transform: scaleX(-1); }
+.hud-screen:fullscreen { border-radius: 0; min-height: 100vh; padding: 4vh 4vw; }
+.hud-cell { overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-width: 0; }
+.hud-value { font-size: clamp(2.5rem, 11cqw, 12rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: #7CFFB2; }
+.hud-screen[data-count="1"] .hud-value { font-size: clamp(4rem, 22cqw, 22rem); }
+.hud-label { margin-top: 8px; font-size: clamp(1rem, 2.4vw, 2rem); color: #bfc7d1; }
+.hud-empty { color: #bfc7d1; text-align: center; font-size: 1.2rem; }

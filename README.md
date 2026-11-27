@@ -6,7 +6,8 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 ## O que ele faz
 
 - **Conexão** por USB, Bluetooth clássico (porta COM), Wi-Fi e **modo demonstração** (carro virtual, sem adaptador). Bluetooth LE vem na próxima versão.
-- **Painel ao vivo** com mais de 45 parâmetros (rotação, temperatura, correção de combustível, sondas lambda, tensão da bateria...), cada um com explicação curta.
+- **Painel ao vivo** com mais de 80 parâmetros (rotação, temperatura, correção de combustível, sondas lambda e de banda larga, turbo, torque, filtro de partículas, hodômetro, tensão da bateria...), cada um com explicação curta.
+- **Head-up display (HUD)**: até 4 valores enormes em fundo preto, em tela cheia, com opção espelhada para refletir no para-brisa.
 - **Interpretação automática** dos dados (superaquecimento, mistura pobre/rica, carga da bateria, sonda lambda, catalisador).
 - **Gráficos** em tempo real, sincronizados, com exportação para imagem PNG.
 - **Códigos de falha**: confirmados, pendentes e permanentes, com descrição em português; apagar códigos; quadro congelado; consulta de qualquer código.
@@ -43,7 +44,7 @@ Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Parte
 (detalhes em [docs/CREDITOS.md](docs/CREDITOS.md)):
 
 - [pyOBD](https://github.com/alexfare/pyobd) (GPL-2.0-or-later): ~1.900 descrições de códigos genéricos (inglês), detecção rápida da velocidade serial e tentativa de protocolos um por um.
-- [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (GPL-3.0): ~2.500 descrições de códigos em português do Brasil.
+- [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (GPL-3.0): ~2.500 descrições de códigos em português do Brasil; lista de PIDs (`pids.csv`) usada para conferir fórmulas dos parâmetros extras; ideia do modo head-up display.
 - [ELMduino](https://github.com/PowerBroker2/ELMduino) (MIT): ideia da leitura rápida (vários parâmetros por pedido).
 - [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) (AGPL-3.0): tabelas de códigos específicos de 10 marcas.
 - [obdium](https://github.com/provrb/obdium) (GPL-3.0) e [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) (MIT): referência de ideias.

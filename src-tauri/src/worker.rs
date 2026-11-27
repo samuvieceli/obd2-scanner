@@ -93,19 +93,38 @@ fn is_fatal(e: &ObdError) -> bool {
     matches!(e, ObdError::Io(_) | ObdError::Connection(_))
 }
 
-/// Splits the live keys into requests. Unknown keys are skipped.
-fn request_groups(live: &[String], multi: bool) -> Vec<Vec<String>> {
-    let mut groups: Vec<Vec<String>> = Vec::new();
-    let mut pids: Vec<String> = Vec::new();
+/// One request of a polling cycle: the PIDs asked (empty = adapter battery
+/// voltage) and the live keys it answers.
+struct Group {
+    pids: Vec<u8>,
+    keys: Vec<String>,
+}
+
+/// Splits the live keys into requests. Keys sharing a PID are read together;
+/// unknown keys are skipped.
+fn request_groups(live: &[String], multi: bool) -> Vec<Group> {
+    let mut groups = Vec::new();
+    let mut per_pid: Vec<(u8, Vec<String>)> = Vec::new();
     for key in live {
         if key == BATTERY_VOLTAGE_KEY {
-            groups.push(vec![key.clone()]);
-        } else if pid::find_by_key(key).is_some() {
-            pids.push(key.clone());
+            groups.push(Group {
+                pids: vec![],
+                keys: vec![key.clone()],
+            });
+        } else if let Some(def) = pid::find_by_key(key) {
+            match per_pid.iter_mut().find(|(p, _)| *p == def.pid) {
+                Some((_, keys)) => keys.push(key.clone()),
+                None => per_pid.push((def.pid, vec![key.clone()])),
+            }
         }
     }
     let size = if multi { 6 } else { 1 };
-    groups.extend(pids.chunks(size).map(|c| c.to_vec()));
+    for chunk in per_pid.chunks(size) {
+        groups.push(Group {
+            pids: chunk.iter().map(|(p, _)| *p).collect(),
+            keys: chunk.iter().flat_map(|(_, k)| k.clone()).collect(),
+        });
+    }
     groups
 }
 
@@ -192,35 +211,24 @@ fn run_loop(
             if !polling {
                 break;
             }
-            let result: Result<Vec<(String, f64)>, ObdError> = if group[0] == BATTERY_VOLTAGE_KEY {
-                elm.battery_voltage().map(|v| vec![(group[0].clone(), v)])
-            } else if group.len() == 1 {
-                let def = pid::find_by_key(&group[0]).expect("grouped keys are known PIDs");
-                elm.read_pid(def.pid)
-                    .map(|v| vec![(group[0].clone(), v.value)])
-            } else {
-                let pids: Vec<u8> = group
-                    .iter()
-                    .filter_map(|k| pid::find_by_key(k))
-                    .map(|d| d.pid)
-                    .collect();
-                match elm.read_pids_multi(&pids) {
-                    Ok(list) => Ok(list
-                        .into_iter()
-                        .filter_map(|v| pid::find(v.pid).map(|d| (d.key.to_string(), v.value)))
-                        .collect()),
-                    Err(e) if is_fatal(&e) => Err(e),
-                    Err(_) => {
+            let result: Result<Vec<(String, f64)>, ObdError> = match &group.pids[..] {
+                [] => elm
+                    .battery_voltage()
+                    .map(|v| vec![(BATTERY_VOLTAGE_KEY.to_string(), v)]),
+                [one] => elm.read_pid_values(*one),
+                many => match elm.read_pids_multi(many) {
+                    Err(e) if !is_fatal(&e) => {
                         // Car or adapter does not cope with grouped requests:
                         // switch to one PID per request for this connection.
                         multi_ok = false;
                         continue;
                     }
-                }
+                    r => r,
+                },
             };
             match result {
                 Ok(got) => {
-                    for key in &group {
+                    for key in &group.keys {
                         if let Some((_, v)) = got.iter().find(|(k, _)| k == key) {
                             failures.remove(key);
                             values.insert(key.clone(), *v);
@@ -234,7 +242,7 @@ fn run_loop(
                     return;
                 }
                 Err(_) => {
-                    for key in &group {
+                    for key in &group.keys {
                         count_failure(&mut failures, &mut dropped, key);
                     }
                 }

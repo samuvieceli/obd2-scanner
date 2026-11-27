@@ -31,8 +31,13 @@ pub struct PidDef {
     /// Typical range, used to scale gauges and charts.
     pub min: f64,
     pub max: f64,
-    /// Data bytes needed by the formula.
+    /// Total data bytes of the PID answer (several keys can share one PID,
+    /// e.g. a wideband O2 sensor reports lambda and current).
     pub bytes: usize,
+    /// Where this value starts inside the answer.
+    pub offset: usize,
+    /// Bytes used by the formula, starting at `offset`.
+    pub len: usize,
     pub category: PidCategory,
     pub formula: fn(&[u8]) -> f64,
 }
@@ -57,15 +62,16 @@ pub struct PidValue {
 
 impl PidDef {
     pub fn decode_value(&self, data: &[u8]) -> Result<PidValue> {
-        if data.len() < self.bytes {
+        let need = self.offset + self.len;
+        if data.len() < need {
             return Err(ObdError::Parse(format!(
                 "PID {:02X}: expected {} bytes, got {}",
                 self.pid,
-                self.bytes,
+                need,
                 data.len()
             )));
         }
-        let value = (self.formula)(data);
+        let value = (self.formula)(&data[self.offset..need]);
         Ok(PidValue {
             pid: self.pid,
             value: (value * 1000.0).round() / 1000.0,
@@ -114,10 +120,42 @@ macro_rules! pid {
             min: $min,
             max: $max,
             bytes: $bytes,
+            offset: 0,
+            len: $bytes,
             category: $cat,
             formula: $f,
         }
     };
+}
+
+/// PID whose answer carries several values: `total` bytes, this value at
+/// `offset` using `len` bytes. Mostly from SAE J1979 2008+ PIDs; list
+/// cross-checked with AndrOBD's pids.csv (GPL-3.0).
+macro_rules! pidx {
+    ($pid:expr, $key:expr, $unit:expr, $min:expr, $max:expr, $total:expr, $offset:expr, $len:expr, $cat:expr, $f:expr) => {
+        PidDef {
+            pid: $pid,
+            key: $key,
+            unit: $unit,
+            min: $min,
+            max: $max,
+            bytes: $total,
+            offset: $offset,
+            len: $len,
+            category: $cat,
+            formula: $f,
+        }
+    };
+}
+
+fn signed16(d: &[u8]) -> f64 {
+    i16::from_be_bytes([d[0], d[1]]) as f64
+}
+fn torque_pct(d: &[u8]) -> f64 {
+    a(d) - 125.0
+}
+fn temp_wide(d: &[u8]) -> f64 {
+    ab(d) / 10.0 - 40.0
 }
 
 /// Live-data PIDs supported by the app.
@@ -286,7 +324,307 @@ pub static PIDS: &[PidDef] = &[
     pid!(0x5C, "oil_temp", "°C", -40.0, 160.0, 1, Temperature, temp),
     pid!(0x5E, "fuel_rate", "L/h", 0.0, 100.0, 2, Fuel, |d| ab(d)
         / 20.0),
+    // --- Extra PIDs (wideband O2, newer cars, diesel and turbo) ---
+    pidx!(
+        0x24,
+        "lambda_b1s1",
+        "λ",
+        0.0,
+        2.0,
+        4,
+        0,
+        2,
+        Emissions,
+        |d| ab(d) * 2.0 / 65536.0
+    ),
+    pidx!(
+        0x25,
+        "lambda_b1s2",
+        "λ",
+        0.0,
+        2.0,
+        4,
+        0,
+        2,
+        Emissions,
+        |d| ab(d) * 2.0 / 65536.0
+    ),
+    pidx!(
+        0x34,
+        "wb_lambda_s1",
+        "λ",
+        0.0,
+        2.0,
+        4,
+        0,
+        2,
+        Emissions,
+        |d| ab(d) * 2.0 / 65536.0
+    ),
+    pidx!(
+        0x34,
+        "wb_current_s1",
+        "mA",
+        -128.0,
+        128.0,
+        4,
+        2,
+        2,
+        Emissions,
+        |d| ab(d) / 256.0 - 128.0
+    ),
+    pidx!(
+        0x35,
+        "wb_lambda_s2",
+        "λ",
+        0.0,
+        2.0,
+        4,
+        0,
+        2,
+        Emissions,
+        |d| ab(d) * 2.0 / 65536.0
+    ),
+    pidx!(
+        0x35,
+        "wb_current_s2",
+        "mA",
+        -128.0,
+        128.0,
+        4,
+        2,
+        2,
+        Emissions,
+        |d| ab(d) / 256.0 - 128.0
+    ),
+    pid!(0x2D, "egr_error", "%", -100.0, 100.0, 1, Emissions, trim),
+    pid!(
+        0x32,
+        "evap_vapor_pressure",
+        "Pa",
+        -8192.0,
+        8192.0,
+        2,
+        Emissions,
+        |d| signed16(d) / 4.0
+    ),
+    pid!(
+        0x3E,
+        "catalyst_temp_b1s2",
+        "°C",
+        -40.0,
+        1000.0,
+        2,
+        Emissions,
+        temp_wide
+    ),
+    pid!(
+        0x3F,
+        "catalyst_temp_b2s2",
+        "°C",
+        -40.0,
+        1000.0,
+        2,
+        Emissions,
+        temp_wide
+    ),
+    pid!(0x48, "throttle_c", "%", 0.0, 100.0, 1, Engine, percent),
+    pid!(0x4B, "accel_pedal_f", "%", 0.0, 100.0, 1, Engine, percent),
+    pid!(
+        0x4E,
+        "time_since_clear",
+        "min",
+        0.0,
+        65535.0,
+        2,
+        Vehicle,
+        ab
+    ),
+    pid!(
+        0x53,
+        "evap_vapor_pressure_abs",
+        "kPa",
+        0.0,
+        327.7,
+        2,
+        Emissions,
+        |d| ab(d) / 200.0
+    ),
+    pidx!(0x55, "sec_stft_b1", "%", -25.0, 25.0, 2, 0, 1, Fuel, trim),
+    pidx!(0x56, "sec_ltft_b1", "%", -25.0, 25.0, 2, 0, 1, Fuel, trim),
+    pidx!(0x57, "sec_stft_b2", "%", -25.0, 25.0, 2, 0, 1, Fuel, trim),
+    pidx!(0x58, "sec_ltft_b2", "%", -25.0, 25.0, 2, 0, 1, Fuel, trim),
+    pid!(
+        0x59,
+        "fuel_rail_pressure_abs",
+        "kPa",
+        0.0,
+        655350.0,
+        2,
+        Fuel,
+        |d| ab(d) * 10.0
+    ),
+    pid!(
+        0x5B,
+        "hybrid_battery_life",
+        "%",
+        0.0,
+        100.0,
+        1,
+        Electrical,
+        percent
+    ),
+    pid!(
+        0x5D,
+        "injection_timing",
+        "°",
+        -210.0,
+        302.0,
+        2,
+        Fuel,
+        |d| ab(d) / 128.0 - 210.0
+    ),
+    pid!(
+        0x61,
+        "torque_demand",
+        "%",
+        -125.0,
+        130.0,
+        1,
+        Engine,
+        torque_pct
+    ),
+    pid!(
+        0x62,
+        "torque_actual",
+        "%",
+        -125.0,
+        130.0,
+        1,
+        Engine,
+        torque_pct
+    ),
+    pid!(0x63, "torque_reference", "Nm", 0.0, 1000.0, 2, Engine, ab),
+    pidx!(0x66, "maf_a", "g/s", 0.0, 300.0, 5, 1, 2, Air, |d| ab(d)
+        / 32.0),
+    pidx!(
+        0x67,
+        "coolant_temp_1",
+        "°C",
+        -40.0,
+        130.0,
+        3,
+        1,
+        1,
+        Temperature,
+        temp
+    ),
+    pidx!(
+        0x68,
+        "intake_temp_b1s1",
+        "°C",
+        -40.0,
+        100.0,
+        7,
+        1,
+        1,
+        Temperature,
+        temp
+    ),
+    pidx!(
+        0x6F,
+        "turbo_inlet_pressure_a",
+        "kPa",
+        0.0,
+        255.0,
+        3,
+        1,
+        1,
+        Air,
+        a
+    ),
+    pidx!(
+        0x70,
+        "boost_pressure_cmd_a",
+        "kPa",
+        0.0,
+        300.0,
+        10,
+        1,
+        2,
+        Air,
+        |d| ab(d) / 32.0
+    ),
+    pidx!(
+        0x70,
+        "boost_pressure_a",
+        "kPa",
+        0.0,
+        300.0,
+        10,
+        3,
+        2,
+        Air,
+        |d| ab(d) / 32.0
+    ),
+    pidx!(
+        0x73,
+        "exhaust_pressure_b1",
+        "kPa",
+        0.0,
+        655.0,
+        5,
+        1,
+        2,
+        Emissions,
+        |d| ab(d) / 100.0
+    ),
+    pidx!(
+        0x74,
+        "turbo_rpm_a",
+        "rpm",
+        0.0,
+        250000.0,
+        5,
+        1,
+        2,
+        Air,
+        |d| ab(d) * 10.0
+    ),
+    pidx!(0x78, "egt_b1s1", "°C", -40.0, 1000.0, 9, 1, 2, Emissions, temp_wide),
+    pidx!(
+        0x7A,
+        "dpf_pressure_delta_b1",
+        "kPa",
+        -327.0,
+        327.0,
+        7,
+        1,
+        2,
+        Emissions,
+        |d| signed16(d) / 100.0
+    ),
+    pidx!(
+        0x7C,
+        "dpf_temp_in_b1",
+        "°C",
+        -40.0,
+        1000.0,
+        9,
+        1,
+        2,
+        Emissions,
+        temp_wide
+    ),
+    pid!(0xA6, "odometer", "km", 0.0, 2_000_000.0, 4, Vehicle, |d| {
+        u32::from_be_bytes([d[0], d[1], d[2], d[3]]) as f64 / 10.0
+    }),
 ];
+
+/// Every key reported by one PID (most PIDs have a single one).
+pub fn defs_for(pid: u8) -> impl Iterator<Item = &'static PidDef> {
+    PIDS.iter().filter(move |d| d.pid == pid)
+}
 
 /// Pseudo PID used for the adapter's own battery voltage reading (`ATRV`).
 pub const BATTERY_VOLTAGE_KEY: &str = "battery_voltage";
@@ -358,6 +696,17 @@ mod tests {
         assert_eq!(decode("throttle", &[0xFF]), 100.0);
         assert_eq!(decode("o2_b1s1", &[0x5A, 0xFF]), 0.45);
         assert_eq!(decode("catalyst_temp_b1s1", &[0x11, 0x94]), 410.0);
+    }
+
+    #[test]
+    fn multi_value_pids() {
+        // 0x70 boost: support byte, commanded A = 0x0FA0/32 = 125, actual A = 0x0C80/32 = 100.
+        let data = [0x03, 0x0F, 0xA0, 0x0C, 0x80, 0, 0, 0, 0, 0];
+        assert_eq!(decode("boost_pressure_cmd_a", &data), 125.0);
+        assert_eq!(decode("boost_pressure_a", &data), 100.0);
+        assert_eq!(decode("odometer", &[0x00, 0x01, 0xE2, 0x40]), 12_345.6);
+        assert_eq!(decode("wb_current_s1", &[0x80, 0x00, 0x80, 0x00]), 0.0);
+        assert_eq!(defs_for(0x34).count(), 2);
     }
 
     #[test]

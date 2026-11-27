@@ -131,7 +131,8 @@ pub struct Simulator {
 
 const SUPPORTED: &[u8] = &[
     0x01, 0x04, 0x05, 0x06, 0x07, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x14, 0x15, 0x1F, 0x20,
-    0x21, 0x2F, 0x30, 0x31, 0x33, 0x3C, 0x40, 0x42, 0x44, 0x46, 0x49, 0x52, 0x5C, 0x5E,
+    0x21, 0x2F, 0x30, 0x31, 0x33, 0x3C, 0x40, 0x42, 0x44, 0x46, 0x49, 0x4E, 0x52, 0x5C, 0x5E, 0x60,
+    0x80, 0xA0, 0xA6,
 ];
 
 impl Simulator {
@@ -243,7 +244,7 @@ impl Simulator {
         let pct = |v: f64| u8c(v * 255.0 / 100.0);
         let trim = |v: f64| u8c((v + 100.0) * 128.0 / 100.0);
         Some(match pid {
-            0x00 | 0x20 | 0x40 => encode_supported(pid, SUPPORTED).to_vec(),
+            0x00 | 0x20 | 0x40 | 0x60 | 0x80 | 0xA0 => encode_supported(pid, SUPPORTED).to_vec(),
             0x01 => encode_readiness(&self.readiness()).to_vec(),
             0x04 => vec![pct(e.load)],
             0x05 => vec![u8c(e.coolant + 40.0)],
@@ -272,6 +273,16 @@ impl Simulator {
             0x52 => vec![pct(27.0)],
             0x5C => vec![u8c(e.oil_temp + 40.0)],
             0x5E => u16c(e.maf * 0.33 * 20.0),
+            0x4E => u16c(if self.cleared {
+                e.run_time / 60.0
+            } else {
+                4_620.0
+            }),
+            0xA6 => {
+                // 48,213.0 km plus the distance driven in the drive cycle model.
+                let km = 48_213.0 + (e.run_time / 60.0) * 0.6;
+                ((km * 10.0) as u32).to_be_bytes().to_vec()
+            }
             _ => return None,
         })
     }

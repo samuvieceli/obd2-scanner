@@ -102,7 +102,7 @@ fn clone_with_echo_no_ok_and_searching() {
         .expect("ATDPN", "ATDPN\rA6\r\r>")
         .expect("ATDP", "ATDP\rAUTO, ISO 15765-4 (CAN 11/500)\r\r>")
         .expect("0120", "0120\r4120A007B011\r\r>")
-        .expect("010C", "010C\r\0410C0FA0\r\r>")
+        .expect("010C", "010C\r\x00410C0FA0\r\r>")
         .expect("03", "03\r43020133042000\r\r>");
     let mut elm = Elm327::new(Box::new(t), fast_config());
     elm.initialize().unwrap();
@@ -181,8 +181,8 @@ fn multi_pid_request_against_simulator() {
     let values = elm
         .read_pids_multi(&[0x0C, 0x0D, 0x05, 0x14, 0x10, 0x99])
         .unwrap();
-    let pids: Vec<u8> = values.iter().map(|v| v.pid).collect();
-    assert_eq!(pids, vec![0x0C, 0x0D, 0x05, 0x14, 0x10]);
+    let keys: Vec<&str> = values.iter().map(|v| v.0.as_str()).collect();
+    assert_eq!(keys, vec!["rpm", "speed", "coolant_temp", "o2_b1s1", "maf"]);
 }
 
 #[test]
@@ -195,7 +195,19 @@ fn multi_pid_parses_real_can_answer() {
     let mut elm = Elm327::new(Box::new(t), fast_config());
     let v = elm.read_pids_multi(&[0x0C, 0x0D, 0x05]).unwrap();
     assert_eq!(
-        v.iter().map(|x| x.value).collect::<Vec<_>>(),
+        v.iter().map(|x| x.1).collect::<Vec<_>>(),
         vec![1000.0, 50.0, 83.0]
     );
+}
+
+#[test]
+fn reads_high_range_pids_and_odometer() {
+    let mut elm = demo(false);
+    assert!(
+        elm.info.supported_pids.contains(&0xA6),
+        "ranges 0x60-0xA0 followed"
+    );
+    let v = elm.read_pid_values(0xA6).unwrap();
+    assert_eq!(v[0].0, "odometer");
+    assert!(v[0].1 > 48_000.0);
 }

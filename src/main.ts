@@ -11,6 +11,7 @@ import { applyTheme } from "./theme";
 import * as connection from "./views/connection";
 import * as dashboard from "./views/dashboard";
 import * as charts from "./views/charts";
+import * as hud from "./views/hud";
 import * as diagnostics from "./views/diagnostics";
 import * as vehicle from "./views/vehicle";
 import * as terminal from "./views/terminal";
@@ -23,6 +24,7 @@ type View = { mount: (root: HTMLElement) => (() => void) | void };
 const ROUTES: { id: string; icon: string; view: View }[] = [
   { id: "connection", icon: "M4 12h4l2-3 4 6 2-3h4", view: connection },
   { id: "dashboard", icon: "M4 14a8 8 0 1 1 16 0M12 14l4-4", view: dashboard },
+  { id: "hud", icon: "M3 7h18v8H3zM8 19h8M7 11h2M11 11h6", view: hud },
   { id: "charts", icon: "M4 19V5M4 19h16M7 15l3-4 3 2 5-6", view: charts },
   { id: "diagnostics", icon: "M12 3l9 16H3zM12 10v4M12 17v.01", view: diagnostics },
   { id: "vehicle", icon: "M5 16l1.5-5h11L19 16M5 16h14v3H5zM7.5 19v1M16.5 19v1", view: vehicle },

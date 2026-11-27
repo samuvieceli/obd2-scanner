@@ -114,7 +114,8 @@ fn split_frame_index(l: &str) -> Option<(u8, &str)> {
 /// Parses `"41 0C 1A F8"` or `"410C1AF8"` into bytes.
 pub fn parse_hex_line(l: &str) -> Option<Vec<u8>> {
     let hex: String = l.chars().filter(|c| !c.is_whitespace()).collect();
-    if hex.is_empty() || hex.len() % 2 != 0 || !hex.chars().all(|c| c.is_ascii_hexdigit()) {
+    if hex.is_empty() || !hex.len().is_multiple_of(2) || !hex.chars().all(|c| c.is_ascii_hexdigit())
+    {
         return None;
     }
     (0..hex.len())
