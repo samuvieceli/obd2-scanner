@@ -93,6 +93,30 @@ fn is_fatal(e: &ObdError) -> bool {
     matches!(e, ObdError::Io(_) | ObdError::Connection(_))
 }
 
+/// Splits the live keys into requests. Unknown keys are skipped.
+fn request_groups(live: &[String], multi: bool) -> Vec<Vec<String>> {
+    let mut groups: Vec<Vec<String>> = Vec::new();
+    let mut pids: Vec<String> = Vec::new();
+    for key in live {
+        if key == BATTERY_VOLTAGE_KEY {
+            groups.push(vec![key.clone()]);
+        } else if pid::find_by_key(key).is_some() {
+            pids.push(key.clone());
+        }
+    }
+    let size = if multi { 6 } else { 1 };
+    groups.extend(pids.chunks(size).map(|c| c.to_vec()));
+    groups
+}
+
+fn count_failure(failures: &mut HashMap<String, u32>, dropped: &mut Vec<String>, key: &str) {
+    let n = failures.entry(key.to_string()).or_insert(0);
+    *n += 1;
+    if *n >= MAX_FAILURES && !dropped.iter().any(|d| d == key) {
+        dropped.push(key.to_string());
+    }
+}
+
 /// Applies one message; returns false when the worker must stop.
 fn apply(
     msg: Msg,
@@ -123,6 +147,7 @@ fn run_loop(
     let mut live: Vec<String> = Vec::new();
     let mut failures: HashMap<String, u32> = HashMap::new();
     let mut polling = false;
+    let mut multi_ok = true;
     let mut interpreter = Interpreter::new();
     let mut last_findings = Instant::now() - Duration::from_secs(10);
     let mut last_cycle = Instant::now();
@@ -152,10 +177,12 @@ fn run_loop(
             continue;
         }
 
-        // One polling cycle.
+        // One polling cycle. Requests are groups of keys: one PID, the
+        // battery voltage, or (fast mode on CAN) up to 6 PIDs at once.
         let mut values = HashMap::new();
         let mut dropped = Vec::new();
-        for key in live.clone() {
+        let multi = multi_ok && elm.config.multi_pid && elm.info.is_can();
+        for group in request_groups(&live, multi) {
             // Serve pending UI requests between reads.
             while let Ok(m) = rx.try_recv() {
                 if !apply(m, elm, &mut live, &mut polling, &mut failures) {
@@ -165,27 +192,50 @@ fn run_loop(
             if !polling {
                 break;
             }
-            let result = if key == BATTERY_VOLTAGE_KEY {
-                elm.battery_voltage()
-            } else if let Some(def) = pid::find_by_key(&key) {
-                elm.read_pid(def.pid).map(|v| v.value)
+            let result: Result<Vec<(String, f64)>, ObdError> = if group[0] == BATTERY_VOLTAGE_KEY {
+                elm.battery_voltage().map(|v| vec![(group[0].clone(), v)])
+            } else if group.len() == 1 {
+                let def = pid::find_by_key(&group[0]).expect("grouped keys are known PIDs");
+                elm.read_pid(def.pid)
+                    .map(|v| vec![(group[0].clone(), v.value)])
             } else {
-                continue;
+                let pids: Vec<u8> = group
+                    .iter()
+                    .filter_map(|k| pid::find_by_key(k))
+                    .map(|d| d.pid)
+                    .collect();
+                match elm.read_pids_multi(&pids) {
+                    Ok(list) => Ok(list
+                        .into_iter()
+                        .filter_map(|v| pid::find(v.pid).map(|d| (d.key.to_string(), v.value)))
+                        .collect()),
+                    Err(e) if is_fatal(&e) => Err(e),
+                    Err(_) => {
+                        // Car or adapter does not cope with grouped requests:
+                        // switch to one PID per request for this connection.
+                        multi_ok = false;
+                        continue;
+                    }
+                }
             };
             match result {
-                Ok(v) => {
-                    failures.remove(&key);
-                    values.insert(key.clone(), v);
+                Ok(got) => {
+                    for key in &group {
+                        if let Some((_, v)) = got.iter().find(|(k, _)| k == key) {
+                            failures.remove(key);
+                            values.insert(key.clone(), *v);
+                        } else {
+                            count_failure(&mut failures, &mut dropped, key);
+                        }
+                    }
                 }
                 Err(e) if is_fatal(&e) => {
                     let _ = app.emit("connection-lost", crate::CmdError::from(e));
                     return;
                 }
                 Err(_) => {
-                    let n = failures.entry(key.clone()).or_insert(0);
-                    *n += 1;
-                    if *n >= MAX_FAILURES {
-                        dropped.push(key.clone());
+                    for key in &group {
+                        count_failure(&mut failures, &mut dropped, key);
                     }
                 }
             }

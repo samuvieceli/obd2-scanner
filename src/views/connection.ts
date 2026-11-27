@@ -23,7 +23,7 @@ const DEFAULT_FORM: Form = {
   host: "192.168.0.10",
   tcpPort: 35000,
   quirky: false,
-  config: { command_timeout_ms: 2000, reset_timeout_ms: 5000, search_timeout_ms: 15000, protocol: "0", elm_timeout_hex: "" },
+  config: { command_timeout_ms: 2000, reset_timeout_ms: 5000, search_timeout_ms: 15000, protocol: "0", elm_timeout_hex: "", multi_pid: true },
 };
 
 const PROTOCOLS: [string, string][] = [
@@ -233,6 +233,20 @@ export function mount(root: HTMLElement) {
         h("summary", null, t("connection.advanced")),
         h("p", { class: "muted small" }, t("connection.advancedHelp")),
         h("label", { class: "field" }, h("span", null, t("connection.protocol")), proto),
+        h(
+          "label",
+          { class: "check" },
+          h("input", {
+            type: "checkbox",
+            checked: form.config.multi_pid,
+            onchange: (e: Event) => {
+              form.config.multi_pid = (e.target as HTMLInputElement).checked;
+              saveForm(form);
+            },
+          }),
+          h("span", null, t("connection.multiPid")),
+          infoTip(t("connection.multiPidHelp")),
+        ),
         h(
           "div",
           { class: "row" },

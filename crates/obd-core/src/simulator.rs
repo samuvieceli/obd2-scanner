@@ -374,9 +374,17 @@ impl Simulator {
         let e = engine_at(self.now());
         let mode = req[0];
         let resp: Option<Vec<u8>> = match mode {
-            0x01 if req.len() >= 2 => self
-                .pid_bytes(req[1], &e)
-                .map(|d| [&[0x41, req[1]], &d[..]].concat()),
+            // Up to 6 PIDs per request, answered in one (multi-frame) message.
+            0x01 if req.len() >= 2 => {
+                let mut out = vec![0x41];
+                for &pid in req[1..].iter().take(6) {
+                    if let Some(d) = self.pid_bytes(pid, &e) {
+                        out.push(pid);
+                        out.extend(d);
+                    }
+                }
+                (out.len() > 1).then_some(out)
+            }
             0x02 if req.len() >= 2 => {
                 let pid = req[1];
                 match (pid, self.freeze) {

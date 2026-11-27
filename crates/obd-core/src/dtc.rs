@@ -4,6 +4,9 @@
 //! * `data/dtc_descriptions.json`: generic codes. Common ones in English and
 //!   Brazilian Portuguese; the rest in English, imported from pyOBD
 //!   (github.com/alexfare/pyobd, GPL-2.0-or-later).
+//!   Portuguese (pt-BR) texts for most of them come from AndrOBD
+//!   (github.com/fr3ts0n/AndrOBD, GPL-3.0); the most common ~150 were
+//!   written for this project.
 //! * `data/dtc_brands.json`: manufacturer-specific codes per brand (English),
 //!   imported from Libre Diagnostic
 //!   (github.com/Libre-Diagnosctic/libre-automotive-diagnostic, AGPL-3.0).
@@ -309,10 +312,12 @@ mod tests {
 
     #[test]
     fn english_fallback_for_untranslated_codes() {
-        // P0001 is in the imported English list but not translated yet.
-        let d = describe("P0001", "pt-BR");
+        // B0002 is in the imported English list but not translated yet.
+        let d = describe("B0002", "pt-BR");
         assert!(d.known && !d.translated);
-        assert!(d.description.contains("Fuel Volume Regulator"));
+        assert!(d.description.contains("Driver Frontal Stage 2"));
+        // P0001 got its Portuguese text from AndrOBD.
+        assert!(describe("P0001", "pt-BR").translated);
     }
 
     #[test]

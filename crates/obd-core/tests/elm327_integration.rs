@@ -174,3 +174,28 @@ fn falls_back_to_trying_protocols_one_by_one() {
     assert_eq!(elm.info.protocol_number, "8");
     assert!(elm.info.supported_pids.contains(&0x0C));
 }
+
+#[test]
+fn multi_pid_request_against_simulator() {
+    let mut elm = demo(false);
+    let values = elm
+        .read_pids_multi(&[0x0C, 0x0D, 0x05, 0x14, 0x10, 0x99])
+        .unwrap();
+    let pids: Vec<u8> = values.iter().map(|v| v.pid).collect();
+    assert_eq!(pids, vec![0x0C, 0x0D, 0x05, 0x14, 0x10]);
+}
+
+#[test]
+fn multi_pid_parses_real_can_answer() {
+    // Answer to "010C0D05" from a CAN car: one multi-frame message.
+    let t = ScriptedTransport::new().expect(
+        "010C0D05",
+        "00A\r0: 41 0C 0F A0 0D 32\r1: 05 7B 00 00 00 00 00\r\r>",
+    );
+    let mut elm = Elm327::new(Box::new(t), fast_config());
+    let v = elm.read_pids_multi(&[0x0C, 0x0D, 0x05]).unwrap();
+    assert_eq!(
+        v.iter().map(|x| x.value).collect::<Vec<_>>(),
+        vec![1000.0, 50.0, 83.0]
+    );
+}

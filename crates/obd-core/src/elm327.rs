@@ -32,6 +32,10 @@ pub struct ElmConfig {
     pub protocol: String,
     /// Optional `ATST` value (hex, 4 ms units) to speed up replies. Empty = adapter default.
     pub elm_timeout_hex: String,
+    /// Ask up to 6 PIDs in one request on CAN cars (much faster). Turned off
+    /// automatically for the session if the car or adapter does not cope.
+    /// Idea from ELMduino (MIT).
+    pub multi_pid: bool,
 }
 
 impl Default for ElmConfig {
@@ -42,6 +46,7 @@ impl Default for ElmConfig {
             search_timeout_ms: 15_000,
             protocol: "0".into(),
             elm_timeout_hex: String::new(),
+            multi_pid: true,
         }
     }
 }
@@ -318,6 +323,42 @@ impl Elm327 {
             mode,
             &data[..echo_len.min(data.len())],
         )
+    }
+
+    /// Reads several mode 01 PIDs in one request (CAN allows up to 6).
+    /// PIDs missing from the answer are simply absent from the result.
+    pub fn read_pids_multi(&mut self, pids: &[u8]) -> Result<Vec<PidValue>> {
+        let pids = &pids[..pids.len().min(6)];
+        let mut cmd = String::from("01");
+        for p in pids {
+            cmd.push_str(&format!("{p:02X}"));
+        }
+        let lines = self.command(&cmd)?;
+        check_errors(&lines)?;
+        let mut out: Vec<PidValue> = Vec::new();
+        for m in assemble_messages(&lines) {
+            if m.first() != Some(&0x41) {
+                continue;
+            }
+            let mut i = 1;
+            while i < m.len() {
+                let pid = m[i];
+                let Some(def) = PIDS.iter().find(|d| d.pid == pid) else {
+                    break;
+                };
+                if !pids.contains(&pid) || i + 1 + def.bytes > m.len() {
+                    break;
+                }
+                if !out.iter().any(|v| v.pid == pid) {
+                    out.push(def.decode_value(&m[i + 1..i + 1 + def.bytes])?);
+                }
+                i += 1 + def.bytes;
+            }
+        }
+        if out.is_empty() {
+            return Err(ObdError::NoData);
+        }
+        Ok(out)
     }
 
     /// Reads one live PID (mode 01).

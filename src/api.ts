@@ -43,6 +43,7 @@ export interface ElmConfig {
   search_timeout_ms: number;
   protocol: string;
   elm_timeout_hex: string;
+  multi_pid: boolean;
 }
 
 export interface ConnectResult {
