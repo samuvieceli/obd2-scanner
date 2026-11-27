@@ -6,6 +6,7 @@ import { state } from "../store";
 import { mode06Hints } from "../mode06hints";
 import { copyCard, drawCard, type Line } from "../share";
 import { findingList } from "./findings";
+import { makerInfoAdvice, needsMakerInfo } from "../dtcadvice";
 import { busy, button, clear, errorText, fmtValue, h, infoTip, notConnected, pidTip, section, toast, unitOf } from "../ui";
 
 function dtcItem(d: DtcInfo): HTMLElement {
@@ -25,6 +26,7 @@ function dtcItem(d: DtcInfo): HTMLElement {
         d.brand ? h("span", { class: "badge" }, t("dtc.brandTable", { brand: d.brand.toUpperCase() })) : null,
       ),
       !d.translated && t("dtc.notTranslated") ? h("p", { class: "muted small" }, t("dtc.notTranslated")) : null,
+      needsMakerInfo(d) ? h("p", { class: "small dtc-maker-info" }, makerInfoAdvice([d.code], state.vehicle?.vinInfo?.manufacturer)) : null,
     ),
   );
 }
