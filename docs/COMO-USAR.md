@@ -74,7 +74,7 @@ Abra **Testes de desempenho** e dirija: não há botão de iniciar. O programa r
 
 Por que a retomada exige velocidade constante antes: numa ultrapassagem de verdade o carro está "embalado" numa marcha longa e o motor em giro baixo. Se a medição valesse quando a velocidade só passa por 40 ou 80 km/h no meio de uma acelerada que já vinha de antes, o câmbio já estaria numa marcha mais curta, o motor em giro alto e, nos motores turbo, a pressão do turbo já cheia, e o tempo sairia irrealmente curto. Por isso uma mesma acelerada de 35 a 120 km/h conta só o 40–80.
 
-Cada cartão tem a opção **Medir este teste**: desmarque os que não quer acompanhar. A escolha fica salva por carro (perfil).
+Um teste por vez: marque **Fazer esta prova** no cartão da prova que vai fazer (0–100 vem escolhido de início). Só ela fica ativa; as outras ficam apagadas e não medem nada. Trocar de prova descarta uma medição em andamento. A escolha fica salva por carro (perfil).
 
 O teste é descartado se você aliviar o pé (a velocidade cai), se a velocidade parar de subir por 3 segundos ou se a leitura falhar. Os tempos são calculados entre duas leituras (interpolação), por isso a precisão fica perto de 0,1 s com 8 ou mais leituras por segundo. O **modo preciso** lê só a velocidade enquanto a tela está aberta, para ter mais leituras. **Faça testes só em local fechado e seguro, nunca em via pública.** Também funciona com uma gravação reproduzida.
 
