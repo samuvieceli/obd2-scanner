@@ -9,7 +9,7 @@ import { pidText } from "../i18n";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 const REPO_URL = "https://github.com/samuvieceli/obd2-scanner";
-const FUELS: FuelType[] = ["auto", "gasoline_e27", "ethanol", "gasoline_pure", "diesel"];
+const FUELS: FuelType[] = ["auto", "gasoline", "gasoline_premium", "ethanol", "diesel", "gasoline_pure"];
 
 /** Vehicle profiles: one per car, with the data used by the calculations. */
 function profilesSection(offs: (() => void)[]): HTMLElement {

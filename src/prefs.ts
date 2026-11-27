@@ -9,7 +9,8 @@ import type { UnitPrefs } from "./units";
 import { emit } from "./store";
 import { t } from "./i18n";
 
-export type FuelType = "auto" | "gasoline_e27" | "ethanol" | "gasoline_pure" | "diesel";
+import { migrateFuel, type FuelType } from "./fuels";
+export type { FuelType };
 
 export interface AlertRule {
   key: string;
@@ -74,12 +75,13 @@ function load(): Prefs {
   let profiles = Array.isArray(stored.profiles) && stored.profiles.length ? stored.profiles : null;
   if (!profiles) {
     const first = newProfile(t("profiles.defaultName"), FIRST_PROFILE);
-    if (stored.fuel) first.fuel = stored.fuel;
+    if (stored.fuel) first.fuel = migrateFuel(stored.fuel);
     if (stored.displacementL) first.displacementL = stored.displacementL;
     if (stored.volumetricEff) first.volumetricEff = stored.volumetricEff;
     if (stored.alerts) first.alerts = stored.alerts;
     profiles = [first];
   }
+  for (const p of profiles) p.fuel = migrateFuel(p.fuel);
   const active = profiles.some((p) => p.id === stored.activeProfile) ? stored.activeProfile! : profiles[0].id;
   return {
     alertsEnabled: stored.alertsEnabled ?? true,

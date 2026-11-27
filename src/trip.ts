@@ -7,26 +7,13 @@
 //    Brazil): air mass = rpm × displacement × efficiency × pressure / (R × T).
 // Ethanol content from PID 52 is used for flex cars when available.
 import { emit, on, state } from "./store";
-import { profile, type FuelType } from "./prefs";
+import { profile } from "./prefs";
+import { FUELS, flexProps, type FuelProps } from "./fuels";
 
-/** Stoichiometric air/fuel ratio and density (g/L) of each fuel. */
-const FUELS: Record<Exclude<FuelType, "auto">, { afr: number; density: number }> = {
-  gasoline_pure: { afr: 14.7, density: 745 },
-  gasoline_e27: { afr: 13.2, density: 754 },
-  ethanol: { afr: 8.4, density: 809 },
-  diesel: { afr: 14.5, density: 832 },
-};
-
-/** Air/fuel ratio and density, interpolated by ethanol share for flex cars. */
-function fuelProps(): { afr: number; density: number } {
+/** Air/fuel ratio and density of the fuel in the tank (see fuels.ts). */
+function fuelProps(): FuelProps {
   const p = profile();
-  if (p.fuel !== "auto") return FUELS[p.fuel];
-  const e = state.latest.ethanol_percent;
-  if (e === undefined) return FUELS.gasoline_e27;
-  const f = Math.max(0, Math.min(1, e / 100));
-  const g = FUELS.gasoline_pure;
-  const et = FUELS.ethanol;
-  return { afr: g.afr + (et.afr - g.afr) * f, density: g.density + (et.density - g.density) * f };
+  return p.fuel === "auto" ? flexProps(state.latest.ethanol_percent) : FUELS[p.fuel];
 }
 
 /** Air mass flow in g/s from the MAF sensor or estimated from MAP. */
