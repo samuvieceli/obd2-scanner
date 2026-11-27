@@ -15,7 +15,7 @@ import type {
   VehicleInfo,
 } from "./api";
 
-export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback";
+export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "alerts";
 
 export interface Series {
   t: number[];
@@ -58,6 +58,8 @@ export const state = {
   polling: false,
   rateHz: 0,
   latest: {} as Record<string, number>,
+  /** Time of the last live frame, in seconds. */
+  lastFrameT: undefined as number | undefined,
   minmax: {} as Record<string, [number, number]>,
   history: new Map<string, Series>(),
   findings: [] as Finding[],
@@ -128,6 +130,7 @@ export function setLiveKeys(keys: string[]) {
 
 export function pushFrame(f: LiveFrame) {
   const t = f.t_ms / 1000;
+  state.lastFrameT = t;
   for (const [k, v] of Object.entries(f.values)) {
     state.latest[k] = v;
     const mm = state.minmax[k];
@@ -156,6 +159,7 @@ export function pushLog(e: LogEvent) {
 
 export function resetLiveData() {
   state.latest = {};
+  state.lastFrameT = undefined;
   state.minmax = {};
   state.history.clear();
   state.findings = [];

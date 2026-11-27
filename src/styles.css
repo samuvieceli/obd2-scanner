@@ -20,6 +20,7 @@
   --c4: #34d399;
   --c5: #f472b6;
   --c6: #60a5fa;
+  --hud: #7cffb2;
   --radius: 12px;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.18);
   color-scheme: dark;
@@ -50,6 +51,49 @@
   --c6: #2563eb;
   --shadow: 0 1px 2px rgba(15, 27, 45, 0.06), 0 6px 18px rgba(15, 27, 45, 0.06);
   color-scheme: light;
+}
+
+
+/* Extra themes. Each one only redefines the color tokens. */
+:root[data-theme="night"] {
+  /* Red on black: keeps night vision while driving. */
+  --bg: #000000; --surface: #0d0505; --surface-2: #1a0808; --border: #3a1010;
+  --text: #ff6b5e; --muted: #b0473f; --accent: #ff3b30; --accent-strong: #e0281e; --accent-text: #000000;
+  --ok: #ff8a65; --warn: #ffb74d; --danger: #ff1744; --info: #ff7961; --grid: rgba(255, 59, 48, 0.15);
+  --c1: #ff3b30; --c2: #ff8a65; --c3: #ffb74d; --c4: #e57373; --c5: #ff4081; --c6: #ffab91;
+  --hud: #ff3b30; --shadow: none; color-scheme: dark;
+}
+:root[data-theme="contrast"] {
+  /* High contrast: pure black and white with yellow accents (accessibility, bright sun). */
+  --bg: #000000; --surface: #000000; --surface-2: #1c1c1c; --border: #ffffff;
+  --text: #ffffff; --muted: #e0e0e0; --accent: #ffff00; --accent-strong: #ffd600; --accent-text: #000000;
+  --ok: #00ff66; --warn: #ffff00; --danger: #ff4d4d; --info: #66ccff; --grid: rgba(255, 255, 255, 0.3);
+  --c1: #ffff00; --c2: #00ffff; --c3: #ff66ff; --c4: #00ff66; --c5: #ff9900; --c6: #66ccff;
+  --hud: #ffff00; --shadow: none; color-scheme: dark;
+}
+:root[data-theme="amber"] {
+  /* Workshop: warm amber on graphite. */
+  --bg: #121110; --surface: #1c1a17; --surface-2: #26231f; --border: #3a352e;
+  --text: #f3ece2; --muted: #a89c8a; --accent: #f59e0b; --accent-strong: #d97706; --accent-text: #1c1206;
+  --ok: #84cc16; --warn: #fbbf24; --danger: #f87171; --info: #38bdf8; --grid: rgba(168, 156, 138, 0.16);
+  --c1: #f59e0b; --c2: #38bdf8; --c3: #84cc16; --c4: #f472b6; --c5: #a78bfa; --c6: #fb7185;
+  --hud: #ffb020; color-scheme: dark;
+}
+:root[data-theme="terminal"] {
+  /* Retro green-screen terminal. */
+  --bg: #020a04; --surface: #04140a; --surface-2: #082010; --border: #12401f;
+  --text: #b7f7c6; --muted: #5fa774; --accent: #33ff66; --accent-strong: #1fdc50; --accent-text: #00140a;
+  --ok: #33ff66; --warn: #e5ff4d; --danger: #ff5c5c; --info: #66e0ff; --grid: rgba(51, 255, 102, 0.14);
+  --c1: #33ff66; --c2: #66e0ff; --c3: #e5ff4d; --c4: #ff9f43; --c5: #ff6bd5; --c6: #a3ffb4;
+  --hud: #33ff66; color-scheme: dark;
+}
+:root[data-theme="paper"] {
+  /* Soft light theme with warm paper tones, gentle on the eyes indoors. */
+  --bg: #f6f1e7; --surface: #fffdf8; --surface-2: #efe8da; --border: #ddd2bd;
+  --text: #2b2418; --muted: #6f6450; --accent: #9a3412; --accent-strong: #7c2d12; --accent-text: #ffffff;
+  --ok: #3f7d20; --warn: #a16207; --danger: #b91c1c; --info: #1d4ed8; --grid: rgba(111, 100, 80, 0.18);
+  --c1: #9a3412; --c2: #1d4ed8; --c3: #a16207; --c4: #3f7d20; --c5: #9d174d; --c6: #0f766e;
+  --hud: #7cffb2; --shadow: 0 1px 2px rgba(43, 36, 24, 0.08), 0 6px 18px rgba(43, 36, 24, 0.06); color-scheme: light;
 }
 
 @media (prefers-color-scheme: light) {
@@ -283,7 +327,7 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .hud-screen.mirror { transform: scaleX(-1); }
 .hud-screen:fullscreen { border-radius: 0; min-height: 100vh; padding: 4vh 4vw; }
 .hud-cell { overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-width: 0; }
-.hud-value { font-size: clamp(2.5rem, 11cqw, 12rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: #7CFFB2; }
+.hud-value { font-size: clamp(2.5rem, 11cqw, 12rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--hud); }
 .hud-screen[data-count="1"] .hud-value { font-size: clamp(4rem, 22cqw, 22rem); }
 .hud-label { margin-top: 8px; font-size: clamp(1rem, 2.4vw, 2rem); color: #bfc7d1; }
 .hud-empty { color: #bfc7d1; text-align: center; font-size: 1.2rem; }
@@ -323,3 +367,17 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .ble-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
 .ble-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; flex-wrap: wrap; }
 .ble-item.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+
+/* Theme picker */
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.theme-card { border: 2px solid var(--border); border-radius: 10px; padding: 8px; background: var(--surface); color: var(--text); cursor: pointer; text-align: left; font: inherit; display: flex; flex-direction: column; gap: 6px; }
+.theme-card[aria-checked="true"] { border-color: var(--accent); }
+.theme-card .swatch { display: flex; height: 36px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(128, 128, 128, 0.3); }
+.theme-card .swatch span { flex: 1; }
+.theme-card small { color: var(--muted); }
+
+/* Trip computer and alerts */
+.kv-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--border); }
+.mt { margin-top: 18px; }
+.value-card.alarm { border-color: var(--danger); box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 45%, transparent); }
+.value-card.alarm .value { color: var(--danger); }

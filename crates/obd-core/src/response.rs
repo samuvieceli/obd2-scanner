@@ -71,8 +71,13 @@ pub fn check_errors(lines: &[String]) -> Result<()> {
         if l.contains("UNABLE TO CONNECT") {
             return Err(ObdError::UnableToConnect);
         }
+        // These mean the data on screen may be truncated or corrupt even
+        // when some hex is present: report them so the request is retried.
+        if l.contains("BUFFER FULL") || l.contains("<DATA ERROR") || l == "STOPPED" {
+            return Err(ObdError::Bus(l.to_string()));
+        }
         if !has_data {
-            if l.contains("NO DATA") || l == "STOPPED" {
+            if l.contains("NO DATA") {
                 return Err(ObdError::NoData);
             }
             for word in [

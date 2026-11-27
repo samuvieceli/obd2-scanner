@@ -30,6 +30,8 @@ export interface AdapterInfo {
   protocol_number: string;
   transport: string;
   supported_pids: number[];
+  unsupported_at: string[];
+  likely_clone: boolean;
 }
 
 export type ConnectionTarget =

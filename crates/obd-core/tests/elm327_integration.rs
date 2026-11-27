@@ -233,3 +233,34 @@ fn reads_mode06_test_results() {
         assert!(o2.passed);
     }
 }
+
+#[test]
+fn retries_after_stopped_and_buffer_full() {
+    // A clone interrupts the first answer, then answers correctly.
+    let t = ScriptedTransport::new()
+        .expect("010C", "STOPPED\r\r>")
+        .expect("010C", "41 0C 0F A0\r\r>")
+        .expect("010D", "41 0D 3\rBUFFER FULL\r\r>")
+        .expect("010D", "41 0D 32\r\r>");
+    let mut elm = Elm327::new(Box::new(t), fast_config());
+    assert_eq!(elm.read_pid(0x0C).unwrap().value, 1000.0);
+    assert_eq!(elm.read_pid(0x0D).unwrap().value, 50.0);
+}
+
+#[test]
+fn records_rejected_at_commands_and_clone_version() {
+    let t = ScriptedTransport::new()
+        .expect("", "\r>")
+        .expect("ATZ", "\r\rELM327 v2.1\r\r>")
+        .expect("ATE0", "ATE0\rOK\r\r>")
+        .expect("ATL0", "OK\r\r>")
+        .expect("ATS1", "?\r\r>")
+        .expect("ATH0", "OK\r\r>")
+        .expect("ATAT1", "?\r\r>")
+        .expect("ATI", "ELM327 v2.1\r\r>")
+        .expect("ATSP0", "OK\r\r>");
+    let mut elm = Elm327::new(Box::new(t), fast_config());
+    elm.setup_adapter().unwrap();
+    assert!(elm.info.likely_clone);
+    assert_eq!(elm.info.unsupported_at, vec!["ATS1", "ATAT1"]);
+}

@@ -369,11 +369,18 @@ export function mount(root: HTMLElement) {
         "dl",
         { class: "kv" },
         h("dt", null, t("connection.adapterVersion")),
-        h("dd", null, a.version || t("common.unknown")),
+        h(
+          "dd",
+          null,
+          a.version || t("common.unknown"),
+          a.likely_clone ? [" ", h("span", { class: "badge" }, t("connection.clone")), " ", infoTip(t("connection.cloneHelp"))] : null,
+        ),
         h("dt", null, t("connection.protocolDetected")),
         h("dd", null, a.protocol || "—"),
         h("dt", null, t("connection.supportedPids"), " ", infoTip(t("dashboard.chooseHelp"))),
         h("dd", null, String(a.supported_pids.length)),
+        a.unsupported_at.length ? h("dt", null, t("connection.unsupportedAt"), " ", infoTip(t("connection.unsupportedAtHelp"))) : null,
+        a.unsupported_at.length ? h("dd", { class: "mono" }, a.unsupported_at.join(", ")) : null,
       ),
     );
     if (state.vehicleError) {

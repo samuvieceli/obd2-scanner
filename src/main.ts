@@ -7,6 +7,8 @@ import { getLang, onLangChange, setLang, t } from "./i18n";
 import { emit, on, pushFrame, pushLog, state } from "./store";
 import { clear, h, toast, errorText } from "./ui";
 import { applyTheme } from "./theme";
+import { initAlerts } from "./alerts";
+import { initTrip } from "./trip";
 import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
 import { fmtNum } from "./i18n";
 
@@ -240,6 +242,8 @@ async function boot() {
     toast(errorText(e), "error");
   });
 
+  initTrip();
+  initAlerts();
   on("connection", renderStatus);
   let wasPlaying = false;
   on("playback", () => {

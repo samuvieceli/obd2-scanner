@@ -64,6 +64,18 @@ pub struct AdapterInfo {
     pub transport: String,
     /// PIDs of mode 01 supported by the ECU.
     pub supported_pids: Vec<u8>,
+    /// AT commands this adapter rejected (`?`) or ignored during setup.
+    pub unsupported_at: Vec<String>,
+    /// Version string typical of clones (v1.5, v2.1, v2.2 were never sold
+    /// by ELM Electronics). Informational only: clones work for most tasks.
+    pub likely_clone: bool,
+}
+
+/// Version strings used by clones: ELM Electronics never released 1.5,
+/// 2.0 (as "v2.0" clones), 2.1 or 2.2 under those names.
+pub fn looks_like_clone(version: &str) -> bool {
+    let v = version.to_ascii_lowercase();
+    ["v1.5", "v2.1", "v2.2"].iter().any(|k| v.contains(k))
 }
 
 impl AdapterInfo {
@@ -170,16 +182,42 @@ impl Elm327 {
         Ok(clean_lines(&raw, cmd))
     }
 
+    /// OBD request with one retry on transient failures common on clones:
+    /// a lost answer (timeout), `STOPPED`, `BUFFER FULL` or a bus error.
+    /// After a timeout a bare CR is sent first: it interrupts an adapter
+    /// still busy with the previous request and brings back the prompt.
+    fn command_with_retry(&mut self, cmd: &str) -> Result<Vec<String>> {
+        let attempt = |me: &mut Self| -> Result<Vec<String>> {
+            let lines = me.command(cmd)?;
+            check_errors(&lines)?;
+            Ok(lines)
+        };
+        match attempt(self) {
+            Err(e @ (ObdError::Timeout | ObdError::Bus(_))) => {
+                self.log(LogDirection::Info, &format!("{cmd}: {e}, retrying once"));
+                if matches!(e, ObdError::Timeout) {
+                    let _ = self.raw_command("", Duration::from_millis(500));
+                }
+                attempt(self)
+            }
+            other => other,
+        }
+    }
+
     /// AT command that tolerates unsupported (`?`) answers. Returns `true` if accepted.
     fn at_optional(&mut self, cmd: &str) -> Result<bool> {
-        match self.command(cmd) {
-            Ok(lines) => Ok(!lines.iter().any(|l| l.trim() == "?")),
+        let accepted = match self.command(cmd) {
+            Ok(lines) => !lines.iter().any(|l| l.trim() == "?"),
             Err(ObdError::Timeout) => {
                 self.log(LogDirection::Info, &format!("{cmd}: no answer, ignoring"));
-                Ok(false)
+                false
             }
-            Err(e) => Err(e),
+            Err(e) => return Err(e),
+        };
+        if !accepted && !self.info.unsupported_at.iter().any(|c| c == cmd) {
+            self.info.unsupported_at.push(cmd.to_string());
         }
+        Ok(accepted)
     }
 
     /// Full setup: [`Self::setup_adapter`] then [`Self::connect_vehicle`].
@@ -210,6 +248,7 @@ impl Elm327 {
                 self.info.version = v;
             }
         }
+        self.info.likely_clone = looks_like_clone(&self.info.version);
         if !self.config.elm_timeout_hex.is_empty() {
             let st = format!("ATST{}", self.config.elm_timeout_hex);
             self.at_optional(&st)?;
@@ -314,8 +353,7 @@ impl Elm327 {
         for b in data {
             cmd.push_str(&format!("{b:02X}"));
         }
-        let lines = self.command(&cmd)?;
-        check_errors(&lines)?;
+        let lines = self.command_with_retry(&cmd)?;
         // Mode 02 echoes the PID but the frame number is part of the answer.
         let echo_len = if mode == 0x02 { 1 } else { data.len() };
         filter_responses(
@@ -334,8 +372,7 @@ impl Elm327 {
         for p in pids {
             cmd.push_str(&format!("{p:02X}"));
         }
-        let lines = self.command(&cmd)?;
-        check_errors(&lines)?;
+        let lines = self.command_with_retry(&cmd)?;
         let mut out: Vec<(String, f64)> = Vec::new();
         let mut seen: Vec<u8> = Vec::new();
         for m in assemble_messages(&lines) {
