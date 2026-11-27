@@ -200,7 +200,7 @@ const ptBR = {
     adapterVersion: "Adaptador",
     protocolDetected: "Protocolo do veículo",
     supportedPids: "Parâmetros suportados",
-    kLineHint: "Carro mais antigo (em geral antes de 2008, protocolos ISO 9141 ou KWP)? Esses carros usam a \"linha K\", e muitos adaptadores clones baratos não têm esse circuito. Se a ignição estiver ligada e mesmo assim não funcionar, o problema provavelmente é o adaptador: prefira um modelo de boa qualidade (OBDLink, Vgate iCar Pro, Veepeak).",
+    kLineHint: "Carro mais antigo (em geral antes de 2008–2010, protocolos ISO 9141 ou KWP)? Esses carros usam a \"linha K\", e muitos adaptadores clones baratos não têm esse circuito. Se a ignição estiver ligada e mesmo assim não funcionar, o problema provavelmente é o adaptador: prefira um modelo de boa qualidade (OBDLink, Vgate iCar Pro, Veepeak).",
     vehicleNoResponse: "O adaptador respondeu, mas o veículo não. Ligue a ignição (ou o motor) e clique em Tentar de novo.",
     retryVehicle: "Tentar de novo",
     log: "Registro de comunicação",

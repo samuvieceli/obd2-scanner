@@ -202,7 +202,7 @@ const enUS: Messages = {
     adapterVersion: "Adapter",
     protocolDetected: "Vehicle protocol",
     supportedPids: "Supported parameters",
-    kLineHint: "Older car (usually before 2008, ISO 9141 or KWP protocols)? These cars use the \"K-line\", and many cheap clone adapters lack that circuit. If the ignition is on and it still fails, the adapter is the likely cause: prefer a good-quality model (OBDLink, Vgate iCar Pro, Veepeak).",
+    kLineHint: "Older car (usually before 2008–2010, ISO 9141 or KWP protocols)? These cars use the \"K-line\", and many cheap clone adapters lack that circuit. If the ignition is on and it still fails, the adapter is the likely cause: prefer a good-quality model (OBDLink, Vgate iCar Pro, Veepeak).",
     vehicleNoResponse: "The adapter answered but the vehicle did not. Turn the ignition (or engine) on and click Try again.",
     retryVehicle: "Try again",
     log: "Communication log",
