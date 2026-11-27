@@ -17,7 +17,7 @@ flowchart TB
     user(["Você"])
     subgraph UI["Interface: src/ (TypeScript)"]
         views["Telas<br/>views/"]
-        logic["Cálculos da interface<br/>consumo, desempenho, alertas,<br/>perfis, unidades, reprodução"]
+        logic["Cálculos da interface<br/>consumo, Trip A/B, abastecimento,<br/>desempenho, testes guiados, alertas,<br/>perfis, unidades, reprodução"]
         store["Estado compartilhado<br/>store.ts"]
     end
     subgraph APP["Casca: src-tauri/ (Rust)"]
@@ -29,6 +29,7 @@ flowchart TB
     subgraph CORE["Motor: crates/obd-core/ (Rust)"]
         elm["Conversa com o ELM327<br/>elm327.rs"]
         dec["Tradutores<br/>PIDs, códigos de falha, VIN,<br/>prontidão, Modo 06"]
+        interp["Interpretação e relatório<br/>interpret.rs, report.rs"]
         health["Saúde da conexão<br/>health.rs"]
         trans["Transportes<br/>USB, Bluetooth, BLE, Wi-Fi, simulador"]
     end
@@ -45,6 +46,7 @@ flowchart TB
     worker --> elm
     worker --> health
     elm --> dec
+    cmds --> interp
     elm --> trans
     trans <--> adapter
     adapter <--> car
@@ -210,8 +212,10 @@ flowchart LR
     subgraph telas["Telas (src/views/)"]
         connection["Conexão<br/>+ teste do adaptador"]
         dashboard["Painel ao vivo"]
+        findings["Quadro Interpretação<br/>dos dados<br/>views/findings.ts"]
+        refueldlg["Janela Abasteci<br/>views/refuel-dialog.ts"]
         hud["HUD"]
-        performance["Testes de desempenho"]
+        performance["Testes de desempenho<br/>(uma prova por vez)"]
         guided["Testes guiados<br/>bateria, sondas,<br/>mapa de correção"]
         charts["Gráficos"]
         diagnostics["Códigos de falha<br/>+ Modo 06"]
@@ -250,7 +254,11 @@ flowchart LR
         reportview["views/report.ts<br/>monta o relatório HTML"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
-    dashboard --> gauge & trip & alerts & presets & warmup
+    dashboard --> gauge & trip & alerts & presets & warmup & findings
+    trip --> refuel
+    dashboard --> refueldlg
+    refueldlg --> refuel
+    charts -- "parâmetros escolhidos<br/>também são lidos" --> store
     hud --> warmup & mini
     diagnostics & charts --> share
     charts --> presets & calc & trip
@@ -293,6 +301,22 @@ stateDiagram-v2
     Pausado --> Lendo: teste guiado ou de desempenho<br/>(volta a Pausado ao sair)
     Lendo --> [*]: Desconectar
     Pausado --> [*]: Desconectar
+```
+
+### Testes de desempenho: uma prova por vez
+
+Na tela **Testes de desempenho** só a prova marcada em **Fazer esta prova** mede; as outras ficam apagadas. `perf.ts` acompanha a velocidade e reconhece sozinho o começo e o fim. A retomada (40–80, 80–120) só vale partindo de velocidade constante, como numa ultrapassagem de verdade.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Esperando
+    Esperando --> Medindo: 0–100: carro parado e sai do lugar
+    Esperando --> Constante: retomada: velocidade perto da inicial<br/>(8 abaixo a 2 acima, variando até 4 km/h)
+    Constante --> Medindo: 2 s constante e acelera fundo
+    Esperando --> Medindo: 100–0: passa de 100 km/h freando
+    Medindo --> Resultado: cruza a velocidade final<br/>(ou para, no 100–0)
+    Medindo --> Esperando: alivia o pé, 3 s sem subir<br/>ou falha de leitura (descarta)
+    Resultado --> Esperando: guarda tempo, distância<br/>e aceleração média
 ```
 
 ---
@@ -350,6 +374,7 @@ flowchart LR
     prefs["Preferências, perfis,<br/>alertas, unidades, tema, idioma"] --> ls
     perfres["Resultados de desempenho<br/>(por perfil)"] --> ls
     fillsum["Trip A/B e soma desde o<br/>tanque cheio (por perfil)"] --> ls
+    drv["Histórico de viagens<br/>e prova de desempenho escolhida"] --> ls
     conn["Última conexão usada"] --> ls
     rec["Gravação"] --> csv["CSV (Excel)"] & json["JSON (abre de novo<br/>no programa)"]
     rec -- "a cada minuto" --> backup[("Cópia de segurança<br/>gravacao-em-andamento.jsonl<br/>(recuperada se o programa fechar)")]
@@ -362,12 +387,12 @@ flowchart LR
 
 ### Gravação e relatório
 
-Ao gravar, o programa guarda os sensores do painel e, junto, uma "foto" do diagnóstico: no começo, os dados do carro, os códigos de falha com o quadro congelado, a prontidão e o Modo 06; no fim, os códigos e a prontidão de novo (um código pode aparecer no meio do trajeto). Tudo isso é só leitura. O relatório é gerado depois, apenas se você pedir, a partir da última gravação ou de um arquivo JSON salvo.
+Ao gravar, o programa guarda os parâmetros lidos (os do painel e os escolhidos a mais nos gráficos) e, junto, uma "foto" do diagnóstico: no começo, os dados do carro, os códigos de falha com o quadro congelado, a prontidão e o Modo 06; no fim, os códigos e a prontidão de novo (um código pode aparecer no meio do trajeto). Tudo isso é só leitura. O relatório é gerado depois, apenas se você pedir, a partir da última gravação ou de um arquivo JSON salvo.
 
 ```mermaid
 flowchart LR
     start(["Iniciar gravação"]) --> snap1["Lê: veículo, códigos,<br/>quadro congelado,<br/>prontidão, Modo 06"]
-    start --> frames["Sensores do painel,<br/>várias vezes por segundo"]
+    start --> frames["Parâmetros do painel e<br/>dos gráficos, várias<br/>vezes por segundo"]
     stop(["Parar gravação"]) --> snap2["Lê de novo:<br/>códigos e prontidão"]
     snap1 & frames & snap2 --> rec[("Gravação<br/>(memória e JSON)")]
     rec -- "botão Relatório" --> sum["report.rs:<br/>mínimo, média, máximo,<br/>indícios do trajeto todo,<br/>gráficos"]

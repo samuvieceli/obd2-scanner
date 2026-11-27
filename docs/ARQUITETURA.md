@@ -5,16 +5,16 @@
 ```
 ┌──────────────────────── Interface (src/, TypeScript + Vite) ────────────────────────┐
 │ telas (views/) · textos pt-BR/en-US (locales/) · gráficos uPlot · estado (store.ts) │
-│ playback · trip · summary · drives · perf · battery · o2test · trims · alerts       │
-│ prefs · units · fuels · cost · presets · calc · warmup · search · share · gauge     │
-│ theme · awake                                                                       │
+│ playback · trip · trips · refuel · summary · drives · perf · battery · o2test       │
+│ trims · alerts · mode06hints · recording-diagnostics · prefs · units · fuels · cost │
+│ presets · calc · warmup · search · share · gauge · theme · awake                    │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
 │ recorder.rs: gravação · portable.rs: versão portátil, aviso de WebView2, tela acesa │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ┌──────────────────────── Núcleo (crates/obd-core, Rust, sem interface) ──────────────┐
-│ interpret · session (CSV/JSON) · health (travamento e queda da conexão)            │
+│ interpret · session (CSV/JSON) · report · health (travamento e queda da conexão)   │
 │ adapter_test (versão real do ELM327) · ecu_scan (centrais e identificação UDS)      │
 │ pid · dtc · vin · readiness · mode06 (decodificadores)                              │
 │ response                             (limpeza do texto + quadros CAN ISO-TP)        │
@@ -59,6 +59,10 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 - `src/search.test.ts` (Vitest): busca global (acentos e maiúsculas ignorados, todas as palavras, título vale mais que descrição, códigos de falha).
 - `src/drives.test.ts` (Vitest): histórico de viagens (grupos por combustível, flex pela porcentagem de etanol, médias pela distância total, viagens curtas sem média).
 - `src/summary.test.ts` (Vitest): resumo da viagem (tempo parado e em movimento, distância, picos, alertas, viagens curtas ignoradas, falhas de leitura, conexão encerrada).
+- `src/trips.test.ts` e `src/refuel.test.ts` (Vitest): Trip A e Trip B (iniciar, pausar, zerar, velocidade média) e ajuste pelo abastecimento (trechos curtos, falhas de leitura, resultado fora da faixa, média dos últimos 5).
+- `src/fuels.test.ts` (Vitest): relação ar/combustível e densidade das misturas.
+- `src/mode06hints.test.ts` (Vitest): indícios do Modo 06 (falha de combustão por cilindro, catalisador, sondas).
+- `src/report.test.ts` (Vitest) e `crates/obd-core/src/report.rs`: relatório a partir de uma gravação (com e sem códigos e prontidão).
 - `src/perf.test.ts` (Vitest): detecção dos testes de desempenho com perfis de velocidade simulados (arrancada, retomadas, frenagem, desistência, falha de leitura, adaptador lento).
 - CI (`.github/workflows/ci.yml`): testes no Linux e geração do instalador no Windows.
 

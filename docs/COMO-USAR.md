@@ -30,12 +30,12 @@ Depois de começar, a leitura continua ao trocar de tela, para que os **Gráfico
 
 ## 2b. Adaptador Bluetooth LE (modelos para iPhone)
 
-Não precisa parear no Windows. Escolha **Bluetooth LE**, espere a busca (5 segundos), escolha o adaptador na lista (nomes comuns: `IOS-Vlink`, `OBDII`, `Vgate iCar Pro`, `Veepeak`) e clique em **Conectar**. Se ele não aparecer, ligue a ignição, aproxime o computador e feche apps do celular que possam estar conectados a ele.
+Não precisa parear no Windows. Escolha **Bluetooth LE**: a busca começa sozinha e dura uns 5 segundos (**Procurar de novo** repete). Escolha o adaptador na lista (nomes comuns: `IOS-Vlink`, `OBDII`, `Vgate iCar Pro`, `Veepeak`) e clique em **Conectar**. Se ele não aparecer, ligue a ignição, aproxime o computador e feche apps do celular que possam estar conectados a ele.
 
 **Para conferir um adaptador BLE novo** (vale a pena fazer uma vez):
 
 1. Ligue a ignição e o adaptador; abra o programa e escolha **Bluetooth LE**.
-2. Clique em procurar: o adaptador deve aparecer no topo da lista.
+2. Espere a busca (ou clique em **Procurar de novo**): o adaptador deve aparecer no topo da lista.
 3. Conecte: deve mostrar a versão do ELM327 e o protocolo do carro.
 4. Deixe o painel ao vivo aberto por 1 a 2 minutos: os valores devem atualizar sem travar.
 5. Desligue e religue o adaptador (ou afaste-se): o programa deve avisar e reconectar.
@@ -150,6 +150,7 @@ Para evitar alarme falso, cada regra:
 | Superaquecimento | 115 °C ou mais por 5 s (crítico); 108 °C ou mais por 10 s (atenção). Até 105 °C é normal em muitos carros parados no trânsito. | Temp. motor |
 | Válvula termostática aberta | Abaixo de 70 °C depois de 15 min ligado, ou temperatura que cai abaixo de 75 °C andando acima de 40 km/h depois de ter passado de 85 °C. | Temp. motor, velocidade, tempo ligado |
 | Sensor de temperatura com defeito | Marca −40 °C (fio solto) ou fica 10 °C abaixo da temperatura externa com o motor ligado. | Temp. motor, temp. ambiente |
+| Sensor de temperatura do ar com defeito | Marca −40 °C (fio solto) ou fica 15 °C abaixo da temperatura externa com o motor ligado. | Temp. do ar, temp. ambiente |
 | Mistura pobre ou rica | Correção total (média do curto prazo em 10 s + longo prazo) acima de ±10% (informação) ou ±20% (atenção), com motor quente há pelo menos 1 min e em malha fechada. Em carro flex, logo após trocar de combustível pode ser só o aprendizado. | STFT, LTFT, malha, rotação, carga |
 | Bateria e alternador | Motor desligado: abaixo de 12,0 V (fraca) ou de 12,4 V (parcial). Na partida: queda abaixo de 9,6 V. Motor ligado: abaixo de 12,6 V por 20 s (não carrega), 12,6–13,2 V (pode ser carga inteligente), acima de 15,0 V por 10 s (regulador). Sem a rotação no painel não há avaliação, porque não dá para saber se o motor está ligado. | Tensão, rotação |
 | Marcha lenta alta ou irregular | Motor quente e carro parado: acima de 1.150 rpm por 10 s, ou rotação pulando para cima e para baixo (mais de 250 rpm) em 15 s. Um degrau só, como o do ar-condicionado ligando, não conta. | Rotação, velocidade, borboleta |
@@ -189,9 +190,13 @@ Acima da tabela, **O que os testes indicam** resume os padrões conhecidos, semp
 
 Valores sem escala conhecida (marcados com *) não entram nessas conclusões.
 
-## 8. Reproduzir uma gravação
+## 8. Gravar, reproduzir e gerar o relatório
 
-Salve a gravação em **JSON** e depois use **Gravações → Reproduzir gravação**. O painel, o HUD, os gráficos e a interpretação mostram a gravação como se fosse ao vivo, com pausa, velocidade (até 8×) e barra de posição no topo. **Fechar gravação** volta ao normal.
+**Gravar:** clique em **Gravar** no Painel ao vivo (o mesmo botão vira **Parar gravação**) ou em **Iniciar gravação** na tela **Gravações e relatórios**. Se a leitura estiver parada ou pausada, ela começa junto com a gravação. Se você pausar a leitura no meio, a gravação fica sem dados até retomar (a tela Gravações e relatórios avisa). A gravação guarda os parâmetros que estão sendo lidos (os do Painel e os escolhidos a mais nos Gráficos) e, junto, uma leitura de diagnóstico no começo e outra no fim (veja *O que a gravação guarda*, em **Arquivos exportados**). Enquanto grava, **Marcar evento** (ou a tecla **Espaço**) marca o momento de um tranco ou barulho.
+
+**Reproduzir:** em **Gravações e relatórios → Reproduzir gravação**, escolha um arquivo JSON salvo antes. O painel, o HUD, os gráficos e a interpretação mostram a gravação como se fosse ao vivo, com pausa, velocidade (até 8×) e barra de posição no topo. **Fechar gravação** volta ao normal. Para ver a gravação inteira de uma vez nos gráficos, use **Ver nos gráficos**.
+
+**Relatório:** feito só quando você pede, a partir da última gravação ou de um JSON salvo. Detalhes em **Arquivos exportados**, logo abaixo.
 
 ## 9. Temas
 
@@ -259,6 +264,7 @@ Diferenças em relação ao instalador: não aparece no menu Iniciar (crie um at
 | --- | --- |
 | "O adaptador não respondeu a tempo" | Porta errada ou adaptador sem energia. Confira a porta COM. Em *Opções avançadas*, aumente o tempo de espera do reset ATZ. |
 | "Adaptador OK, veículo sem resposta" | Ligue a ignição (ou o motor) e clique em **Tentar de novo**. Em carro mais antigo (em geral antes de 2008, protocolos ISO 9141/KWP), muitos clones baratos não têm o circuito da "linha K": troque por um adaptador de boa qualidade. |
+| "A porta não existe agora" | O cabo USB foi tirado ou o pareamento Bluetooth foi removido. Clique em **Atualizar** e escolha a porta de novo (pareie de novo se precisar). |
 | "A porta está sendo usada por outro programa" | Feche outros apps de OBD e outras janelas deste programa; desconecte o adaptador do celular. |
 | "O Windows não alcançou o adaptador Bluetooth" | Adaptador fora do carro, ignição desligada, longe ou conectado a um celular. Clássico: se continuar, remova o pareamento no Windows e pareie de novo (PIN `1234` ou `0000`). |
 | Bluetooth LE não aparece na busca | Confira se o Bluetooth do Windows está ligado e se o adaptador não está conectado a um celular. Não precisa parear; se pareou antes e não funciona, remova o pareamento. |
@@ -279,8 +285,8 @@ Enquanto grava, o programa também guarda uma **cópia de segurança** no disco,
 - **Copiar imagem** (telas **Códigos de falha** e **Gráficos**): monta um cartão claro com o carro, a data, os códigos (e o quadro congelado, se lido) ou os gráficos com mínimo e máximo, e copia para a área de transferência. Cole com **Ctrl+V** no WhatsApp, Telegram ou e-mail para mandar a um mecânico. Se o Windows não aceitar a cópia, a imagem é salva como PNG.
 - **Planilha CSV (Excel em português)**: separador `;` e vírgula decimal. Abre com dois cliques no Excel brasileiro.
 - **CSV padrão**: separador `,` e ponto decimal.
-- **JSON**: gravação completa, pode ser reaberta e reproduzida no programa (*Gravações → Abrir gravação*).
+- **JSON**: gravação completa, pode ser reaberta no programa (**Gravações e relatórios → Reproduzir gravação** ou **Ver nos gráficos**).
 - **PNG**: imagem dos gráficos.
 - **Relatório de diagnóstico**: feito a partir de uma gravação, só quando você pede. Em **Gravações e relatórios → Relatório de diagnóstico**, escolha **Relatório da última gravação** ou **Relatório de uma gravação salva…** (um JSON). O relatório abre na tela, com os botões *Imprimir / salvar como PDF* (escolha "Microsoft Print to PDF") e *Salvar relatório (HTML)*. Ele traz os dados do veículo e do adaptador, os códigos de falha lidos no início (e os que surgiram até o fim), o quadro congelado, a prontidão, o Modo 06, os indícios encontrados no trajeto todo (com o momento em que apareceram), gráficos dos principais parâmetros com os eventos marcados e uma tabela com mínimo, média e máximo de cada parâmetro. Gravações feitas em versões antigas também funcionam, mas sem códigos, prontidão e Modo 06.
 
-**O que a gravação guarda:** os sensores lidos no Painel ao vivo e, junto, uma leitura de diagnóstico no começo (veículo, códigos de falha com quadro congelado, prontidão e Modo 06) e outra no fim (códigos e prontidão). Essas leituras só consultam o carro, nunca apagam nem alteram nada. Se o carro não responder a alguma delas, a gravação continua normalmente e o relatório avisa o que faltou.
+**O que a gravação guarda:** os parâmetros lidos (os do Painel ao vivo e os escolhidos a mais nos Gráficos) e, junto, uma leitura de diagnóstico no começo (veículo, códigos de falha com quadro congelado, prontidão e Modo 06) e outra no fim (códigos e prontidão). Essas leituras só consultam o carro, nunca apagam nem alteram nada. Se o carro não responder a alguma delas, a gravação continua normalmente e o relatório avisa o que faltou.

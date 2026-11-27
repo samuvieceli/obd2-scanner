@@ -5,22 +5,22 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 
 ## O que ele faz
 
-- **Conexão** por USB, Bluetooth clássico (porta COM), **Bluetooth LE**, Wi-Fi e **modo demonstração** (carro virtual, sem adaptador). Tolerante aos defeitos comuns dos clones ELM327 (repete pedidos perdidos, avisa quais comandos o adaptador recusa), com **detecção de travamento** do adaptador (reinicia e reconfigura sozinho) e **reconexão automática** quando o Bluetooth ou o cabo cai.
+- **Conexão** por USB, Bluetooth clássico (porta COM; a porta certa já vem primeiro na lista, com o nome do adaptador), **Bluetooth LE**, Wi-Fi e **modo demonstração** (carro virtual, sem adaptador). A leitura ao vivo começa ao abrir o Painel ou o HUD, com botão **Pausar/Retomar leitura**. Tolerante aos defeitos comuns dos clones ELM327 (repete pedidos perdidos, avisa quais comandos o adaptador recusa), com **detecção de travamento** do adaptador (reinicia e reconfigura sozinho) e **reconexão automática** quando o Bluetooth ou o cabo cai.
 - **Perfis para vários carros**, reconhecidos pelo chassi (VIN), cada um com combustível, cilindrada, alertas e resultados próprios.
 - **Unidades** à escolha: km/h ou mph, °C ou °F, kPa, bar ou psi, km ou milhas, km/L, L/100 km ou mpg.
 - **Painel ao vivo** com mais de 80 parâmetros (rotação, temperatura, correção de combustível, sondas lambda e de banda larga, turbo, torque, filtro de partículas, hodômetro, tensão da bateria...), cada um com explicação curta.
-- **Cartões ou mostradores com ponteiro**, **alertas** com som quando um valor sai da faixa segura e **computador de bordo** (consumo em km/L, distância, combustível gasto).
-- **Testes de desempenho** 0–100, 100–0, 40–80 e 80–120 km/h com detecção automática do início e do fim reais de cada teste, distância e histórico.
+- **Cartões ou mostradores com ponteiro**, **alertas** com som quando um valor sai da faixa segura e **computador de bordo** com **Trip A e Trip B** independentes (Iniciar, Pausar e Zerar; consumo médio, velocidade média, distância, combustível, tempo e custo em R$), **ajuste do consumo pelo abastecimento** ("Tanque cheio" e "Abasteci"), resumo ao desligar o motor e histórico de viagens com gasolina × etanol.
+- **Testes de desempenho** 0–100, 100–0, 40–80 e 80–120 km/h, uma prova por vez, com detecção automática do início e do fim reais (a retomada só vale partindo de velocidade constante, como numa ultrapassagem), distância e histórico.
 - **Testes guiados**: bateria e alternador passo a passo (repouso, partida e carga), comparação das sondas lambda para avaliar o catalisador e mapa de correção de combustível por rotação e carga, com resultado em linguagem simples.
 - **Head-up display (HUD)**: até 4 valores enormes em fundo preto, em tela cheia, com opção espelhada para refletir no para-brisa.
-- **Interpretação automática** dos dados, sempre como indício e com o que verificar (superaquecimento, válvula termostática, sensores de temperatura, MAP e MAF incoerentes, mistura pobre/rica, bateria, partida e alternador, marcha lenta alta ou irregular, vácuo fraco, sonda lambda, catalisador), com confirmação por tempo para evitar alarme falso.
+- **Interpretação automática** dos dados, sempre como indício e com o que verificar (superaquecimento, válvula termostática, sensores de temperatura do motor e do ar, MAP e MAF incoerentes, mistura pobre/rica, bateria, partida e alternador, marcha lenta alta ou irregular, vácuo fraco, sonda lambda, catalisador), com confirmação por tempo para evitar alarme falso. Os testes da central (Modo 06) também viram indícios: falha de combustão por cilindro, catalisador e sondas.
 - **Gráficos** em tempo real, sincronizados, de qualquer parâmetro que o carro informa (e do consumo calculado), com predefinições (mistura, temperaturas, elétrica, consumo, aceleração, turbo) e exportação para imagem PNG.
 - **Códigos de falha**: confirmados, pendentes e permanentes, com descrição em português e tabelas de 10 marcas; apagar códigos; quadro congelado; consulta de qualquer código.
 - **Testes da central (Modo 06)**: resultados dos autotestes (sondas, catalisador, falhas de combustão...) com aprovado/reprovado, para achar problemas antes da luz de injeção acender.
 - **Veículo e prontidão**: chassi (VIN) decodificado, monitores de prontidão, luz de injeção e **lista das centrais** que respondem (motor, câmbio...) com número da peça e versão do software.
 - **Teste de compatibilidade do adaptador**: descobre a versão real do ELM327 (clones costumam anunciar mais do que fazem).
 - **Terminal AT** para comandos diretos ao adaptador.
-- **Gravações e relatórios**: CSV (inclusive no formato do Excel brasileiro), JSON, **reprodução de gravações** como se fosse ao vivo, e relatório de diagnóstico gerado a partir de uma gravação (códigos, prontidão, indícios do trajeto, gráficos e mínimo/média/máximo), para imprimir ou salvar como PDF.
+- **Gravações e relatórios**: a gravação guarda os sensores e também os códigos de falha, a prontidão e o Modo 06 (lidos no começo e no fim). Exporta CSV (inclusive no formato do Excel brasileiro) e JSON, **reproduz gravações** como se fosse ao vivo, com marcas de evento, e gera, quando você pede, um relatório de diagnóstico a partir da gravação (códigos, prontidão, indícios do trajeto, gráficos e mínimo/média/máximo), para imprimir ou salvar como PDF.
 - Interface em **português (Brasil)** e **inglês (EUA)**, 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
 
 ## Baixar e instalar (Windows 10 e 11)
@@ -51,7 +51,7 @@ npm install
 npm run tauri dev      # abre o app em modo de desenvolvimento
 npm run tauri build    # gera o instalador em target/release/bundle
 cargo test -p obd-core --all-features # testes do núcleo (no Linux, BLE precisa de libdbus-1-dev)
-npm test               # testes da interface (testes de desempenho, unidades)
+npm test               # testes da interface (desempenho, testes guiados, consumo, trips, abastecimento, relatório...)
 ```
 
 Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md). Mapa visual de todos os componentes, com diagramas: [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
@@ -73,9 +73,10 @@ Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Parte
 **English:** OBD2 Scanner is a Rust + Tauri 2 desktop app for ELM327 adapters (genuine or clones) over USB, Bluetooth
 classic (COM port), Bluetooth LE, Wi-Fi and a built-in demo simulator. It detects frozen clone adapters (reset and reconfigure),
 reconnects by itself when the link drops, keeps per-car profiles (matched by VIN) and offers metric or imperial units.
+Live reading starts when the dashboard or HUD opens (Pause/Resume button).
 It shows live data as cards or dials with
-explanations, automatic interpretation, alerts, a trip computer, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h), guided tests (battery and alternator, O2 sensors and catalytic converter, fuel trim map) and a head-up display; charts; trouble codes (read/clear,
-freeze frame, 10 brand tables); Mode 06 test results; readiness monitors; VIN decoding; an AT terminal; recording,
-playback and export to CSV/JSON/PNG plus a printable report. UI in Brazilian Portuguese and US English with 8 themes.
+explanations, automatic interpretation (also from Mode 06 results), alerts, a trip computer with independent Trip A/B and fuel-pump calibration, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h, one at a time), guided tests (battery and alternator, O2 sensors and catalytic converter, fuel trim map) and a head-up display; charts of any supported parameter with presets; trouble codes (read/clear,
+freeze frame, 10 brand tables); Mode 06 test results; readiness monitors; VIN decoding; an AT terminal; recording (sensors plus trouble codes, readiness and Mode 06),
+playback and export to CSV/JSON/PNG plus an on-demand printable report built from a recording. UI in Brazilian Portuguese and US English with 8 themes.
 Download the Windows installer from [Releases](https://github.com/samuvieceli/obd2-scanner/releases/latest), or the portable zip (`...-Windows-portatil.zip`) to run without installing; it keeps its settings in a folder next to the program.
 See `docs/ARQUITETURA.md` (Portuguese) for the design.
