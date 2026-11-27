@@ -1,13 +1,13 @@
 //! End-to-end tests of the ELM327 driver against the simulator (normal and
 //! clone-like) and against scripted byte streams from real-world adapters.
 
+use obd_core::ObdError;
 use obd_core::dtc::Dtc;
 use obd_core::elm327::{Elm327, ElmConfig};
 use obd_core::readiness::MonitorState;
-use obd_core::simulator::{Simulator, SimulatorOptions, DEMO_VIN};
+use obd_core::simulator::{DEMO_VIN, Simulator, SimulatorOptions};
 use obd_core::transport::scripted::ScriptedTransport;
 use obd_core::vin::decode_vin;
-use obd_core::ObdError;
 
 fn fast_config() -> ElmConfig {
     ElmConfig {
@@ -80,10 +80,11 @@ fn full_session_against_simulator() {
         assert!(elm.read_stored_dtcs().unwrap().is_empty());
         let r = elm.read_readiness().unwrap();
         assert!(!r.mil_on);
-        assert!(r
-            .monitors
-            .iter()
-            .any(|m| m.state == MonitorState::Incomplete));
+        assert!(
+            r.monitors
+                .iter()
+                .any(|m| m.state == MonitorState::Incomplete)
+        );
         assert!(matches!(
             elm.read_freeze_frame_pid(0x0C),
             Err(ObdError::NoData)

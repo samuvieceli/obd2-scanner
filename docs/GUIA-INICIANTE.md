@@ -43,7 +43,7 @@ Instale, nesta ordem, aceitando as opções padrão:
 
 1. **Git**: https://git-scm.com/download/win
 2. **Visual Studio Code**: https://code.visualstudio.com
-3. **Node.js 22 (LTS)**: https://nodejs.org
+3. **Node.js 26 (LTS)**: https://nodejs.org
 4. **Ferramentas de Build do Visual Studio**: https://visualstudio.microsoft.com/visual-cpp-build-tools/ . No instalador, marque **"Desenvolvimento para desktop com C++"**. (É grande, cerca de 6 GB.)
 5. **Rust**: https://rustup.rs . Baixe e rode o `rustup-init.exe`, e aperte Enter para a opção padrão.
 

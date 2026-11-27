@@ -15,7 +15,7 @@ export default defineConfig({
   envPrefix: ["VITE_", "TAURI_ENV_*"],
   build: {
     target: "es2022",
-    minify: "esbuild",
+    minify: true, // Vite 8 default (Oxc minifier)
     sourcemap: false,
   },
 });

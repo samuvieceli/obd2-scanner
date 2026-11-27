@@ -61,7 +61,7 @@ Install the free \"WebView2 Runtime\" from the link above, or use the OBD2 Scann
 #[cfg(windows)]
 pub fn keep_awake(on: bool) {
     use windows_sys::Win32::System::Power::{
-        SetThreadExecutionState, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
+        ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, SetThreadExecutionState,
     };
     let flags = if on {
         ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED
@@ -78,7 +78,7 @@ pub fn keep_awake(_on: bool) {}
 /// Shows a plain Windows message box (no window of the app exists yet).
 #[cfg(windows)]
 pub fn alert(title: &str, text: &str) {
-    use windows_sys::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONWARNING, MB_OK};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{MB_ICONWARNING, MB_OK, MessageBoxW};
     let wide = |s: &str| s.encode_utf16().chain(Some(0)).collect::<Vec<u16>>();
     let (title, text) = (wide(title), wide(text));
     // SAFETY: both pointers are valid, NUL-terminated UTF-16 for the call.

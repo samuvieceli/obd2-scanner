@@ -83,11 +83,7 @@ impl Session {
         };
         let fmt = |v: f64| {
             let s = format!("{v}");
-            if dec == ',' {
-                s.replace('.', ",")
-            } else {
-                s
-            }
+            if dec == ',' { s.replace('.', ",") } else { s }
         };
         let cols = self.columns();
         // A mark goes on the first row at or after its time.

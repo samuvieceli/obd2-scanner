@@ -19,17 +19,17 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
+use obd_core::ObdError;
 use obd_core::elm327::{AdapterInfo, Elm327};
 use obd_core::health::{self, Action, LinkHealth, Outcome};
 use obd_core::interpret::Interpreter;
 use obd_core::pid::{self, BATTERY_VOLTAGE_KEY};
 use obd_core::session::Frame;
-use obd_core::ObdError;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::recorder::Recorder;
 use crate::CmdError;
+use crate::recorder::Recorder;
 
 /// Opens the same adapter again (same port, same settings).
 pub type Reopen = Box<dyn FnMut() -> Result<Elm327, CmdError> + Send>;

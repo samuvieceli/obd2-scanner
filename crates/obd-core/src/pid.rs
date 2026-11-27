@@ -164,11 +164,7 @@ pub static PIDS: &[PidDef] = &[
     // mixture with the O2 sensor; bit 2 or bit 16 of A), 0 = open loop (cold
     // engine, full load, slowing down, fault).
     pidx!(0x03, "closed_loop_b1", "", 0.0, 1.0, 2, 0, 1, Fuel, |d| {
-        if a(d) as u8 & 0x12 != 0 {
-            1.0
-        } else {
-            0.0
-        }
+        if a(d) as u8 & 0x12 != 0 { 1.0 } else { 0.0 }
     }),
     pid!(0x04, "engine_load", "%", 0.0, 100.0, 1, Engine, percent),
     pid!(
@@ -601,7 +597,9 @@ pub static PIDS: &[PidDef] = &[
         Air,
         |d| ab(d) * 10.0
     ),
-    pidx!(0x78, "egt_b1s1", "°C", -40.0, 1000.0, 9, 1, 2, Emissions, temp_wide),
+    pidx!(
+        0x78, "egt_b1s1", "°C", -40.0, 1000.0, 9, 1, 2, Emissions, temp_wide
+    ),
     pidx!(
         0x7A,
         "dpf_pressure_delta_b1",

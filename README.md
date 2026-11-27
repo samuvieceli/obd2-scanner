@@ -44,7 +44,7 @@ Detalhes e solução de problemas: [docs/COMO-USAR.md](docs/COMO-USAR.md).
 
 ## Para desenvolvedores
 
-Requisitos: [Rust](https://rustup.rs), [Node.js 22](https://nodejs.org) e, no Windows, as "Ferramentas de Build do Visual Studio" (C++). Veja os [pré-requisitos do Tauri](https://v2.tauri.app/start/prerequisites/).
+Requisitos: [Rust](https://rustup.rs), [Node.js 26](https://nodejs.org) e, no Windows, as "Ferramentas de Build do Visual Studio" (C++). Veja os [pré-requisitos do Tauri](https://v2.tauri.app/start/prerequisites/).
 
 ```bash
 npm install

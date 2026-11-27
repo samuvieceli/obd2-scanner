@@ -37,11 +37,11 @@ use std::collections::VecDeque;
 use std::f64::consts::PI;
 use std::time::{Duration, Instant};
 
+use crate::Result;
 use crate::dtc::encode_dtc;
 use crate::pid::encode_supported;
-use crate::readiness::{encode_readiness, Monitor, MonitorState, Readiness};
+use crate::readiness::{Monitor, MonitorState, Readiness, encode_readiness};
 use crate::transport::Transport;
-use crate::Result;
 
 /// Fictitious VIN with a valid check digit (Volkswagen do Brasil WMI).
 pub const DEMO_VIN: &str = "9BWAB45UXRT000123";
@@ -537,11 +537,7 @@ impl Simulator {
             }
             "L0" => {
                 self.linefeeds = false;
-                if quirky {
-                    vec![]
-                } else {
-                    ok()
-                }
+                if quirky { vec![] } else { ok() }
             }
             "L1" => {
                 self.linefeeds = true;
@@ -588,10 +584,8 @@ impl Simulator {
         let to_engine = functional || h == "7E0" || h.ends_with("DA10F1");
         let to_tcm = functional || h == "7E1" || h.ends_with("DA18F1");
         let mut lines = Vec::new();
-        if to_engine {
-            if let Some(bytes) = self.engine_answer(req) {
-                lines.extend(self.format_answer("7E8", &bytes));
-            }
+        if to_engine && let Some(bytes) = self.engine_answer(req) {
+            lines.extend(self.format_answer("7E8", &bytes));
         }
         if to_tcm {
             // The transmission answers functional requests only for 0100.
