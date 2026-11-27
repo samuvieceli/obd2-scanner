@@ -212,27 +212,35 @@ pub fn decode_vin(vin: &str, current_year: u16) -> VinInfo {
 /// * CAN: one message `49 PID N <ascii...>` (N = number of items).
 /// * Older protocols: several messages `49 PID SEQ b1 b2 b3 b4`.
 pub fn assemble_mode09_string(messages: &[Vec<u8>], can: bool) -> Option<String> {
-    let mut bytes = Vec::new();
     if can || messages.len() == 1 {
-        let m = messages.first()?;
-        let mut data = m.get(2..)?;
-        // Skip the item count byte when present (it is never printable).
-        if data.first().is_some_and(|b| *b < 0x20) {
-            data = &data[1..];
-        }
-        bytes.extend_from_slice(data);
-    } else {
-        let mut sorted: Vec<&Vec<u8>> = messages.iter().filter(|m| m.len() > 3).collect();
-        sorted.sort_by_key(|m| m[2]);
-        for m in sorted {
-            bytes.extend_from_slice(&m[3..]);
+        // With several units answering, use the first one with text.
+        return messages.iter().find_map(|m| {
+            let mut data = m.get(2..)?;
+            // Skip the item count byte when present (it is never printable).
+            if data.first().is_some_and(|b| *b < 0x20) {
+                data = &data[1..];
+            }
+            ascii_text(data)
+        });
+    }
+    let mut sorted: Vec<&Vec<u8>> = messages.iter().filter(|m| m.len() > 3).collect();
+    sorted.sort_by_key(|m| m[2]);
+    let bytes: Vec<u8> = sorted.iter().flat_map(|m| m[3..].iter().copied()).collect();
+    ascii_text(&bytes)
+}
+
+/// Printable text, keeping inner spaces (ECU names have them) and turning
+/// NUL separators between items into one space.
+fn ascii_text(bytes: &[u8]) -> Option<String> {
+    let mut text = String::new();
+    for &b in bytes {
+        if b.is_ascii_graphic() {
+            text.push(b as char);
+        } else if (b == b' ' || b == 0) && !text.is_empty() && !text.ends_with(' ') {
+            text.push(' ');
         }
     }
-    let text: String = bytes
-        .into_iter()
-        .filter(|b| b.is_ascii_graphic())
-        .map(|b| b as char)
-        .collect();
+    let text = text.trim_end().to_string();
     if text.is_empty() { None } else { Some(text) }
 }
 
@@ -305,6 +313,18 @@ mod tests {
             vec![0x49, 0x02, 0x05, b'3', b'5', b'2', b'H'],
         ];
         // Not a real VIN layout, only checks ordering and NUL removal.
+        assert_eq!(
+            assemble_mode09_string(
+                &[vec![0x49, 0x0A, 0x01], {
+                    let mut m = vec![0x49, 0x0A, 0x01];
+                    m.extend_from_slice(b"ECM\0-Engine Control\0\0");
+                    m
+                }],
+                true
+            )
+            .as_deref(),
+            Some("ECM -Engine Control")
+        );
         assert_eq!(
             assemble_mode09_string(&legacy, false).as_deref(),
             Some("1GCM82633A004352H")

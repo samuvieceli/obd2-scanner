@@ -166,9 +166,19 @@ impl Interpreter {
         }
 
         // Upstream O2 sensor should switch between lean (<0.3 V) and rich (>0.6 V).
+        // Not during fuel cut on deceleration (low load at high RPM: the sensor
+        // reads lean on purpose), nor on cars with a wideband front sensor,
+        // where the 0x14 voltage may not switch at all.
+        let fuel_cut = self.latest("engine_load").is_some_and(|l| l < 15.0)
+            && self.latest("rpm").is_some_and(|r| r > 1400.0);
+        let wideband = ["lambda_b1s1", "wb_lambda_s1"]
+            .iter()
+            .any(|k| self.history.contains_key(*k));
         if let Some((dt, lo, hi)) = self.span("o2_b1s1")
             && running
             && warm
+            && !fuel_cut
+            && !wideband
             && dt >= 8.0
             && hi - lo < 0.3
         {
@@ -256,5 +266,18 @@ mod tests {
             i.push("o2_b1s1", t, 0.45);
         }
         assert!(i.evaluate().iter().any(|f| f.id == "o2_not_switching"));
+    }
+
+    #[test]
+    fn lean_o2_during_fuel_cut_is_normal() {
+        let mut i = Interpreter::new();
+        for n in 0..=10 {
+            let t = n as f64;
+            i.push("rpm", t, 2200.0);
+            i.push("engine_load", t, 5.0);
+            i.push("coolant_temp", t, 90.0);
+            i.push("o2_b1s1", t, 0.08);
+        }
+        assert!(!i.evaluate().iter().any(|f| f.id == "o2_not_switching"));
     }
 }

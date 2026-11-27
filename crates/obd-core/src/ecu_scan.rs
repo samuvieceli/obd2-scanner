@@ -102,23 +102,13 @@ pub fn request_header(address: &str) -> Option<String> {
 
 /// Text of an identification record: printable ASCII, otherwise hex.
 fn did_text(data: &[u8]) -> Option<String> {
-    let trimmed: Vec<u8> = data
-        .iter()
-        .copied()
-        .filter(|b| *b != 0 && *b != 0xFF && *b != b' ')
-        .collect();
-    if trimmed.is_empty() {
-        return None;
-    }
-    if data
-        .iter()
-        .all(|b| b.is_ascii_graphic() || *b == b' ' || *b == 0)
-    {
-        Some(
-            String::from_utf8_lossy(data)
-                .trim_matches(|c: char| c == '\0' || c == ' ')
-                .to_string(),
-        )
+    // Units pad records with 0x00, 0xFF or spaces at either end.
+    let pad = |b: &u8| matches!(*b, 0 | 0xFF | b' ');
+    let first = data.iter().position(|b| !pad(b))?;
+    let last = data.iter().rposition(|b| !pad(b))?;
+    let core = &data[first..=last];
+    if core.iter().all(|b| b.is_ascii_graphic() || *b == b' ') {
+        Some(String::from_utf8_lossy(core).into_owned())
     } else {
         Some(data.iter().map(|b| format!("{b:02X}")).collect())
     }
@@ -241,5 +231,6 @@ mod tests {
         assert_eq!(did_text(b"03C906024AB \0").as_deref(), Some("03C906024AB"));
         assert_eq!(did_text(&[0x01, 0x02]).as_deref(), Some("0102"));
         assert_eq!(did_text(&[0, 0, 0]), None);
+        assert_eq!(did_text(b"1K0907115\xFF\xFF").as_deref(), Some("1K0907115"));
     }
 }
