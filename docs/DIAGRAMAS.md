@@ -204,6 +204,7 @@ flowchart LR
         dashboard["Painel ao vivo"]
         hud["HUD"]
         performance["Testes de desempenho"]
+        guided["Testes guiados<br/>bateria e alternador"]
         charts["Gráficos"]
         diagnostics["Códigos de falha<br/>+ Modo 06"]
         vehicle["Veículo e prontidão<br/>+ centrais"]
@@ -217,6 +218,7 @@ flowchart LR
         api["api.ts<br/>ponte com o Rust"]
         trip["trip.ts<br/>consumo"]
         perf["perf.ts<br/>detecção 0-100 etc."]
+        battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         alerts["alerts.ts<br/>alertas e bipe"]
         playback["playback.ts<br/>reprodução"]
         prefs["prefs.ts<br/>preferências e perfis"]
@@ -227,6 +229,7 @@ flowchart LR
     end
     dashboard --> gauge & trip & alerts
     performance --> perf
+    guided --> battery
     sessions --> playback
     settings --> prefs & units & theme
     connection --> prefs

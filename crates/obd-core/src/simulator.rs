@@ -28,7 +28,8 @@
 //! | `ATSIMDROP` | Bluetooth out of range: the port fails | reopening |
 //!
 //! `ATSIMOFF` stops the engine (ignition still on: RPM and speed 0, needed to
-//! clear codes) and `ATSIMON` starts it again.
+//! clear codes; battery at rest, about 12.5 V) and `ATSIMON` starts it again
+//! (1.2 s of cranking at about 10.3 V first, for the battery test).
 
 use std::collections::VecDeque;
 use std::f64::consts::PI;
@@ -142,6 +143,9 @@ pub fn engine_at(t: f64) -> EngineState {
     }
 }
 
+/// How long the virtual starter motor turns after `ATSIMON` (seconds).
+const CRANK_S: f64 = 1.2;
+
 pub struct Simulator {
     opts: SimulatorOptions,
     start: Instant,
@@ -165,6 +169,8 @@ pub struct Simulator {
     header: String,
     /// `ATSIMOFF`: engine stopped, ignition on.
     engine_off: bool,
+    /// `ATSIMON` after `ATSIMOFF`: when the starter began turning.
+    cranked_at: Option<Instant>,
 }
 
 const SUPPORTED: &[u8] = &[
@@ -208,17 +214,28 @@ impl Simulator {
             headers: false,
             header: "7DF".into(),
             engine_off: false,
+            cranked_at: None,
         }
     }
 
     /// Engine values now (stopped engine: no RPM, speed, air flow or load).
     fn engine(&self) -> EngineState {
         let mut e = engine_at(self.now());
-        if self.engine_off {
-            e.rpm = 0.0;
+        let cranking = self
+            .cranked_at
+            .map(|c| c.elapsed().as_secs_f64() * self.opts.time_scale)
+            .filter(|s| *s < CRANK_S);
+        if self.engine_off || cranking.is_some() {
+            e.rpm = if cranking.is_some() { 220.0 } else { 0.0 };
             e.speed = 0.0;
             e.maf = 0.0;
             e.load = 0.0;
+            // Battery at rest, or pulled down by the starter motor.
+            let wobble = (self.now() * 7.0).sin() * 0.02;
+            e.module_voltage = match cranking {
+                Some(s) => 10.3 + s * 0.15 + wobble * 5.0,
+                None => 12.48 + wobble,
+            };
         }
         e
     }
@@ -449,6 +466,9 @@ impl Simulator {
                 ok()
             }
             "SIMOFF" | "SIMON" => {
+                if at == "SIMON" && self.engine_off {
+                    self.cranked_at = Some(Instant::now());
+                }
                 self.engine_off = at == "SIMOFF";
                 ok()
             }
@@ -813,5 +833,22 @@ mod tests {
         assert!(engine_at(0.0).coolant < 30.0);
         assert!(engine_at(300.0).coolant > 85.0);
         assert!(engine_at(30.0).speed > 70.0);
+    }
+
+    #[test]
+    fn starting_the_engine_pulls_the_battery_down() {
+        let mut sim = Simulator::new(SimulatorOptions {
+            time_scale: 1.0,
+            ..Default::default()
+        });
+        sim.engine_off = true;
+        let rest = sim.engine();
+        assert!((12.3..12.7).contains(&rest.module_voltage) && rest.rpm == 0.0);
+        sim.engine_off = false;
+        sim.cranked_at = Some(Instant::now());
+        let crank = sim.engine();
+        assert!(crank.module_voltage < 11.0 && crank.rpm > 0.0);
+        sim.cranked_at = Instant::now().checked_sub(Duration::from_secs(2));
+        assert!(sim.engine().module_voltage > 13.5);
     }
 }

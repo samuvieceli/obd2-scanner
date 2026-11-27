@@ -11,6 +11,7 @@ const enUS: Messages = {
     dashboard: "Live dashboard",
     hud: "Head-up display (HUD)",
     performance: "Performance tests",
+    guided: "Guided tests",
     charts: "Charts",
     diagnostics: "Trouble codes",
     vehicle: "Vehicle & readiness",
@@ -176,6 +177,91 @@ const enUS: Messages = {
     samples: "Readings",
     lowRate: "Few readings per second: the time may be less accurate.",
     clear: "Delete results",
+  },
+  guided: {
+    title: "Guided tests",
+    intro: "Step-by-step tests that turn the car's readings into an indication that is easy to understand. The program moves on by itself as it notices what you did.",
+    needsLive: "This test needs the car connected right now; it does not work with a recording.",
+    rate: "{rate} readings per second",
+    tabs: {
+      battery: "Battery and alternator",
+    },
+    grade: {
+      ok: "Good",
+      warn: "Attention",
+      bad: "Likely problem",
+    },
+  },
+  battery: {
+    safety: "Do the test with the car parked, handbrake on and in neutral (or P). In step 3 the engine runs: only in an open space.",
+    sourceTip: "Voltage measured by the adapter itself at pin 16 of the OBD2 socket, which is wired straight to the battery (ATRV command). If the adapter cannot measure it, the program uses the voltage reported by the engine computer (PID 42).",
+    steps: {
+      rest: {
+        title: "Battery at rest",
+        do: "Turn the key on without starting (dashboard lit, engine off) and wait a few seconds with a steady voltage.",
+      },
+      crank: {
+        title: "Starting",
+        do: "Now start the engine as usual. The program records the lowest voltage while the starter motor turns.",
+      },
+      charge: {
+        title: "Alternator",
+        idle: "Let the engine idle for a few seconds, without pressing the pedal.",
+        loaded: "Turn the headlights on and hold the engine near 2,000 rpm for about 5 seconds.",
+      },
+    },
+    hold: {
+      engine_running: "The engine seems to be running (alternator voltage). Stop the engine and leave only the key on.",
+      engine_off: "The engine seems to be off. Start it to continue.",
+      not_idle: "Waiting for idle (release the pedal).",
+      rpm_range: "Waiting for the speed to be near 2,000 rpm.",
+    },
+    verdict: {
+      rest: {
+        ok: "Battery well charged.",
+        warn: "Low charge: worth recharging and testing again.",
+        bad: "Battery discharged or worn (sulfated).",
+      },
+      crank: {
+        ok: "The battery handled the start well.",
+        warn: "The battery dropped a lot while starting: a sign of wear.",
+        bad: "The battery is losing starting power. It points to a replacement soon.",
+      },
+      charge: {
+        ok: "The alternator is charging normally.",
+        warn: "Outside the most common range, see the note.",
+        bad: "Not normal. Worth taking to an auto electrician.",
+      },
+    },
+    notes: {
+      surface: "Above 12.9 V the battery still holds the \"surface charge\" of the last drive and looks better than it is. For a fair value, test after the car has stood for a few hours.",
+      few_samples: "Few readings during the start: the lowest point may have fallen between them.",
+      smart: "Many recent cars manage the alternator (smart charging) and stay in this range on purpose when the battery is full. If yours is not one of them, it may be undercharging.",
+      not_charging: "Below the battery's own voltage: the alternator does not seem to be charging.",
+      high: "A bit high. Some cars raise the voltage with a cold engine, but keep an eye on it.",
+      overcharge: "Voltage too high: the alternator regulator may be faulty, which can damage the battery and modules.",
+    },
+    crankMissed: {
+      missed: "The start was too quick for the adapter to measure the voltage drop.",
+      adapter_reset: "The adapter restarted during the start (the voltage drop switched it off for a moment), so it could not measure. This is common with simple adapters.",
+      skipped: "Step skipped.",
+    },
+    atIdle: "At idle:",
+    atLoad: "At 2,000 rpm with headlights:",
+    skip: "Skip step",
+    restart: "Start over",
+    summary: "Result",
+    overall: {
+      ok: "Battery and alternator show no sign of trouble.",
+      warn: "There are points of attention. See each step above.",
+      bad: "There is a sign of trouble. See each step above and, if possible, confirm with a load test at an auto electrician.",
+      none: "No measurement was made.",
+    },
+    precision: "This is an indication, not a certified test. Adapters differ by 0.1 to 0.3 V, and the limits are for ordinary 12 V batteries. Severe cold and diesel engines lower the voltage while starting.",
+    demo: {
+      stop: "Stop the virtual engine",
+      start: "Start the virtual engine",
+    },
   },
   hud: {
     title: "Head-up display (HUD)",

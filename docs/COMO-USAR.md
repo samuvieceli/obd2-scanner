@@ -53,6 +53,20 @@ Abra **Testes de desempenho** e dirija: não há botão de iniciar. O programa r
 
 O teste é descartado se você aliviar o pé (a velocidade cai), se a velocidade parar de subir por 3 segundos ou se a leitura falhar. Os tempos são calculados entre duas leituras (interpolação), por isso a precisão fica perto de 0,1 s com 8 ou mais leituras por segundo. O **modo preciso** lê só a velocidade enquanto a tela está aberta, para ter mais leituras. **Faça testes só em local fechado e seguro, nunca em via pública.** Também funciona com uma gravação reproduzida.
 
+## 6c. Testes guiados
+
+A tela **Testes guiados** faz verificações passo a passo e mostra o resultado como uma indicação (Bom, Atenção, Problema provável). O programa avança sozinho conforme percebe o que você fez; os botões **Pular etapa** e **Recomeçar** ficam embaixo.
+
+**Bateria e alternador** (precisa do carro conectado, não funciona com gravação):
+
+| Etapa | O que fazer | Como o programa avalia |
+| --- | --- | --- |
+| 1. Bateria em repouso | Chave ligada, motor desligado. | Mediana de 3 s de tensão estável. 12,4 V ou mais: boa; 12,0 a 12,4 V: carga baixa; menos de 12,0 V: descarregada. Acima de 12,9 V avisa que é "carga de superfície" da última viagem. |
+| 2. Partida | Dê a partida. | Menor tensão enquanto o motor de arranque gira. 10,0 V ou mais: boa; 9,6 a 10,0 V: desgaste; menos de 9,6 V: perdendo força. |
+| 3. Alternador | Marcha lenta; depois faróis ligados e perto de 2.000 rpm. | 13,2 a 14,8 V: normal; 12,8 a 13,2 V: atenção (muitos carros novos ficam aí de propósito, por terem carga inteligente); abaixo de 12,8 V: não carrega; acima de 15,2 V: regulador com defeito. |
+
+A tensão vem do próprio adaptador (comando `ATRV`, medida no pino 16, ligado direto na bateria). Durante o teste o programa lê só a tensão (e a rotação na etapa 3), para ter o máximo de leituras por segundo. Muitos adaptadores simples reiniciam na partida porque a tensão cai também para eles: nesse caso a etapa 2 fica sem valor e o programa explica o motivo. Adaptadores diferem em 0,1 a 0,3 V, então use o resultado como indicação; para um laudo, faça um teste de carga num eletricista. No modo de demonstração, botões na própria tela desligam e dão partida no motor virtual.
+
 ## 7. Testes da central (Modo 06)
 
 Em **Códigos de falha → Testes da central**, clique em **Ler testes**. Cada linha é um autoteste da central com o valor medido e os limites aceitos. Um teste **reprovado** costuma indicar o componente com problema antes mesmo de aparecer um código de falha. Disponível em carros com rede CAN (a maioria a partir de 2008–2010).
