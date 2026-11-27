@@ -197,7 +197,7 @@ export interface Session {
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 export const api = {
-  appInfo: () => invoke<{ version: string }>("app_info"),
+  appInfo: () => invoke<{ version: string; portableData: string | null }>("app_info"),
   listPorts: () => invoke<PortInfo[]>("list_ports"),
   scanBle: (seconds?: number) => invoke<BleDevice[]>("scan_ble", { seconds }),
   pidCatalog: () => invoke<PidMeta[]>("pid_catalog"),

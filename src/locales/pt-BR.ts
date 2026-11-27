@@ -444,6 +444,8 @@ const ptBR = {
     about: "Sobre",
     aboutText: "Programa de código aberto (licença GPL-3.0). Fórmulas e ideias baseadas em SAE J1979 e nos projetos abertos pyOBD (GPL-2.0+), AndrOBD (GPL-3.0), ELMduino (MIT), Libre Diagnostic (AGPL-3.0), obdium (GPL-3.0) e o3DIAG (MIT). Detalhes em docs/CREDITOS.md.",
     version: "Versão {version}",
+    portableShort: "portátil",
+    portable: "Versão portátil: configurações e dados ficam em {folder}.",
     source: "Código-fonte",
   },
   link: {

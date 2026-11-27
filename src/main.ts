@@ -245,7 +245,7 @@ function layout() {
         h("div", null, h("strong", null, t("app.name")), h("span", null, t("app.tagline"))),
       ),
       nav,
-      h("div", { class: "sidebar-foot" }, profileSelect, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}` : "")),
+      h("div", { class: "sidebar-foot" }, profileSelect, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}${state.portableData ? ` · ${t("settings.portableShort")}` : ""}` : "")),
     ),
     h("div", { class: "main" }, h("header", { class: "topbar" }, statusEl), linkEl, playerEl, content),
   );
@@ -267,7 +267,9 @@ async function boot() {
   }
   try {
     state.catalog = await api.pidCatalog();
-    state.appVersion = (await api.appInfo()).version;
+    const info = await api.appInfo();
+    state.appVersion = info.version;
+    state.portableData = info.portableData;
   } catch (e) {
     toast(errorText(e), "error");
   }

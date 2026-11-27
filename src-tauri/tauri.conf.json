@@ -13,6 +13,7 @@
     "windows": [
       {
         "label": "main",
+        "create": false,
         "title": "OBD2 Scanner",
         "width": 1280,
         "height": 820,

@@ -446,6 +446,8 @@ const enUS: Messages = {
     about: "About",
     aboutText: "Open-source software (GPL-3.0 license). Formulas and ideas based on SAE J1979 and on the open projects pyOBD (GPL-2.0+), AndrOBD (GPL-3.0), ELMduino (MIT), Libre Diagnostic (AGPL-3.0), obdium (GPL-3.0) and o3DIAG (MIT). Details in docs/CREDITOS.md.",
     version: "Version {version}",
+    portableShort: "portable",
+    portable: "Portable version: settings and data are kept in {folder}.",
     source: "Source code",
   },
   link: {

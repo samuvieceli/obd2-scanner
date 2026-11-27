@@ -81,6 +81,8 @@ export const state = {
   /** A recording being replayed as if it were live (see playback.ts). */
   playback: null as import("./playback").Playback | null,
   appVersion: "",
+  /** Data folder beside the program (portable version), or null. */
+  portableData: null as string | null,
 };
 
 const subs = new Map<Topic, Set<() => void>>();

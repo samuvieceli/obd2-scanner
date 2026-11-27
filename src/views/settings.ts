@@ -365,6 +365,7 @@ export function mount(root: HTMLElement) {
     section(
       t("settings.about"),
       h("p", null, h("strong", null, t("app.name")), " — ", t("settings.version", { version: state.appVersion })),
+      state.portableData ? h("p", null, t("settings.portable", { folder: state.portableData })) : null,
       h("p", null, t("settings.aboutText")),
       h(
         "p",

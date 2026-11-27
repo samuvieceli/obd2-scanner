@@ -4,6 +4,7 @@
 //! `invoke("name", {...})` (see `src/api.ts`). Long operations run on a
 //! blocking thread so the window never freezes.
 
+mod portable;
 mod recorder;
 mod worker;
 
@@ -103,14 +104,21 @@ where
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct AppInfo {
     version: String,
+    /// Folder beside the program holding the data (portable version).
+    portable_data: Option<String>,
 }
 
+/// Data folder of the portable version, decided once at start-up.
+struct PortableData(Option<std::path::PathBuf>);
+
 #[tauri::command]
-fn app_info() -> AppInfo {
+fn app_info(portable: State<'_, PortableData>) -> AppInfo {
     AppInfo {
         version: env!("CARGO_PKG_VERSION").into(),
+        portable_data: portable.0.as_ref().map(|p| p.display().to_string()),
     }
 }
 
@@ -593,10 +601,34 @@ async fn save_text(path: String, text: String) -> CmdResult<()> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    if portable::webview_missing() {
+        portable::alert("OBD2 Scanner", portable::WEBVIEW_MISSING);
+        return;
+    }
+    let portable_data = portable::data_dir();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(AppState::default())
+        .manage(PortableData(portable_data.clone()))
+        // The main window is created here rather than from tauri.conf.json
+        // ("create": false) so the portable version can keep its data beside
+        // the program.
+        .setup(move |app| {
+            let config = app
+                .config()
+                .app
+                .windows
+                .first()
+                .cloned()
+                .ok_or("no window in tauri.conf.json")?;
+            let mut window = tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?;
+            if let Some(dir) = portable_data {
+                window = window.data_directory(dir);
+            }
+            window.build()?;
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             app_info,
             list_ports,
