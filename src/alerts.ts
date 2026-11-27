@@ -1,7 +1,7 @@
 // Threshold alerts: warn once when a value leaves its safe range, with an
 // optional beep, and again only after it has come back (hysteresis).
 import { pidText, t } from "./i18n";
-import { emit, on, state } from "./store";
+import { emit, on, recentValues, state } from "./store";
 import { prefs, profile } from "./prefs";
 import { fmtValue, toast, unitOf } from "./ui";
 import { isSeeking } from "./playback";
@@ -37,13 +37,18 @@ function check() {
     return;
   }
   let changed = false;
+  const now = recentValues();
   for (const rule of profile().alerts) {
     if (!rule.enabled) continue;
-    const v = state.latest[rule.key];
-    if (v === undefined) continue;
+    const v = now[rule.key];
+    if (v === undefined) {
+      // No longer read: its alert cannot be confirmed any more.
+      if (activeAlerts.delete(rule.key)) changed = true;
+      continue;
+    }
     // Battery below the limit is normal while cranking: ignore when the
     // engine is off or the starter is turning.
-    if (rule.key === "battery_voltage" && rule.below !== null && v < rule.below && (state.latest.rpm ?? 0) < 500) continue;
+    if (rule.key === "battery_voltage" && rule.below !== null && v < rule.below && (now.rpm ?? 0) < 500) continue;
     const out = (rule.above !== null && v > rule.above) || (rule.below !== null && v < rule.below);
     // Hysteresis: leave the alert state only 2% inside the limit.
     const margin = Math.max(Math.abs(rule.above ?? rule.below ?? 0) * 0.02, 0.1);

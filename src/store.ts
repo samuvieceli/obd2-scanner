@@ -165,6 +165,23 @@ export function pushFrame(f: LiveFrame) {
   emit("frame");
 }
 
+/**
+ * Latest values that are still being read: those that came within `maxAgeS`
+ * seconds of the latest frame. A value that stopped being read (a guided
+ * test or the precise mode reads only a few, or the car stopped answering
+ * it) is left out instead of repeating its last reading forever.
+ */
+export function recentValues(maxAgeS = 3): Record<string, number> {
+  const out: Record<string, number> = {};
+  const now = state.lastFrameT;
+  if (now === undefined) return out;
+  for (const [k, s] of state.history) {
+    const n = s.t.length;
+    if (n && s.t[n - 1] >= now - maxAgeS) out[k] = s.v[n - 1];
+  }
+  return out;
+}
+
 /** Value of `key` only if it came in the latest frame (not an old reading). */
 export function freshValue(key: string): number | undefined {
   const s = state.history.get(key);

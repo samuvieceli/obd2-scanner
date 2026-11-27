@@ -45,13 +45,19 @@ function emitUpTo(p: Playback, ms: number, rate: number) {
   }
 }
 
+let findingsSeq = 0;
+
 async function refreshFindings(p: Playback) {
   const frames = p.session.frames;
   const end = p.idx;
   let start = end;
   while (start > 0 && frames[end - 1].t_ms - frames[start - 1].t_ms <= FINDINGS_WINDOW_MS) start--;
+  const seq = ++findingsSeq;
   try {
-    state.findings = await api.interpretFrames(frames.slice(start, end));
+    const found = await api.interpretFrames(frames.slice(start, end));
+    // A later request (a jump while dragging) or the end of playback wins.
+    if (seq !== findingsSeq || state.playback !== p) return;
+    state.findings = found;
     emit("findings");
   } catch {
     /* findings are optional during playback */

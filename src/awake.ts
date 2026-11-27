@@ -20,7 +20,8 @@ function update() {
 
 /** Called once at start-up. */
 export function initKeepAwake() {
-  for (const topic of ["connection", "recording", "link"] as const) on(topic, update);
+  // "frame": the first reading after a screen turns live reading on.
+  for (const topic of ["connection", "recording", "link", "frame"] as const) on(topic, update);
   window.addEventListener("hashchange", update);
   // Some screens switch live reading on and off without an event: check now and then.
   setInterval(update, 5_000);
