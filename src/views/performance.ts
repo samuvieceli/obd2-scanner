@@ -3,7 +3,7 @@
 import { ask } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { fmtNum, getLang, t } from "../i18n";
-import { hasLiveSource, on, state } from "../store";
+import { freshValue, hasLiveSource, on, state } from "../store";
 import { PERF_TESTS, PerfDetector, type PerfResult, type PerfTestId } from "../perf";
 import { button, clear, errorText, h, leaveOnDisconnect, notConnected, toast } from "../ui";
 import { FIRST_PROFILE, profile } from "../prefs";
@@ -56,7 +56,9 @@ export function mount(root: HTMLElement) {
   const live = !state.playback;
   const wasPolling = state.polling;
   // Speed-only polling gives many more samples per second → more precise times.
-  let fastMode = live;
+  // Off while recording: it would leave only the speed in the recording.
+  const recording = state.recording.recording;
+  let fastMode = live && !recording;
 
   const applyPolling = async () => {
     if (!live) return;
@@ -174,15 +176,18 @@ export function mount(root: HTMLElement) {
     h("p", { class: "lead" }, t("perf.intro")),
     h("p", { class: "muted small" }, t("profiles.resultsOf", { name: me.name })),
     h("div", { class: "alert alert-warning" }, h("p", null, t("perf.safety"))),
+    ...(recording && live ? [h("p", { class: "muted small" }, t("perf.recordingNote"))] : []),
     h("div", { class: "perf-live card" }, h("div", null, speedEl, h("span", { class: "unit" }, ` ${speedUnit}`)), h("div", null, fastBox, rateEl)),
     grid,
     h("section", { class: "card" }, h("h2", null, t("perf.history")), historyBox),
   );
 
   const onFrame = () => {
-    const v = state.latest.speed;
+    // Only a speed read in this very frame: an old one with a new time
+    // would distort the times and the acceleration.
+    const v = freshValue("speed");
     const tS = state.lastFrameT;
-    speedEl.textContent = v === undefined ? "—" : fmtNum(toDisplay("km/h", v), 0);
+    if (v !== undefined) speedEl.textContent = fmtNum(toDisplay("km/h", v), 0);
     const rate = state.rateHz;
     rateEl.textContent = t(rate >= 8 ? "perf.rateGood" : rate >= 4 ? "perf.rateOk" : "perf.rateLow", { rate: fmtNum(rate, 1) });
     if (v === undefined || tS === undefined) return;

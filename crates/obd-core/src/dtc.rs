@@ -66,7 +66,8 @@ pub fn encode_dtc(code: &str) -> Option<[u8; 2]> {
 /// On CAN the first byte is the number of codes; other protocols pad with `00 00`.
 pub fn decode_dtc_response(payload: &[u8], can: bool) -> Vec<Dtc> {
     let mut data = payload;
-    // On CAN the count byte makes the length odd.
+    // On CAN the count byte is always there (some clones add a padding byte,
+    // so the length can be even too); elsewhere an odd length means one.
     if can || data.len() % 2 == 1 {
         data = &data[1.min(data.len())..];
     }
@@ -145,6 +146,8 @@ fn is_generic(code: &str) -> bool {
         (Some('P'), Some('0' | '2')) => true,
         (Some('P'), Some('3')) => c.get(2).is_some_and(|&d| d >= '4'),
         (Some('U'), Some('0' | '3')) => true,
+        // B3xxx and C3xxx are reserved for SAE (generic) codes too.
+        (Some('B' | 'C'), Some('3')) => true,
         (Some(_), Some('0')) => true,
         _ => false,
     }

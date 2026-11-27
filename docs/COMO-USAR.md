@@ -26,6 +26,15 @@ A opção *Simular adaptador clone com defeitos* imita um adaptador barato que r
 
 Não precisa parear no Windows. Escolha **Bluetooth LE**, espere a busca (5 segundos), escolha o adaptador na lista (nomes comuns: `IOS-Vlink`, `OBDII`, `Vgate iCar Pro`, `Veepeak`) e clique em **Conectar**. Se ele não aparecer, ligue a ignição, aproxime o computador e feche apps do celular que possam estar conectados a ele.
 
+**Para conferir um adaptador BLE novo** (vale a pena fazer uma vez):
+
+1. Ligue a ignição e o adaptador; abra o programa e escolha **Bluetooth LE**.
+2. Clique em procurar: o adaptador deve aparecer no topo da lista.
+3. Conecte: deve mostrar a versão do ELM327 e o protocolo do carro.
+4. Deixe o painel ao vivo aberto por 1 a 2 minutos: os valores devem atualizar sem travar.
+5. Desligue e religue o adaptador (ou afaste-se): o programa deve avisar e reconectar.
+6. Leia os códigos de falha (DTC) e desconecte.
+
 ## 3. Adaptador USB
 
 Instale o driver do chip do cabo (geralmente FTDI, CH340 ou CP2102), conecte e escolha a porta COM marcada como **USB**.

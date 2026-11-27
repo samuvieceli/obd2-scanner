@@ -10,7 +10,7 @@ Este guia é para quem nunca programou. Ele explica, passo a passo e no Windows,
 | --- | --- |
 | **Repositório** | A pasta do projeto, com todo o histórico de mudanças. Fica no GitHub e pode ter uma cópia no seu computador. |
 | **Commit** | Um "salvamento com descrição" de um conjunto de mudanças. Ex.: "Corrige texto da tela de conexão". |
-| **Branch** (ramo) | Uma linha de trabalho separada. A principal se chama `main`. O Claude trabalha em outra (`claude/project-thread-vk0vkx`) para você revisar antes de juntar. |
+| **Branch** (ramo) | Uma linha de trabalho separada. A principal se chama `main`. O Claude trabalha em outra (o nome muda a cada tarefa e começa com `claude/`; é a que aparece no PR aberto) para você revisar antes de juntar. |
 | **Pull request (PR)** | O pedido para juntar uma branch na `main`. É onde você vê o que mudou e aprova. |
 | **Merge** | Juntar a branch na `main`, depois de aprovar o PR. |
 
@@ -20,7 +20,7 @@ Este guia é para quem nunca programou. Ele explica, passo a passo e no Windows,
 
 ## 2. Só olhar o código (sem instalar nada)
 
-Abra https://github.com/samuvieceli/obd2-scanner no navegador. Para ver a versão mais nova, antes do merge, troque a branch no botão do canto superior esquerdo da lista de arquivos (onde está escrito `main`) para `claude/project-thread-vk0vkx`.
+Abra https://github.com/samuvieceli/obd2-scanner no navegador. Para ver a versão mais nova, antes do merge, troque a branch no botão do canto superior esquerdo da lista de arquivos (onde está escrito `main`) para a branch do PR aberto (começa com `claude/`).
 
 Mapa das pastas:
 
@@ -60,7 +60,7 @@ No VS Code, instale também as extensões **rust-analyzer** e **Tauri** (ícone 
 3. Escolha uma pasta (por exemplo, `Documentos`). Quando perguntar, clique em **Abrir**.
 4. Se pedir login no GitHub, faça. Ele só pede uma vez.
 
-**Para ver o trabalho mais novo do Claude** (antes do merge): clique no nome da branch no canto inferior esquerdo do VS Code (aparece `main`) e escolha `origin/claude/project-thread-vk0vkx`. Depois do merge do PR, volte para `main`.
+**Para ver o trabalho mais novo do Claude** (antes do merge): clique no nome da branch no canto inferior esquerdo do VS Code (aparece `main`) e escolha a branch do PR aberto (`origin/claude/...`). Depois do merge do PR, volte para `main`.
 
 ---
 
@@ -128,7 +128,7 @@ Você também não precisa rodar tudo isso sempre: **a cada envio, o GitHub roda
 **Em qual branch fazer commit?**
 
 - Mudanças pequenas suas (textos, cores): direto na `main` está ok.
-- Enquanto o PR do Claude estiver aberto, evite mexer nos mesmos arquivos que ele. Se quiser ajustar algo do PR, peça no chat ou faça o commit na branch do PR (`claude/project-thread-vk0vkx`) e me avise.
+- Enquanto o PR do Claude estiver aberto, evite mexer nos mesmos arquivos que ele. Se quiser ajustar algo do PR, peça no chat ou faça o commit na branch do PR (a que começa com `claude/`) e me avise.
 
 ---
 

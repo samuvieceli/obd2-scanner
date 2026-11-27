@@ -6,7 +6,7 @@
 // 3. "speed-density" for cars with a MAP sensor and no MAF (very common in
 //    Brazil): air mass = rpm × displacement × efficiency × pressure / (R × T).
 // Ethanol content from PID 52 is used for flex cars when available.
-import { emit, on, state } from "./store";
+import { emit, on, recentValues, state } from "./store";
 import { profile } from "./prefs";
 import { FUELS, flexProps, type FuelProps } from "./fuels";
 
@@ -55,12 +55,17 @@ export function resetTrip() {
   trip.timeS = 0;
   trip.distanceKm = 0;
   trip.fuelL = 0;
+  trip.lph = undefined;
+  trip.kmpl = undefined;
+  trip.source = null;
   lastT = null;
   emit("trip");
 }
 
 function onFrame() {
-  const v = state.latest;
+  // Only values still being read: no phantom distance or fuel from a speed
+  // or air flow that stopped updating.
+  const v = recentValues();
   const t = state.lastFrameT;
   if (t === undefined) return;
   const dt = lastT === null ? 0 : t - lastT;

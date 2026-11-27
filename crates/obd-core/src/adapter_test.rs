@@ -74,7 +74,14 @@ pub struct AdapterReport {
 /// `"ELM327 v1.5"` → `"1.5"`.
 pub fn claimed_version(text: &str) -> Option<String> {
     let lower = text.to_ascii_lowercase();
-    let start = lower.find('v')? + 1;
+    // First "v" followed by a digit: skips words like "device" or "obdii vlink".
+    let start = lower
+        .char_indices()
+        .zip(lower.chars().skip(1))
+        .find(|((_, c), next)| *c == 'v' && next.is_ascii_digit())?
+        .0
+        .0
+        + 1;
     let v: String = lower[start..]
         .chars()
         .take_while(|c| c.is_ascii_alphanumeric() || *c == '.')
@@ -129,7 +136,14 @@ pub fn test_adapter(elm: &mut Elm327) -> Result<AdapterReport> {
         let result = match elm.raw_command(command, std::time::Duration::from_millis(1_500)) {
             Ok(raw) => {
                 let lines = clean_lines(&raw, command);
-                if lines.iter().any(|l| l.trim() == "?") {
+                // Silence, "?" or an error line all mean the command was not
+                // really understood.
+                let rejected = lines.iter().all(|l| l.trim().is_empty())
+                    || lines.iter().any(|l| {
+                        let t = l.trim().to_ascii_uppercase();
+                        t == "?" || t.contains("ERR")
+                    });
+                if rejected {
                     ProbeResult::Rejected
                 } else {
                     ProbeResult::Accepted
@@ -183,6 +197,10 @@ mod tests {
         assert_eq!(claimed_version("ELM327 v1.5").as_deref(), Some("1.5"));
         assert_eq!(claimed_version("ELM327 v2.1").as_deref(), Some("2.1"));
         assert_eq!(claimed_version("OBDII"), None);
+        assert_eq!(
+            claimed_version("Vgate iCar ELM327 v2.1").as_deref(),
+            Some("2.1")
+        );
     }
 
     #[test]

@@ -6,7 +6,7 @@ import { tripCost } from "../cost";
 import { fmtNum, getLang, pidText, t } from "../i18n";
 import { prefs, profile } from "../prefs";
 import { copyCard, drawCard, type Line } from "../share";
-import { emit, on, state } from "../store";
+import { emit, on, recentValues, state } from "../store";
 import { Drive, type DriveSummary } from "../summary";
 import { fuelFlow } from "../trip";
 import { isSeeking } from "../playback";
@@ -110,7 +110,8 @@ export function initDriveSummary() {
     const dt = lastT === null ? 0 : t_ - lastT;
     lastT = t_;
     for (const k of activeAlerts) drive.noteAlert(k);
-    finished(drive.push(dt, state.latest, fuelFlow(state.latest)));
+    const now = recentValues();
+    finished(drive.push(dt, now, fuelFlow(now)));
   });
   on("connection", () => {
     if (state.connection !== "connected" && !state.playback) {

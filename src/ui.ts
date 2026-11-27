@@ -194,7 +194,8 @@ export async function busy<T>(btn: HTMLButtonElement, action: () => Promise<T>):
   } finally {
     btn.disabled = false;
     btn.classList.remove("busy");
-    btn.textContent = label;
+    // Something may have renamed the button meanwhile: keep that text.
+    if (btn.textContent === t("common.loading")) btn.textContent = label;
   }
 }
 

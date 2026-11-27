@@ -145,7 +145,8 @@ export class O2Test {
     // A stalled adapter (common on clones) leaves a hole in the window: the
     // missing seconds would look like a slow sensor, so measure again.
     const last = this.win[this.win.length - 1];
-    if (last && t - last.t > MAX_GAP_S) this.win = [];
+    // Time going back (a jump back in a replay) also starts over.
+    if (last && (t - last.t > MAX_GAP_S || t <= last.t)) this.win = [];
     this.win.push({ t, pre: s.pre, post: s.post });
     if (t - this.win[0].t >= WINDOW_S) this.finish();
   }

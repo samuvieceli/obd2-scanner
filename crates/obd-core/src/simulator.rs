@@ -312,7 +312,7 @@ impl Simulator {
                 m("evap_system", inc),
                 m("secondary_air", MonitorState::NotSupported),
                 m("ac_refrigerant", MonitorState::NotSupported),
-                m("o2_sensor", MonitorState::Complete),
+                m("o2_sensor", inc),
                 m("o2_heater", inc),
                 m("egr_vvt", MonitorState::NotSupported),
             ],
@@ -502,7 +502,9 @@ impl Simulator {
                 ok()
             }
             "Z" | "WS" => {
-                if self.fault == Fault::Hang {
+                // A real reset clears a hang and also uses up a pending
+                // one-shot reset fault.
+                if matches!(self.fault, Fault::Hang | Fault::Reset) {
                     self.fault = Fault::None;
                 }
                 self.headers = false;

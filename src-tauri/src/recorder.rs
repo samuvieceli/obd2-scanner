@@ -127,6 +127,11 @@ impl Recorder {
     pub fn recover(&mut self) -> Option<usize> {
         let path = self.backup_dir.as_ref()?.join(BACKUP_FILE);
         let session = read_interrupted(&path)?;
+        // Close the copy so the same recording is not offered again at the
+        // next start.
+        if let Ok(mut f) = std::fs::OpenOptions::new().append(true).open(&path) {
+            let _ = writeln!(f, "\n{END_LINE}").and_then(|_| f.sync_data());
+        }
         let frames = session.frames.len();
         self.last = Some(session);
         Some(frames)
@@ -220,6 +225,8 @@ mod tests {
         assert_eq!(s.adapter, "Demo");
         assert_eq!(s.frames[1].values["rpm"], 900.0);
         assert_eq!(s.marks.len(), 1);
+        // Offered only once.
+        assert_eq!(Recorder::with_backup(dir.clone()).recover(), None);
         std::fs::remove_dir_all(dir).unwrap();
     }
 

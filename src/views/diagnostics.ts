@@ -52,7 +52,9 @@ export function fmtTest(r: TestResult, v: number): string {
 let pendingCode: string | null = null;
 export function openDtcLookup(code: string) {
   pendingCode = code;
-  location.hash = "#/diagnostics";
+  // Already on that screen: no hashchange would fire, so send one.
+  if (location.hash === "#/diagnostics") window.dispatchEvent(new HashChangeEvent("hashchange"));
+  else location.hash = "#/diagnostics";
 }
 
 export function mount(root: HTMLElement) {
@@ -63,6 +65,7 @@ export function mount(root: HTMLElement) {
   // Lookup works offline, even without a connection.
   const lookupResult = h("div");
   const lookupInput = h("input", { type: "text", placeholder: t("dtc.lookupPlaceholder"), maxlength: 5, "aria-label": t("dtc.lookup") });
+  let lookupSeq = 0;
   const doLookup = async () => {
     clear(lookupResult);
     const code = lookupInput.value.trim().toUpperCase();
@@ -70,8 +73,15 @@ export function mount(root: HTMLElement) {
       lookupResult.append(h("p", { class: "muted" }, t("dtc.lookupInvalid")));
       return;
     }
-    const d = await api.describeDtc(code, getLang());
-    lookupResult.append(h("ul", { class: "dtc-list" }, dtcItem(d)));
+    const seq = ++lookupSeq;
+    try {
+      const d = await api.describeDtc(code, getLang());
+      // A newer lookup started meanwhile: show only that one.
+      if (seq !== lookupSeq) return;
+      lookupResult.append(h("ul", { class: "dtc-list" }, dtcItem(d)));
+    } catch (e) {
+      if (seq === lookupSeq) lookupResult.append(h("p", { class: "muted" }, errorText(e)));
+    }
   };
   lookupInput.addEventListener("keydown", (e) => e.key === "Enter" && doLookup());
   if (pendingCode) {
@@ -188,6 +198,8 @@ export function mount(root: HTMLElement) {
       state.dtcs = null;
       state.freeze = null;
       state.mode06 = null;
+      // Clearing also resets the readiness monitors: the old list is stale.
+      state.readiness = null;
       // Read again to show whether the codes are really gone. Permanent
       // codes stay by design: the ECU erases them after a few clean drives.
       const after = await api.readDtcs(getLang()).catch(() => null);
