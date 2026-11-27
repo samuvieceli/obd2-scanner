@@ -4,6 +4,7 @@ import { pidText, t } from "./i18n";
 import { emit, on, state } from "./store";
 import { prefs, profile } from "./prefs";
 import { fmtValue, toast, unitOf } from "./ui";
+import { isSeeking } from "./playback";
 
 /** Keys currently outside their limits. */
 export const activeAlerts = new Set<string>();
@@ -51,6 +52,8 @@ function check() {
     if (out && !activeAlerts.has(rule.key)) {
       activeAlerts.add(rule.key);
       changed = true;
+      // A jump in a replay passes over old values: no toast or beep for them.
+      if (isSeeking()) continue;
       const limit = rule.above !== null && v > rule.above ? rule.above : rule.below!;
       toast(
         t("alerts.toast", { name: pidText(rule.key).name, value: `${fmtValue(rule.key, v)} ${unitOf(rule.key)}`, limit: `${fmtValue(rule.key, limit)} ${unitOf(rule.key)}` }),

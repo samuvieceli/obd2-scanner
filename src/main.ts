@@ -281,6 +281,8 @@ function renderView() {
 }
 
 function layout() {
+  // Rebuilt on a language or profile change: stay where the user was.
+  const scroll = content.scrollTop;
   clear(app);
   const p = prefs();
   const profileSelect = h(
@@ -316,7 +318,10 @@ function layout() {
       nav,
       h("div", { class: "sidebar-foot" }, profileSelect, langSelect, h("span", { class: "muted small" }, state.appVersion ? `v${state.appVersion}${state.portableData ? ` · ${t("settings.portableShort")}` : ""}` : "")),
     ),
-    h("div", { class: "main" }, h(
+    h(
+      "div",
+      { class: "main" },
+      h(
         "header",
         { class: "topbar" },
         statusEl,
@@ -328,7 +333,11 @@ function layout() {
           h("kbd", null, "Ctrl+F"),
         ),
         dayNightEl,
-      ), linkEl, playerEl, content),
+      ),
+      linkEl,
+      playerEl,
+      content,
+    ),
   );
   content.tabIndex = -1;
   slider = null;
@@ -337,6 +346,7 @@ function layout() {
   renderDayNight();
   renderLink();
   renderView();
+  content.scrollTop = scroll;
 }
 
 async function boot() {
