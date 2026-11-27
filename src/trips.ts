@@ -53,6 +53,18 @@ export function average(m: TripMeter): number | undefined {
   return m.fuelL > 0.001 && m.distanceKm > 0.1 ? m.distanceKm / m.fuelL : undefined;
 }
 
+/** Minimum counted time (s) before the average speed is shown. */
+export const MIN_SPEED_TIME_S = 30;
+
+/**
+ * Average speed in km/h: distance divided by the counted time (time with the
+ * engine running and data coming, so stops in traffic lower it, as on the
+ * car's own trip computer).
+ */
+export function averageSpeed(m: Pick<TripMeter, "timeS" | "distanceKm">): number | undefined {
+  return m.timeS >= MIN_SPEED_TIME_S ? m.distanceKm / (m.timeS / 3600) : undefined;
+}
+
 const key = (profileId: string) => `trips:${profileId}`;
 
 function valid(m: unknown): m is TripMeter {

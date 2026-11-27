@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advance, average, loadMeters, newMeter, resetMeter, saveMeters, type TripMeters } from "./trips";
+import { advance, average, averageSpeed, loadMeters, newMeter, resetMeter, saveMeters, type TripMeters } from "./trips";
 
 const fresh = (): TripMeters => ({ a: newMeter(0), b: newMeter(0) });
 
@@ -48,6 +48,15 @@ describe("Trip A and Trip B", () => {
     expect(m.a.distanceKm).toBe(0);
     expect(m.a.fuelL).toBeCloseTo(2 / 3600, 9);
     expect(average(m.a)).toBeUndefined();
+  });
+
+  it("average speed is distance over counted time, stops included", () => {
+    const m = fresh();
+    for (let i = 0; i < 600; i++) advance(m, 1, 90, 6); // 10 min at 90 km/h
+    for (let i = 0; i < 600; i++) advance(m, 1, 0, 0.8); // 10 min stopped, engine on
+    expect(averageSpeed(m.a)).toBeCloseTo(45, 6);
+    // Too little time: not shown yet.
+    expect(averageSpeed({ timeS: 10, distanceKm: 0.2 })).toBeUndefined();
   });
 
   it("are saved per vehicle profile", () => {

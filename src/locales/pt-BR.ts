@@ -235,6 +235,7 @@ const ptBR = {
     addKeys: "Incluir parâmetros",
     instant: "Consumo agora",
     average: "Média da viagem",
+    avgSpeed: "Velocidade média",
     distance: "Distância",
     fuel: "Combustível gasto",
     time: "Tempo",
