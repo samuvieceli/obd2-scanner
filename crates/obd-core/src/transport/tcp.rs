@@ -49,6 +49,26 @@ impl Transport for TcpTransport {
         }
     }
 
+    /// Drops only what already arrived, without waiting for more.
+    fn clear_input(&mut self) -> Result<()> {
+        self.stream.set_nonblocking(true)?;
+        let mut buf = [0u8; 256];
+        let result = loop {
+            match self.stream.read(&mut buf) {
+                Ok(0) => {
+                    break Err(ObdError::Connection(
+                        "the adapter closed the connection".into(),
+                    ));
+                }
+                Ok(_) => continue,
+                Err(e) if e.kind() == ErrorKind::WouldBlock => break Ok(()),
+                Err(e) => break Err(e.into()),
+            }
+        };
+        self.stream.set_nonblocking(false)?;
+        result
+    }
+
     fn describe(&self) -> String {
         self.label.clone()
     }

@@ -368,3 +368,35 @@ fn ecu_scan_finds_engine_and_transmission() {
         assert_eq!(elm.read_vehicle_identity().vin.as_deref(), Some(DEMO_VIN));
     }
 }
+
+#[test]
+fn speed_zero_without_rpm_is_not_engine_off() {
+    // Idling at a traffic light, RPM not answered: never "stopped".
+    let t = ScriptedTransport::new()
+        .expect("010C", "010C\rNO DATA\r\r>")
+        .expect("010D", "010D\r41 0D 00\r\r>");
+    let mut elm = Elm327::new(Box::new(t), fast_config());
+    assert!(matches!(
+        elm.engine_running(),
+        Err(ObdError::Refused("engine_unknown"))
+    ));
+}
+
+#[test]
+fn clear_needs_a_confirmation_from_a_unit() {
+    let stopped = |reply: &str| {
+        ScriptedTransport::new()
+            .expect("010C", "010C\r41 0C 00 00\r\r>")
+            .expect("010D", "010D\r41 0D 00\r\r>")
+            .expect("04", reply)
+    };
+    let mut elm = Elm327::new(Box::new(stopped("04\rOK\r\r>")), fast_config());
+    assert!(elm.clear_dtcs().is_err());
+    let mut elm = Elm327::new(Box::new(stopped("04\r44\r\r>")), fast_config());
+    assert!(elm.clear_dtcs().is_ok());
+    let mut elm = Elm327::new(Box::new(stopped("04\r7F 04 22\r\r>")), fast_config());
+    assert!(matches!(
+        elm.clear_dtcs(),
+        Err(ObdError::NegativeResponse(0x22))
+    ));
+}

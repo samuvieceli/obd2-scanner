@@ -158,7 +158,13 @@ pub fn assemble_messages(lines: &[String]) -> Vec<Vec<u8>> {
         }
         if let Some((idx, rest)) = split_frame_index(line) {
             if let Some(bytes) = parse_hex_line(rest) {
-                if idx == 0 && multi.as_ref().is_some_and(|(_, b)| !b.is_empty()) {
+                // Frame numbers wrap from F to 0 after 16 frames: a "0:" is
+                // a new message only when the current one is complete.
+                if idx == 0
+                    && multi
+                        .as_ref()
+                        .is_some_and(|(len, b)| !b.is_empty() && (*len == 0 || b.len() >= *len))
+                {
                     // A new frame 0 without length line: new message.
                     flush(&mut multi, &mut messages);
                 }
@@ -397,5 +403,17 @@ mod tests {
                 vec![0x43, 0x01, 0x00],
             ]
         );
+    }
+
+    #[test]
+    fn frame_numbers_wrap_after_sixteen_frames() {
+        // 0x80 = 128 bytes: frames 0..F then 0, 1 again (ISO-TP sequence wraps).
+        let mut lines = vec!["080".to_string()];
+        for i in 0..19u8 {
+            lines.push(format!("{:X}: {}", i % 16, ["AA"; 7].join(" ")));
+        }
+        let msgs = assemble_messages(&lines);
+        assert_eq!(msgs.len(), 1);
+        assert_eq!(msgs[0].len(), 0x80);
     }
 }
