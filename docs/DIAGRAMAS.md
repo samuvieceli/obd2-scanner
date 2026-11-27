@@ -117,7 +117,8 @@ flowchart TB
         readiness["readiness.rs<br/>monitores de prontidão"]
         mode06["mode06.rs<br/>resultados dos autotestes"]
         interpret["interpret.rs<br/>interpretação automática (indícios)"]
-        session["session.rs<br/>gravação CSV e JSON"]
+        session["session.rs<br/>gravação CSV e JSON<br/>(+ códigos e prontidão)"]
+        report["report.rs<br/>resumo da gravação para<br/>o relatório: mín/méd/máx,<br/>indícios, gráficos"]
         simulator["simulator.rs<br/>carro virtual com defeitos,<br/>falhas de clone e 2 centrais"]
         adaptertest["adapter_test.rs<br/>versão real do ELM327"]
         ecuscan["ecu_scan.rs<br/>centrais e identificação"]
@@ -131,6 +132,7 @@ flowchart TB
     simulator -. "é um" .-> transport
     interpret --> pid
     session --> pid
+    report --> session & interpret
 ```
 
 ### Ferramentas de diagnóstico do adaptador e do carro
@@ -242,6 +244,8 @@ flowchart LR
         drives["drives.ts + views/drive-history.ts<br/>histórico de viagens,<br/>gasolina × etanol"]
         search["search.ts + views/search.ts<br/>busca Ctrl+F / Ctrl+K"]
         mini["views/mini.ts<br/>mini janela por cima das outras"]
+        recdiag["recording-diagnostics.ts<br/>lê códigos, prontidão e<br/>Modo 06 ao gravar"]
+        reportview["views/report.ts<br/>monta o relatório HTML"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup
@@ -256,6 +260,8 @@ flowchart LR
     performance --> perf
     guided --> battery & o2test & trims
     sessions --> playback
+    dashboard & sessions --> recdiag
+    sessions --> reportview
     settings --> prefs & units & theme
     connection --> prefs
     dashboard & hud & charts & performance --> units
@@ -304,8 +310,25 @@ flowchart LR
     rec["Gravação"] --> csv["CSV (Excel)"] & json["JSON (abre de novo<br/>no programa)"]
     rec -- "a cada minuto" --> backup[("Cópia de segurança<br/>gravacao-em-andamento.jsonl<br/>(recuperada se o programa fechar)")]
     chart["Gráfico"] --> png["PNG"]
-    report["Relatório de diagnóstico"] --> html["HTML / PDF"]
+    rec --> report["Relatório de diagnóstico<br/>(só quando você pede)"]
+    json --> report
+    report --> html["HTML / PDF"]
     csv & json & png & html --> files
+```
+
+### Gravação e relatório
+
+Ao gravar, o programa guarda os sensores do painel e, junto, uma "foto" do diagnóstico: no começo, os dados do carro, os códigos de falha com o quadro congelado, a prontidão e o Modo 06; no fim, os códigos e a prontidão de novo (um código pode aparecer no meio do trajeto). Tudo isso é só leitura. O relatório é gerado depois, apenas se você pedir, a partir da última gravação ou de um arquivo JSON salvo.
+
+```mermaid
+flowchart LR
+    start(["Iniciar gravação"]) --> snap1["Lê: veículo, códigos,<br/>quadro congelado,<br/>prontidão, Modo 06"]
+    start --> frames["Sensores do painel,<br/>várias vezes por segundo"]
+    stop(["Parar gravação"]) --> snap2["Lê de novo:<br/>códigos e prontidão"]
+    snap1 & frames & snap2 --> rec[("Gravação<br/>(memória e JSON)")]
+    rec -- "botão Relatório" --> sum["report.rs:<br/>mínimo, média, máximo,<br/>indícios do trajeto todo,<br/>gráficos"]
+    sum --> html["Relatório<br/>(imprimir / PDF / HTML)"]
+    old[("Gravação de versão antiga")] -. "sem códigos<br/>e prontidão" .-> sum
 ```
 
 Na **versão portátil** (arquivo `portable.txt` ao lado do programa), a memória do programa fica na pasta `OBD2-Scanner-dados`, ao lado do `.exe`, em vez da pasta do usuário no Windows:

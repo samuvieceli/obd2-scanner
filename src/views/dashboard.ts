@@ -21,6 +21,7 @@ import { lastDrive, showSummary } from "./drive-summary";
 import { tripCost } from "../cost";
 import { normalize } from "../search";
 import { prefs, profile, saveProfile } from "../prefs";
+import { saveDiagnostics } from "../recording-diagnostics";
 import { PRESETS, matchPreset, presetAfterClick, presetKeys, type PresetId } from "../presets";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
@@ -35,6 +36,9 @@ export async function toggleRecording() {
   const starting = !state.recording.recording;
   state.recording = starting ? await api.startRecording() : await api.stopRecording();
   emit("recording");
+  // Codes, readiness and Mode 06 are saved with the recording.
+  saveDiagnostics(starting ? "start" : "end");
+  if (!starting && state.recording.lastFrames && !location.hash.startsWith("#/sessions")) toast(t("sessions.stoppedHint"), "ok");
   // A recording only gets frames while reading: start reading with it.
   if (starting && !state.polling && !state.playback) await startPolling(true);
 }

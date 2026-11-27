@@ -157,6 +157,32 @@ pub struct Session {
     /// the start), e.g. "the engine stumbled here". Missing in older files.
     #[serde(default)]
     pub marks: Vec<u64>,
+    /// Diagnostic reads saved with the recording: one at the start (vehicle,
+    /// trouble codes, freeze frame, readiness, Mode 06) and one at the end
+    /// (codes and readiness again). Missing in older files.
+    #[serde(default)]
+    pub diagnostics: Vec<Snapshot>,
+}
+
+/// Diagnostic reads taken at one moment of a recording. Each part is kept
+/// exactly as the program showed it (the shapes are in `src/api.ts`), so the
+/// report can show it again later, even with the car far away. A part that
+/// could not be read is left out.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct Snapshot {
+    /// Milliseconds since the start of the recording (set by the recorder).
+    #[serde(default)]
+    pub t_ms: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vehicle: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dtcs: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub freeze: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub readiness: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode06: Option<serde_json::Value>,
 }
 
 /// CSV flavour. Excel in Brazil expects `;` as separator and `,` as decimal mark.
@@ -312,12 +338,19 @@ mod tests {
     fn json_roundtrip() {
         let mut s = sample();
         s.marks.push(900);
+        s.diagnostics.push(Snapshot {
+            t_ms: 10,
+            dtcs: Some(serde_json::json!({"stored": [{"code": "P0171"}]})),
+            ..Default::default()
+        });
         let back = Session::from_json(&s.to_json()).unwrap();
         assert_eq!(back.frames, s.frames);
         assert_eq!(back.marks, vec![900]);
+        assert_eq!(back.diagnostics, s.diagnostics);
         // Files from older versions have no marks.
         let old = r#"{"format_version":1,"app_version":"","started_at_unix_ms":0,"adapter":"","protocol":"","vehicle":{},"pids":[],"frames":[]}"#;
-        assert!(Session::from_json(old).unwrap().marks.is_empty());
+        let old = Session::from_json(old).unwrap();
+        assert!(old.marks.is_empty() && old.diagnostics.is_empty());
     }
 
     #[test]
