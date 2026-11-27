@@ -218,6 +218,9 @@ const ptBR = {
     title: "Computador de bordo",
     help: "Consumo e viagem calculados pelo programa a partir dos sensores (vazão de combustível, MAF ou MAP). É uma estimativa: a margem costuma ficar entre 5% e 15%. Ajuste o combustível e a cilindrada em Configurações para melhorar a precisão.",
     needs: "Para calcular o consumo, inclua no painel: {names}.",
+    flexUnknown: "Este carro não informa o percentual de etanol pelo OBD2, então o consumo é calculado como se fosse gasolina. Diga o que está no tanque (dá para mudar depois em Configurações):",
+    flexGasoline: "Gasolina (E32)",
+    flexEthanol: "Etanol hidratado",
     addKeys: "Incluir parâmetros",
     instant: "Consumo agora",
     average: "Média da viagem",
@@ -621,7 +624,7 @@ const ptBR = {
     state: { complete: "Completo", incomplete: "Incompleto", not_supported: "Não suportado" },
   },
   terminal: {
-    readOnly: "Só leitura: comandos que gravam no carro ou no adaptador são recusados.",
+    readOnly: "Só leitura: comandos que gravam no carro ou no adaptador são recusados. Ao sair desta tela, o programa reconfigura o adaptador se algum comando tiver mudado a configuração dele (ATZ, ATH1, ATSH...).",
     quickHelp: {
       ATI: "Versão do adaptador",
       ATRV: "Tensão da bateria medida pelo adaptador",

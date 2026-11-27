@@ -92,5 +92,10 @@ export function mount(root: HTMLElement) {
   render();
   input.focus();
   const off = on("log", () => showAll && render());
-  return off;
+  return () => {
+    off();
+    // Commands like ATZ, ATH1 or ATSH change how the adapter answers; the
+    // live dashboard expects the program's own setup, so put it back.
+    if (state.connection === "connected") api.restoreAdapter().catch(() => undefined);
+  };
 }

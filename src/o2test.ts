@@ -66,6 +66,8 @@ export const WINDOW_S = 20;
 const LO = 0.35;
 const HI = 0.55;
 const LOW_RATE_HZ = 4;
+/** Readings this far apart (s) mean the adapter stalled: start the window again. */
+export const MAX_GAP_S = 2.5;
 
 function percentile(sorted: number[], p: number): number {
   const i = Math.min(sorted.length - 1, Math.max(0, Math.round(p * (sorted.length - 1))));
@@ -140,6 +142,10 @@ export class O2Test {
       return;
     }
     this.phase = "measuring";
+    // A stalled adapter (common on clones) leaves a hole in the window: the
+    // missing seconds would look like a slow sensor, so measure again.
+    const last = this.win[this.win.length - 1];
+    if (last && t - last.t > MAX_GAP_S) this.win = [];
     this.win.push({ t, pre: s.pre, post: s.post });
     if (t - this.win[0].t >= WINDOW_S) this.finish();
   }

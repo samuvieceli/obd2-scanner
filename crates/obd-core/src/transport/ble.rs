@@ -171,7 +171,7 @@ impl BleTransport {
     /// Connects to the device with this `id` (from [`scan`]).
     pub fn open(id: &str, name: &str) -> Result<Self> {
         let rt = runtime()?;
-        let (peripheral, write_char, notify_char) = rt.block_on(async {
+        let (peripheral, write_char, notify_char, stream) = rt.block_on(async {
             let adapter = first_adapter().await?;
             adapter
                 .start_scan(ScanFilter::default())
@@ -204,19 +204,21 @@ impl BleTransport {
             let (w, n) = pick_characteristics(&chars).ok_or_else(|| {
                 err("this device does not look like an OBD adapter (no serial-like service)")
             })?;
+            // Listen before subscribing: btleplug drops notifications that
+            // arrive while nobody holds a stream, so the first answer of a
+            // fast adapter could otherwise be lost.
+            let stream = peripheral.notifications().await.map_err(err)?;
             peripheral.subscribe(&n).await.map_err(err)?;
-            Ok::<_, ObdError>((peripheral, w, n))
+            Ok::<_, ObdError>((peripheral, w, n, stream))
         })?;
 
         let (tx, rx) = mpsc::channel();
-        let p = peripheral.clone();
         let notify_uuid = notify_char.uuid;
         rt.spawn(async move {
-            if let Ok(mut stream) = p.notifications().await {
-                while let Some(n) = stream.next().await {
-                    if n.uuid == notify_uuid && tx.send(n.value).is_err() {
-                        break;
-                    }
+            let mut stream = stream;
+            while let Some(n) = stream.next().await {
+                if n.uuid == notify_uuid && tx.send(n.value).is_err() {
+                    break;
                 }
             }
         });

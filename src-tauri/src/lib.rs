@@ -8,6 +8,7 @@ mod portable;
 mod recorder;
 mod worker;
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -62,6 +63,9 @@ struct AppState {
     identity: Mutex<VehicleIdentity>,
     /// Frames of a recording recovered at start-up, shown once to the user.
     recovered: Mutex<Option<usize>>,
+    /// The AT terminal sent a command that may have changed the adapter's
+    /// setup (headers, protocol, reset...): set it up again on leaving.
+    terminal_changed_setup: AtomicBool,
 }
 
 /// Runs blocking work off the async runtime.
@@ -275,6 +279,7 @@ async fn connect(
     // Close a previous connection first.
     let old = state.worker.lock().unwrap().take();
     drop(old);
+    state.terminal_changed_setup.store(false, Ordering::Relaxed);
 
     let app2 = app.clone();
     let req = request.clone();
@@ -493,6 +498,9 @@ async fn send_raw(
     // leave the program (see obd_core::safety).
     obd_core::safety::check_terminal_command(&command)
         .map_err(|b| CmdError::other(b.code(), command.trim()))?;
+    if obd_core::safety::changes_adapter_setup(&command) {
+        state.terminal_changed_setup.store(true, Ordering::Relaxed);
+    }
     let command = obd_core::safety::normalize(&command);
     let t = Duration::from_millis(timeout_ms.unwrap_or(5_000).clamp(100, 60_000));
     on_worker(&state, move |elm| elm.raw_command(&command, t))
@@ -504,6 +512,18 @@ async fn send_raw(
                 .trim()
                 .to_string()
         })
+}
+
+/// Leaving the AT terminal: if a command there may have changed the
+/// adapter's setup, set it up again the way the program expects (same
+/// protocol, no slow search). Returns whether anything was done.
+#[tauri::command]
+async fn restore_adapter(state: State<'_, AppState>) -> CmdResult<bool> {
+    if !state.terminal_changed_setup.swap(false, Ordering::Relaxed) {
+        return Ok(false);
+    }
+    on_worker(&state, |elm| elm.reconfigure()).await?;
+    Ok(true)
 }
 
 #[derive(Serialize)]
@@ -693,6 +713,7 @@ pub fn run() {
             scan_ecus,
             read_vehicle_info,
             send_raw,
+            restore_adapter,
             start_recording,
             stop_recording,
             add_mark,

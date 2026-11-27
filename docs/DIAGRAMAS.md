@@ -163,7 +163,11 @@ flowchart TB
     eng -- "motor parado" --> clear["Envia 04"] --> reread["Lê os códigos de novo<br/>e mostra se sumiram"]
     eng -- "motor girando<br/>ou carro andando" --> no4["Recusado: desligue o motor"]
     eng -- "carro não respondeu" --> no5["Recusado: ligue a ignição"]
+    send -- "AT que muda a configuração<br/>(ATZ, ATH1, ATSH...)" --> mark["Anota: configuração mudou"]
+    mark -- "ao sair do Terminal" --> restore["Reconfigura o adaptador<br/>como o programa espera"]
 ```
+
+Comandos como `ATZ` (reiniciar) ou `ATH1` (mostrar cabeçalhos) mudam o jeito como o adaptador responde, e o painel ao vivo não entenderia as respostas. Por isso, ao sair do Terminal, o programa reconfigura o adaptador do mesmo jeito que faz depois de uma reconexão, no protocolo já encontrado e sem busca lenta.
 
 ---
 
