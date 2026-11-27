@@ -8,7 +8,7 @@ import { findingList } from "./findings";
 import { makeGauge } from "../gauge";
 import { activeAlerts } from "../alerts";
 import { fmtNum } from "../i18n";
-import { armRun, resetTrip, run, trip } from "../trip";
+import { resetTrip, trip } from "../trip";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
 
@@ -232,17 +232,8 @@ export function mount(root: HTMLElement) {
       );
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
     }
-    const runText =
-      run.state === "armed"
-        ? t("trip.runArmed", { target: run.target })
-        : run.state === "running"
-          ? t("trip.runRunning", { target: run.target })
-          : run.resultS !== undefined
-            ? t("trip.runResult", { target: run.target, s: fmtNum(run.resultS, 1) })
-            : t("trip.runIdle");
     tripBox.append(
-      h("div", { class: "row" }, button(t("trip.reset"), resetTrip, "ghost"), button(t("trip.runStart", { target: 100 }), () => armRun(100), "ghost")),
-      h("p", { class: "small" }, runText),
+      h("div", { class: "row" }, button(t("trip.reset"), resetTrip, "ghost"), h("a", { class: "btn btn-ghost", href: "#/performance" }, t("nav.performance"))),
     );
   };
 

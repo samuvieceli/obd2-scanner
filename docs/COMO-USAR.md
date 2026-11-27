@@ -38,8 +38,19 @@ Na tela **Head-up display (HUD)**, escolha até 4 parâmetros (eles vêm da list
 
 - No **Painel ao vivo**, o botão **Cartões / Mostradores** troca entre números grandes e mostradores com ponteiro.
 - O quadro **Computador de bordo** mostra o consumo agora e a média da viagem em km/L. Ele usa a vazão de combustível, o sensor MAF ou, em carros só com sensor MAP (comum no Brasil), uma estimativa pela cilindrada. Para melhorar a precisão, informe o combustível e a cilindrada em **Configurações → Veículo**.
-- **Cronometrar 0–100 km/h**: pare o carro, clique no botão e acelere. Só faça isso em local seguro e permitido.
 - **Alertas** (em **Configurações**): avisam com mensagem e som quando, por exemplo, a temperatura passa de 110 °C ou a bateria fica abaixo de 11,8 V com o motor ligado. Você pode mudar os limites e incluir outros parâmetros.
+
+## 6b. Testes de desempenho
+
+Abra **Testes de desempenho** e dirija: não há botão de iniciar. O programa reconhece sozinho cada teste e guarda o resultado (tempo, distância e aceleração média):
+
+| Teste | Como fazer | Quando começa e termina |
+| --- | --- | --- |
+| 0–100 km/h | Pare o carro meio segundo e acelere. | Começa no instante em que o carro sai do lugar (não conta o tempo de reação); termina ao cruzar 100 km/h. |
+| 100–0 km/h | Passe de 100 km/h e freie até parar. | Começa ao cruzar 100 km/h freando; termina quando o carro para. Mostra a distância de frenagem. |
+| 40–80 e 80–120 km/h | Fique abaixo da velocidade inicial e acelere forte. | Começa ao cruzar a velocidade inicial acelerando (passar devagar por 40 km/h não conta); termina ao cruzar a final. |
+
+O teste é descartado se você aliviar o pé (a velocidade cai), se a velocidade parar de subir por 3 segundos ou se a leitura falhar. Os tempos são calculados entre duas leituras (interpolação), por isso a precisão fica perto de 0,1 s com 8 ou mais leituras por segundo. O **modo preciso** lê só a velocidade enquanto a tela está aberta, para ter mais leituras. **Faça testes só em local fechado e seguro, nunca em via pública.** Também funciona com uma gravação reproduzida.
 
 ## 7. Testes da central (Modo 06)
 

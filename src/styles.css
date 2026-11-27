@@ -381,3 +381,15 @@ details.advanced, details.help { margin: 6px 0 14px; padding: 8px 12px; backgrou
 .mt { margin-top: 18px; }
 .value-card.alarm { border-color: var(--danger); box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 45%, transparent); }
 .value-card.alarm .value { color: var(--danger); }
+
+/* Performance tests */
+.perf-live { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.perf-speed { font-size: 3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.perf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.perf-card h2 { margin-bottom: 2px; }
+.perf-time { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: 8px 0 2px; }
+.perf-status { font-weight: 600; color: var(--muted); }
+.perf-card.ready { border-color: var(--ok); }
+.perf-card.ready .perf-status { color: var(--ok); }
+.perf-card.running { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent); }
+.perf-card.running .perf-status { color: var(--accent); }

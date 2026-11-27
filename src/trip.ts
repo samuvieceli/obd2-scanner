@@ -1,4 +1,4 @@
-// Trip computer and performance timer, computed from live values.
+// Trip computer (fuel use and distance), computed from live values.
 //
 // Fuel flow comes, in order of preference, from:
 // 1. PID 5E (engine fuel rate, L/h) when the car reports it;
@@ -60,34 +60,15 @@ export interface Trip {
   source: "pid" | "maf" | "map" | null;
 }
 
-export interface Run {
-  /** Target speed in km/h. */
-  target: number;
-  state: "armed" | "running" | "done";
-  startT?: number;
-  resultS?: number;
-}
-
 export const trip: Trip = { timeS: 0, distanceKm: 0, fuelL: 0, source: null };
-export const run: Run = { target: 100, state: "done" };
 
 let lastT: number | null = null;
-let lastSpeed: number | null = null;
 
 export function resetTrip() {
   trip.timeS = 0;
   trip.distanceKm = 0;
   trip.fuelL = 0;
   lastT = null;
-  emit("trip");
-}
-
-/** Arms the 0-to-target timer: it starts when the car leaves standstill. */
-export function armRun(target: number) {
-  run.target = target;
-  run.state = "armed";
-  run.startT = undefined;
-  run.resultS = undefined;
   emit("trip");
 }
 
@@ -108,22 +89,6 @@ function onFrame() {
     if (lph !== undefined) trip.fuelL += (lph * dt) / 3600;
   }
 
-  // Performance run: linear interpolation between frames for better timing.
-  if (speed !== undefined) {
-    if (run.state === "armed" && lastSpeed !== null && lastSpeed < 1 && speed >= 1) {
-      run.state = "running";
-      run.startT = t - (dt * (speed - 1)) / Math.max(speed - lastSpeed, 0.001);
-    } else if (run.state === "running" && run.startT !== undefined) {
-      if (speed >= run.target && lastSpeed !== null) {
-        const frac = (run.target - lastSpeed) / Math.max(speed - lastSpeed, 0.001);
-        run.resultS = t - dt + dt * frac - run.startT;
-        run.state = "done";
-      } else if (speed < 1) {
-        run.state = "armed"; // stopped again: wait for a new start
-      }
-    }
-    lastSpeed = speed;
-  }
   emit("trip");
 }
 
