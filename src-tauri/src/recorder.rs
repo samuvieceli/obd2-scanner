@@ -194,7 +194,7 @@ mod tests {
     fn frame(v: f64) -> Frame {
         Frame {
             t_ms: 0,
-            values: [("rpm".to_string(), v)].into(),
+            values: [("rpm", v)].into(),
         }
     }
 
