@@ -10,7 +10,7 @@ repository.workspace = true
 default = ["serial"]
 serial = ["dep:serialport"]
 # Bluetooth Low Energy adapters (btleplug; WinRT on Windows, BlueZ on Linux).
-ble = ["dep:btleplug", "dep:tokio", "dep:futures"]
+ble = ["dep:btleplug", "dep:tokio", "dep:futures", "dep:uuid"]
 
 [dependencies]
 serde.workspace = true
@@ -20,6 +20,8 @@ serialport = { version = "4.10", optional = true }
 btleplug = { version = "0.13", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "time", "sync"], optional = true }
 futures = { version = "0.3", optional = true }
+# Long BLE service ids (the same crate btleplug uses for them).
+uuid = { version = "1", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 # Reads which Bluetooth COM port is outgoing (transport/bt_ports.rs).

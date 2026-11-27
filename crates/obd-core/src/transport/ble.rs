@@ -26,8 +26,23 @@ use crate::{ObdError, Result};
 
 /// Services used by popular ELM327 BLE adapters, most common first.
 const KNOWN_SERVICES: [u16; 3] = [0xFFF0, 0xFFE0, 0x18F0];
+/// Serial-like services with long ids, also seen on OBD adapters: Vgate
+/// vLinker, Nordic UART and Microchip/ISSC transparent UART.
+const KNOWN_LONG_SERVICES: [u128; 3] = [
+    0xE7810A71_73AE_499D_8C15_FAA9AEF0C3F2,
+    0x6E400001_B5A3_F393_E0A9_E50E24DCCA9E,
+    0x49535343_FE7D_4AE5_8FA9_9FAFD205E455,
+];
 /// Standard services that never carry adapter data.
 const IGNORED_SERVICES: [u16; 4] = [0x1800, 0x1801, 0x180A, 0x180F];
+/// Firmware update services (Nordic DFU, Nordic legacy DFU, TI OAD): they
+/// also have write and notify characteristics, and writing OBD commands
+/// there must never happen.
+const FIRMWARE_UPDATE_SERVICES: [u128; 3] = [
+    0x0000FE59_0000_1000_8000_00805F9B34FB,
+    0x00001530_1212_EFDE_1523_785FEABCD123,
+    0xF000FFC0_0451_4000_B000_000000000000,
+];
 /// Conservative write size: fits the default BLE MTU (23 bytes − 3).
 const CHUNK: usize = 20;
 
@@ -124,10 +139,14 @@ pub fn scan(duration: Duration) -> Result<Vec<BleDevice>> {
 
 /// Chooses the (write, notify) characteristic pair of an adapter.
 pub fn pick_characteristics(chars: &[Characteristic]) -> Option<(Characteristic, Characteristic)> {
-    let ignored: Vec<_> = IGNORED_SERVICES.iter().map(|&u| uuid_from_u16(u)).collect();
+    let ignored: Vec<u128> = IGNORED_SERVICES
+        .iter()
+        .map(|&u| uuid_from_u16(u).as_u128())
+        .chain(FIRMWARE_UPDATE_SERVICES)
+        .collect();
     let usable: Vec<&Characteristic> = chars
         .iter()
-        .filter(|c| !ignored.contains(&c.service_uuid))
+        .filter(|c| !ignored.contains(&c.service_uuid.as_u128()))
         .collect();
     let can_write = |c: &Characteristic| {
         c.properties
@@ -138,7 +157,15 @@ pub fn pick_characteristics(chars: &[Characteristic]) -> Option<(Characteristic,
             .intersects(CharPropFlags::NOTIFY | CharPropFlags::INDICATE)
     };
     // Services in preference order: known ones, then any other.
-    let mut services: Vec<_> = KNOWN_SERVICES.iter().map(|&u| uuid_from_u16(u)).collect();
+    let mut services: Vec<_> = KNOWN_SERVICES
+        .iter()
+        .map(|&u| uuid_from_u16(u))
+        .chain(
+            KNOWN_LONG_SERVICES
+                .iter()
+                .map(|&u| uuid::Uuid::from_u128(u)),
+        )
+        .collect();
     for c in &usable {
         if !services.contains(&c.service_uuid) {
             services.push(c.service_uuid);
@@ -151,8 +178,14 @@ pub fn pick_characteristics(chars: &[Characteristic]) -> Option<(Characteristic,
                 .copied()
                 .filter(move |c| c.service_uuid == svc)
         };
-        let w = in_svc().find(|c| can_write(c))?;
         let n = in_svc().find(|c| can_notify(c))?;
+        // FFF0 adapters answer on FFF1 and listen on FFF2; some clones mark
+        // FFF1 writable too, but commands written there are ignored. Prefer
+        // a writable characteristic other than the one that answers; use the
+        // same one only when it is the only choice (FFE0/FFE1 adapters).
+        let w = in_svc()
+            .find(|c| can_write(c) && c.uuid != n.uuid)
+            .or_else(|| in_svc().find(|c| can_write(c)))?;
         Some((w.clone(), n.clone()))
     })
 }
@@ -245,12 +278,27 @@ impl BleTransport {
 impl Transport for BleTransport {
     fn write_all(&mut self, data: &[u8]) -> Result<()> {
         for chunk in data.chunks(CHUNK) {
-            self.rt
-                .block_on(
-                    self.peripheral
-                        .write(&self.write_char, chunk, self.write_type),
-                )
-                .map_err(err)?;
+            let sent = self.rt.block_on(self.peripheral.write(
+                &self.write_char,
+                chunk,
+                self.write_type,
+            ));
+            if let Err(e) = sent {
+                // Some adapters announce "write without response" but only
+                // accept the confirmed kind (seen on Windows): switch once.
+                let can_confirm = self.write_type == WriteType::WithoutResponse
+                    && self.write_char.properties.contains(CharPropFlags::WRITE);
+                if !can_confirm {
+                    return Err(err(e));
+                }
+                self.write_type = WriteType::WithResponse;
+                self.rt
+                    .block_on(
+                        self.peripheral
+                            .write(&self.write_char, chunk, self.write_type),
+                    )
+                    .map_err(err)?;
+            }
         }
         Ok(())
     }
@@ -319,6 +367,46 @@ mod tests {
         let (w, n) = pick_characteristics(&chars).unwrap();
         assert_eq!(w.uuid, uuid_from_u16(0xFFF2));
         assert_eq!(n.uuid, uuid_from_u16(0xFFF1));
+    }
+
+    #[test]
+    fn writes_to_fff2_even_when_fff1_is_writable_too() {
+        let chars = vec![
+            ch(0xFFF0, 0xFFF1, CharPropFlags::NOTIFY | CharPropFlags::WRITE),
+            ch(0xFFF0, 0xFFF2, CharPropFlags::WRITE_WITHOUT_RESPONSE),
+        ];
+        let (w, n) = pick_characteristics(&chars).unwrap();
+        assert_eq!(w.uuid, uuid_from_u16(0xFFF2));
+        assert_eq!(n.uuid, uuid_from_u16(0xFFF1));
+    }
+
+    #[test]
+    fn never_picks_a_firmware_update_service() {
+        let dfu = |uuid: u128, props| Characteristic {
+            uuid: uuid::Uuid::from_u128(uuid),
+            service_uuid: uuid::Uuid::from_u128(0x0000FE59_0000_1000_8000_00805F9B34FB),
+            properties: props,
+            descriptors: BTreeSet::new(),
+        };
+        let only_dfu = vec![dfu(
+            0x8EC90001_F315_4F60_9FB8_838830DAEA50,
+            CharPropFlags::WRITE | CharPropFlags::NOTIFY,
+        )];
+        assert!(pick_characteristics(&only_dfu).is_none());
+    }
+
+    #[test]
+    fn finds_the_vlinker_service() {
+        let svc = 0xE7810A71_73AE_499D_8C15_FAA9AEF0C3F2;
+        let c = Characteristic {
+            uuid: uuid::Uuid::from_u128(0xBEF8D6C9_9C21_4C9E_B632_BD58C1009F9F),
+            service_uuid: uuid::Uuid::from_u128(svc),
+            properties: CharPropFlags::WRITE | CharPropFlags::NOTIFY,
+            descriptors: BTreeSet::new(),
+        };
+        let other = ch(0xABCD, 0x1234, CharPropFlags::WRITE | CharPropFlags::NOTIFY);
+        let (w, _) = pick_characteristics(&[other, c.clone()]).unwrap();
+        assert_eq!(w.uuid, c.uuid);
     }
 
     #[test]
