@@ -147,6 +147,8 @@ const enUS: Messages = {
     causedBy: "Caused by",
     lookup: "Look up a code",
     lookupPlaceholder: "E.g. P0301",
+    brandTable: "{brand} table",
+    notTranslated: "",
     lookupInvalid: "Type a code like P0301, C0035, B0001 or U0100.",
   },
   vehicle: {
@@ -234,7 +236,7 @@ const enUS: Messages = {
     themeLight: "Light",
     themeSystem: "Same as system",
     about: "About",
-    aboutText: "Open-source software (GPL-3.0 license). Formulas and ideas based on SAE J1979 and on the open projects obdium (GPL-3.0) and o3DIAG (MIT).",
+    aboutText: "Open-source software (GPL-3.0 license). Formulas and ideas based on SAE J1979 and on the open projects pyOBD (GPL-2.0+), Libre Diagnostic (AGPL-3.0), obdium (GPL-3.0) and o3DIAG (MIT). Details in docs/CREDITOS.md.",
     version: "Version {version}",
     source: "Source code",
   },

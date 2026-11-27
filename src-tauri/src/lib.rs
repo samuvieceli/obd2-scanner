@@ -10,7 +10,7 @@ mod worker;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use obd_core::dtc::{describe, DtcInfo};
+use obd_core::dtc::{brand_from_manufacturer, describe_for, DtcInfo};
 use obd_core::elm327::{AdapterInfo, Elm327, ElmConfig, LogDirection, VehicleIdentity};
 use obd_core::pid::{self, PidMeta};
 use obd_core::readiness::Readiness;
@@ -119,8 +119,20 @@ fn pid_catalog() -> Vec<PidMeta> {
 }
 
 #[tauri::command]
-fn describe_dtc(code: String, lang: String) -> DtcInfo {
-    describe(&code, &lang)
+fn describe_dtc(state: State<'_, AppState>, code: String, lang: String) -> DtcInfo {
+    let vin = state.identity.lock().unwrap().vin.clone();
+    describe_for(&code, &lang, brand_of(vin.as_deref()))
+}
+
+/// Brand table for manufacturer-specific codes, found through the VIN.
+fn brand_of(vin: Option<&str>) -> Option<&'static str> {
+    let info = decode_vin(vin?, current_year());
+    brand_from_manufacturer(info.manufacturer.as_deref()?)
+}
+
+/// VIN known from an earlier read, or read now (cheap, once per connection).
+fn ensure_vin(elm: &mut Elm327, known: Option<String>) -> Option<String> {
+    known.or_else(|| elm.read_vehicle_identity().vin)
 }
 
 #[derive(Deserialize)]
@@ -184,10 +196,14 @@ fn open_adapter(req: &ConnectRequest, app: &AppHandle) -> CmdResult<Elm327> {
             Ok(setup(Box::new(t))?)
         }
         ConnectionTarget::Serial { port, baud_rate } => {
-            let rates: Vec<u32> = if *baud_rate == 0 {
-                COMMON_BAUD_RATES.to_vec()
-            } else {
+            let rates: Vec<u32> = if *baud_rate != 0 {
                 vec![*baud_rate]
+            } else {
+                // Quick probe first; fall back to a full ATZ at every speed.
+                match obd_core::transport::serial::probe_baud_rate(port, &COMMON_BAUD_RATES) {
+                    Some(found) => vec![found],
+                    None => COMMON_BAUD_RATES.to_vec(),
+                }
             };
             let mut last = ObdError::Timeout;
             for rate in rates {
@@ -276,10 +292,13 @@ struct DtcReport {
 
 #[tauri::command]
 async fn read_dtcs(state: State<'_, AppState>, lang: String) -> CmdResult<DtcReport> {
+    let known_vin = state.identity.lock().unwrap().vin.clone();
     on_worker(&state, move |elm| {
+        let vin = ensure_vin(elm, known_vin);
+        let brand = brand_of(vin.as_deref());
         let d = |list: Vec<obd_core::dtc::Dtc>| {
             list.iter()
-                .map(|c| describe(&c.0, &lang))
+                .map(|c| describe_for(&c.0, &lang, brand))
                 .collect::<Vec<_>>()
         };
         Ok(DtcReport {
@@ -314,9 +333,11 @@ const FREEZE_PIDS: [u8; 12] = [
 
 #[tauri::command]
 async fn read_freeze_frame(state: State<'_, AppState>, lang: String) -> CmdResult<FreezeFrame> {
+    let known_vin = state.identity.lock().unwrap().vin.clone();
     on_worker(&state, move |elm| {
+        let brand = brand_of(ensure_vin(elm, known_vin).as_deref());
         let dtc = match elm.read_freeze_frame_dtc() {
-            Ok(d) => d.map(|d| describe(&d.0, &lang)),
+            Ok(d) => d.map(|d| describe_for(&d.0, &lang, brand)),
             Err(ObdError::NoData) => None,
             Err(e) => return Err(e),
         };

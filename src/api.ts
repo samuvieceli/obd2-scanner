@@ -56,6 +56,8 @@ export interface DtcInfo {
   system: string;
   generic: boolean;
   known: boolean;
+  brand: string | null;
+  translated: boolean;
 }
 
 export interface DtcReport {

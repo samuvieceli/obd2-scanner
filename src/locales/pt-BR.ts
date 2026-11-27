@@ -145,6 +145,8 @@ const ptBR = {
     causedBy: "Causado por",
     lookup: "Consultar um código",
     lookupPlaceholder: "Ex.: P0301",
+    brandTable: "Tabela {brand}",
+    notTranslated: "Descrição ainda sem tradução, mostrada em inglês.",
     lookupInvalid: "Digite um código no formato P0301, C0035, B0001 ou U0100.",
   },
   vehicle: {
@@ -232,7 +234,7 @@ const ptBR = {
     themeLight: "Claro",
     themeSystem: "Igual ao sistema",
     about: "Sobre",
-    aboutText: "Programa de código aberto (licença GPL-3.0). Fórmulas e ideias baseadas em SAE J1979 e nos projetos abertos obdium (GPL-3.0) e o3DIAG (MIT).",
+    aboutText: "Programa de código aberto (licença GPL-3.0). Fórmulas e ideias baseadas em SAE J1979 e nos projetos abertos pyOBD (GPL-2.0+), Libre Diagnostic (AGPL-3.0), obdium (GPL-3.0) e o3DIAG (MIT). Detalhes em docs/CREDITOS.md.",
     version: "Versão {version}",
     source: "Código-fonte",
   },

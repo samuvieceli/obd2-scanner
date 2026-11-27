@@ -19,7 +19,9 @@ function dtcItem(d: DtcInfo): HTMLElement {
         { class: "muted small" },
         `${t("dtc.system")}: ${d.system} · `,
         h("span", { class: `badge ${d.generic ? "" : "badge-warn"}` }, d.generic ? t("dtc.generic") : t("dtc.specific")),
+        d.brand ? h("span", { class: "badge" }, t("dtc.brandTable", { brand: d.brand.toUpperCase() })) : null,
       ),
+      !d.translated && t("dtc.notTranslated") ? h("p", { class: "muted small" }, t("dtc.notTranslated")) : null,
     ),
   );
 }

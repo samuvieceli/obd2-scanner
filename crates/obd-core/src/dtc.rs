@@ -1,9 +1,15 @@
 //! Diagnostic Trouble Codes (DTC): decoding and descriptions.
 //!
-//! Descriptions of generic codes come from `data/dtc_descriptions.json`
-//! (English and Brazilian Portuguese). Codes not in the file still get a
-//! description of the affected system, derived from the code structure
-//! (SAE J2012), so the user always sees something useful.
+//! Descriptions:
+//! * `data/dtc_descriptions.json`: generic codes. Common ones in English and
+//!   Brazilian Portuguese; the rest in English, imported from pyOBD
+//!   (github.com/alexfare/pyobd, GPL-2.0-or-later).
+//! * `data/dtc_brands.json`: manufacturer-specific codes per brand (English),
+//!   imported from Libre Diagnostic
+//!   (github.com/Libre-Diagnosctic/libre-automotive-diagnostic, AGPL-3.0).
+//!
+//! Codes in neither file still get a description of the affected system,
+//! derived from the code structure (SAE J2012).
 
 use std::collections::HashMap;
 use std::sync::OnceLock;
@@ -76,12 +82,17 @@ pub struct DtcInfo {
     pub system: String,
     /// `true` when the code is defined by SAE (same meaning on every car).
     pub generic: bool,
-    /// `true` when the description came from the database, `false` when only
+    /// `true` when the description came from a database, `false` when only
     /// the system could be inferred.
     pub known: bool,
+    /// Brand whose table described the code (manufacturer-specific codes).
+    pub brand: Option<String>,
+    /// `false` when the text is in English because no translation exists yet.
+    pub translated: bool,
 }
 
 type Db = HashMap<String, HashMap<String, String>>;
+type BrandDb = HashMap<String, HashMap<String, String>>;
 
 fn db() -> &'static Db {
     static DB: OnceLock<Db> = OnceLock::new();
@@ -89,6 +100,35 @@ fn db() -> &'static Db {
         serde_json::from_str(include_str!("../data/dtc_descriptions.json"))
             .expect("valid DTC database")
     })
+}
+
+fn brand_db() -> &'static BrandDb {
+    static DB: OnceLock<BrandDb> = OnceLock::new();
+    DB.get_or_init(|| {
+        serde_json::from_str(include_str!("../data/dtc_brands.json"))
+            .expect("valid brand DTC database")
+    })
+}
+
+/// Brands with a manufacturer-specific table.
+pub const BRANDS: [&str; 10] = [
+    "audi",
+    "bmw",
+    "ford",
+    "honda",
+    "hyundai",
+    "kia",
+    "mazda",
+    "nissan",
+    "toyota",
+    "volkswagen",
+];
+
+/// Maps a manufacturer name (e.g. from the VIN decoder, "Volkswagen (Brasil)")
+/// to a brand table key.
+pub fn brand_from_manufacturer(manufacturer: &str) -> Option<&'static str> {
+    let m = manufacturer.to_ascii_lowercase();
+    BRANDS.iter().copied().find(|b| m.contains(b))
 }
 
 fn is_pt(lang: &str) -> bool {
@@ -166,15 +206,37 @@ fn system_of(code: &str, pt: bool) -> String {
 
 /// Looks up a code. `lang` is `pt-BR`, `en-US`, etc.
 pub fn describe(code: &str, lang: &str) -> DtcInfo {
+    describe_for(code, lang, None)
+}
+
+/// Like [`describe`], also using the manufacturer table of `brand` (see
+/// [`brand_from_manufacturer`]) for manufacturer-specific codes.
+pub fn describe_for(code: &str, lang: &str, brand: Option<&str>) -> DtcInfo {
     let pt = is_pt(lang);
     let code_up = code.trim().to_ascii_uppercase();
     let generic = is_generic(&code_up);
     let system = system_of(&code_up, pt);
-    let found = db()
-        .get(&code_up)
-        .and_then(|m| m.get(if pt { "pt" } else { "en" }));
+    let mut translated = true;
+    let mut used_brand = None;
+    let mut found: Option<String> = None;
+    if !generic {
+        if let Some(b) = brand {
+            if let Some(text) = brand_db().get(b).and_then(|t| t.get(&code_up)) {
+                found = Some(text.clone());
+                used_brand = Some(b.to_string());
+                translated = !pt;
+            }
+        }
+    }
+    if found.is_none() {
+        if let Some(entry) = db().get(&code_up) {
+            let wanted = entry.get(if pt { "pt" } else { "en" });
+            found = wanted.or_else(|| entry.get("en")).cloned();
+            translated = wanted.is_some();
+        }
+    }
     let (description, known) = match found {
-        Some(text) => (text.clone(), true),
+        Some(text) => (text, true),
         None => {
             let text = match (pt, generic) {
                 (true, true) => format!("Código genérico sem descrição na base. Sistema: {system}"),
@@ -191,6 +253,8 @@ pub fn describe(code: &str, lang: &str) -> DtcInfo {
         system,
         generic,
         known,
+        brand: used_brand,
+        translated,
     }
 }
 
@@ -241,5 +305,30 @@ mod tests {
         let d = describe("P1234", "pt-BR");
         assert!(!d.known && !d.generic);
         assert!(d.description.contains("fabricante"));
+    }
+
+    #[test]
+    fn english_fallback_for_untranslated_codes() {
+        // P0001 is in the imported English list but not translated yet.
+        let d = describe("P0001", "pt-BR");
+        assert!(d.known && !d.translated);
+        assert!(d.description.contains("Fuel Volume Regulator"));
+    }
+
+    #[test]
+    fn brand_specific_codes() {
+        assert_eq!(
+            brand_from_manufacturer("Volkswagen (Brasil)"),
+            Some("volkswagen")
+        );
+        assert_eq!(brand_from_manufacturer("Honda (USA)"), Some("honda"));
+        assert_eq!(brand_from_manufacturer("Fiat (Brasil)"), None);
+        let d = describe_for("P1259", "en-US", Some("honda"));
+        assert_eq!(d.brand.as_deref(), Some("honda"));
+        assert!(d.description.contains("VTEC"));
+        // Generic codes never use the brand table.
+        assert!(describe_for("P0301", "en-US", Some("honda"))
+            .brand
+            .is_none());
     }
 }

@@ -39,8 +39,12 @@ Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
 
 ## Créditos e licença
 
-Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Ideias inspiradas nos projetos abertos
-[obdium](https://github.com/provrb/obdium) (GPL-3.0) e [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) (MIT).
+Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Partes aproveitadas de projetos abertos
+(detalhes em [docs/CREDITOS.md](docs/CREDITOS.md)):
+
+- [pyOBD](https://github.com/alexfare/pyobd) (GPL-2.0-or-later): ~1.900 descrições de códigos genéricos (inglês), detecção rápida da velocidade serial e tentativa de protocolos um por um.
+- [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) (AGPL-3.0): tabelas de códigos específicos de 10 marcas.
+- [obdium](https://github.com/provrb/obdium) (GPL-3.0) e [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) (MIT): referência de ideias.
 
 ---
 

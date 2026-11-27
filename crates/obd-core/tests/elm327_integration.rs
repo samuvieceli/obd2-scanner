@@ -154,3 +154,23 @@ fn legacy_protocol_dtcs_and_multi_ecu() {
     assert!(!elm.info.is_can());
     assert_eq!(elm.read_stored_dtcs().unwrap(), vec![Dtc("P0133".into())]);
 }
+
+#[test]
+fn falls_back_to_trying_protocols_one_by_one() {
+    // Auto search fails, protocol 8 (CAN 11/250) works.
+    let t = ScriptedTransport::new()
+        .expect("ATZ", "ELM327 v1.5\r\r>")
+        .expect("ATI", "ELM327 v1.5\r\r>")
+        .expect("0100", "SEARCHING...\rUNABLE TO CONNECT\r\r>")
+        .expect("ATTP6", "OK\r\r>")
+        .expect("0100", "CAN ERROR\r\r>")
+        .expect("ATTP8", "OK\r\r>")
+        .expect("0100", "41 00 BE 1F A8 13\r\r>")
+        .expect("ATDPN", "8\r\r>")
+        .expect("ATDP", "ISO 15765-4 (CAN 11/250)\r\r>")
+        .expect("0120", "NO DATA\r\r>");
+    let mut elm = Elm327::new(Box::new(t), fast_config());
+    elm.initialize().unwrap();
+    assert_eq!(elm.info.protocol_number, "8");
+    assert!(elm.info.supported_pids.contains(&0x0C));
+}

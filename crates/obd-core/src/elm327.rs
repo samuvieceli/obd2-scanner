@@ -217,13 +217,14 @@ impl Elm327 {
     /// Step 2: talk to the vehicle (ignition must be on), detect the protocol
     /// and read the supported PIDs.
     pub fn connect_vehicle(&mut self) -> Result<&AdapterInfo> {
-        // First OBD request: the adapter searches the protocol (can take seconds).
-        let search = Duration::from_millis(self.config.search_timeout_ms);
-        let raw = self.raw_command("0100", search)?;
-        let lines = clean_lines(&raw, "0100");
-        check_errors(&lines)?;
+        let first = match self.first_contact(self.config.search_timeout_ms) {
+            Ok(f) => f,
+            Err(e) if self.config.protocol == "0" && Self::worth_retrying(&e) => {
+                self.try_protocols_one_by_one().map_err(|_| e)?
+            }
+            Err(e) => return Err(e),
+        };
         let mut supported = Vec::new();
-        let first = filter_responses(assemble_messages(&lines), 0x01, &[0x00])?;
         for m in &first {
             supported.extend(decode_supported(0x00, &m[2..]));
         }
@@ -260,6 +261,45 @@ impl Elm327 {
             ),
         );
         Ok(&self.info)
+    }
+
+    /// First OBD request (`0100`): the adapter searches the protocol, which can
+    /// take seconds.
+    fn first_contact(&mut self, timeout_ms: u64) -> Result<Vec<Vec<u8>>> {
+        let raw = self.raw_command("0100", Duration::from_millis(timeout_ms))?;
+        let lines = clean_lines(&raw, "0100");
+        check_errors(&lines)?;
+        filter_responses(assemble_messages(&lines), 0x01, &[0x00])
+    }
+
+    fn worth_retrying(e: &ObdError) -> bool {
+        matches!(
+            e,
+            ObdError::UnableToConnect | ObdError::NoData | ObdError::Bus(_) | ObdError::Timeout
+        )
+    }
+
+    /// Plan B when automatic search fails (some adapter/car combinations do not
+    /// work in auto mode): try each protocol with `ATTP`, most common first.
+    /// Idea from python-OBD / pyOBD (GPL-2.0-or-later).
+    fn try_protocols_one_by_one(&mut self) -> Result<Vec<Vec<u8>>> {
+        const ORDER: [&str; 9] = ["6", "8", "1", "7", "9", "2", "3", "4", "5"];
+        let per_try = (self.config.command_timeout_ms * 3).max(3_000);
+        let mut last = ObdError::UnableToConnect;
+        for p in ORDER {
+            self.log(
+                LogDirection::Info,
+                &format!("automatic search failed, trying protocol {p}"),
+            );
+            if !self.at_optional(&format!("ATTP{p}"))? {
+                continue;
+            }
+            match self.first_contact(per_try) {
+                Ok(f) => return Ok(f),
+                Err(e) => last = e,
+            }
+        }
+        Err(last)
     }
 
     /// Sends an OBD request (`mode` + `data`) and returns the positive answers,

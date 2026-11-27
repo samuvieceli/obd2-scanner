@@ -86,3 +86,45 @@ pub fn list_ports() -> Vec<PortInfo> {
         })
         .collect()
 }
+
+/// Quickly finds the speed an ELM327 answers at: sends two harmless DEL
+/// characters plus CR (never repeats a previous command) and waits briefly for
+/// the `>` prompt. Much faster than a full `ATZ` per speed.
+/// Technique from python-OBD / pyOBD (GPL-2.0-or-later).
+pub fn probe_baud_rate(name: &str, rates: &[u32]) -> Option<u32> {
+    let mut port = serialport::new(name, rates.first().copied().unwrap_or(38_400))
+        .timeout(Duration::from_millis(50))
+        .open()
+        .ok()?;
+    for &rate in rates {
+        if port.set_baud_rate(rate).is_err() {
+            continue;
+        }
+        let _ = port.clear(serialport::ClearBuffer::All);
+        if port.write_all(b"\x7F\x7F\r").is_err() {
+            continue;
+        }
+        let _ = port.flush();
+        let deadline = std::time::Instant::now() + Duration::from_millis(400);
+        let mut got = Vec::new();
+        let mut buf = [0u8; 256];
+        while std::time::Instant::now() < deadline {
+            match port.read(&mut buf) {
+                Ok(n) if n > 0 => {
+                    got.extend_from_slice(&buf[..n]);
+                    if got.contains(&b'>') {
+                        return Some(rate);
+                    }
+                }
+                _ => {}
+            }
+        }
+        if String::from_utf8_lossy(&got)
+            .to_ascii_uppercase()
+            .contains("ELM")
+        {
+            return Some(rate);
+        }
+    }
+    None
+}
