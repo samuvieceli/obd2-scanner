@@ -184,8 +184,10 @@ impl Elm327 {
 
     /// OBD request with one retry on transient failures common on clones:
     /// a lost answer (timeout), `STOPPED`, `BUFFER FULL` or a bus error.
-    /// After a timeout a bare CR is sent first: it interrupts an adapter
-    /// still busy with the previous request and brings back the prompt.
+    /// After a timeout a harmless `ATI` is sent first: any character
+    /// interrupts an adapter still busy with the previous request and brings
+    /// back the prompt. (A bare CR is avoided: an idle ELM327 would repeat
+    /// the last command.)
     fn command_with_retry(&mut self, cmd: &str) -> Result<Vec<String>> {
         let attempt = |me: &mut Self| -> Result<Vec<String>> {
             let lines = me.command(cmd)?;
@@ -196,7 +198,7 @@ impl Elm327 {
             Err(e @ (ObdError::Timeout | ObdError::Bus(_))) => {
                 self.log(LogDirection::Info, &format!("{cmd}: {e}, retrying once"));
                 if matches!(e, ObdError::Timeout) {
-                    let _ = self.raw_command("", Duration::from_millis(500));
+                    let _ = self.raw_command("ATI", Duration::from_millis(500));
                 }
                 attempt(self)
             }
@@ -229,8 +231,10 @@ impl Elm327 {
     /// Step 1: reset and configure the adapter. Does not need the car.
     pub fn setup_adapter(&mut self) -> Result<()> {
         self.log(LogDirection::Info, "initializing adapter");
-        // Wake-up: some adapters ignore the first command after opening the port.
-        let _ = self.raw_command("", Duration::from_millis(300));
+        // Wake-up: some adapters ignore the first command after opening the
+        // port. `ATI` is harmless; a bare CR would repeat the last command
+        // the adapter received (possibly from another program).
+        let _ = self.raw_command("ATI", Duration::from_millis(300));
         let reset = Duration::from_millis(self.config.reset_timeout_ms);
         let lines = clean_lines(&self.raw_command("ATZ", reset)?, "ATZ");
         if let Some(v) = lines

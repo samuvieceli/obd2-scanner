@@ -3,6 +3,7 @@ import { fmtNum, getLang, msgs, pidText, t } from "../i18n";
 import { state } from "../store";
 import { escapeHtml as e, fmtValue, unitOf } from "../ui";
 import { findingText } from "./findings";
+import { fmtTest, monitorName, testName } from "./diagnostics";
 import type { DtcInfo } from "../api";
 
 export function buildReportHtml(): string {
@@ -58,6 +59,21 @@ export function buildReportHtml(): string {
       ]),
     );
   } else parts.push(notRead);
+
+  // Mode 06 (only when read): failed tests first.
+  if (state.mode06?.length) {
+    const sorted = [...state.mode06].sort((a, b) => Number(a.passed) - Number(b.passed) || a.mid - b.mid);
+    parts.push(`<h2>${e(t("mode06.title"))}</h2>`);
+    parts.push(
+      table(
+        sorted.map((r) => [
+          `${monitorName(r)} — ${testName(r)}`,
+          `${r.passed ? e(t("mode06.passed")) : `<b>${e(t("mode06.failed"))}</b>`}: ${e(fmtTest(r, r.value))} <span class="muted">(${e(fmtTest(r, r.min))} … ${e(fmtTest(r, r.max))})</span>`,
+          true,
+        ]),
+      ),
+    );
+  }
 
   // Interpretation
   parts.push(`<h2>${e(t("dashboard.findings"))}</h2>`);

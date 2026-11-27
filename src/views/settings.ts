@@ -74,6 +74,9 @@ function alertsSection(): HTMLElement {
       });
     list.append(
       h(
+        "div",
+        { class: "table-wrap" },
+        h(
         "table",
         { class: "table" },
         h(
@@ -112,6 +115,7 @@ function alertsSection(): HTMLElement {
             ),
           ),
         ),
+      ),
       ),
     );
     const used = new Set(rules.map((r) => r.key));

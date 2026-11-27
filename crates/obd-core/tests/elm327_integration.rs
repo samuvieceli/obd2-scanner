@@ -89,7 +89,7 @@ fn clone_with_echo_no_ok_and_searching() {
     // A typical cheap clone: echo cannot be disabled, no OK after ATL0,
     // "SEARCHING..." before the first answer, lowercase-free, no spaces.
     let t = ScriptedTransport::new()
-        .expect("", "\r>")
+        .expect("ATI", "ELM327 v1.5\r\r>")
         .expect("ATZ", "ATZ\r\r\rELM327 v2.1\r\r>")
         .expect("ATE0", "ATE0\rOK\r\r>")
         .expect("ATL0", "ATL0\r\r>")
@@ -250,7 +250,7 @@ fn retries_after_stopped_and_buffer_full() {
 #[test]
 fn records_rejected_at_commands_and_clone_version() {
     let t = ScriptedTransport::new()
-        .expect("", "\r>")
+        .expect("ATI", "ELM327 v1.5\r\r>")
         .expect("ATZ", "\r\rELM327 v2.1\r\r>")
         .expect("ATE0", "ATE0\rOK\r\r>")
         .expect("ATL0", "OK\r\r>")

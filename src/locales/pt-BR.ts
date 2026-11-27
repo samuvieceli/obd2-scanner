@@ -299,6 +299,16 @@ const ptBR = {
     state: { complete: "Completo", incomplete: "Incompleto", not_supported: "Não suportado" },
   },
   terminal: {
+    quickHelp: {
+      ATI: "Versão do adaptador",
+      ATRV: "Tensão da bateria medida pelo adaptador",
+      ATDP: "Nome do protocolo em uso",
+      ATDPN: "Número do protocolo em uso",
+      "0100": "PIDs suportados pelo carro (01 a 20)",
+      "010C": "Rotação do motor",
+      "03": "Códigos de falha confirmados",
+      "0902": "Chassi (VIN)",
+    },
     title: "Terminal AT",
     intro: "Envia comandos diretamente ao adaptador. Para usuários avançados e para investigar adaptadores com problemas.",
     placeholder: "Digite um comando, ex.: ATRV ou 010C, e tecle Enter",

@@ -301,6 +301,16 @@ const enUS: Messages = {
     state: { complete: "Complete", incomplete: "Incomplete", not_supported: "Not supported" },
   },
   terminal: {
+    quickHelp: {
+      ATI: "Adapter version",
+      ATRV: "Battery voltage measured by the adapter",
+      ATDP: "Name of the protocol in use",
+      ATDPN: "Number of the protocol in use",
+      "0100": "PIDs supported by the car (01 to 20)",
+      "010C": "Engine speed",
+      "03": "Confirmed trouble codes",
+      "0902": "VIN",
+    },
     title: "AT terminal",
     intro: "Sends commands straight to the adapter. For advanced users and for investigating misbehaving adapters.",
     placeholder: "Type a command, e.g. ATRV or 010C, and press Enter",

@@ -59,7 +59,7 @@ export function mount(root: HTMLElement) {
       "div",
       { class: "row" },
       h("span", { class: "muted small" }, t("terminal.quick")),
-      quick.map((q) => button(q, () => send(q), "ghost", { class: "btn btn-ghost btn-sm mono" })),
+      quick.map((q) => button(q, () => send(q), "ghost", { class: "btn btn-ghost btn-sm mono", title: t(`terminal.quickHelp.${q}`) })),
     ),
     screen,
     h(
