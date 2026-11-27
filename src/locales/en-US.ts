@@ -513,6 +513,7 @@ const enUS: Messages = {
     selectDefault: "Recommended",
   },
   mode06: {
+    hints: "What the tests suggest",
     title: "On-board test results (Mode 06)",
     desc: "The ECU tests several components by itself (oxygen sensors, catalyst, misfire, EVAP...) and keeps the last measured value and the accepted limits. A failed test often becomes a trouble code later, so you can spot problems before the check engine light comes on.",
     read: "Read tests",
@@ -969,6 +970,12 @@ const enUS: Messages = {
     o2_not_switching: "Upstream O2 sensor barely moving ({min}–{max} V) with a warm engine. Suggests a worn sensor or faulty heater; the O2 guided test confirms it.",
     catalyst_efficiency_suspect: "The downstream O2 sensor switches almost as much as the upstream one ({down} vs {up} switches in 20 s). Suggests low catalytic converter efficiency; the O2/catalyst guided test confirms it.",
     fuel_low: "Fuel on reserve ({value}%).",
+    misfire_cylinder: "The computer counted misfires on cylinder {cyl} (average {avg}, last cycle {recent}), far more than the others. Suggests that cylinder's spark plug, coil, wire or injector; swapping its coil with another cylinder helps confirm it.",
+    misfire_multiple: "The computer counted misfires on {count} cylinders. Suggests something they share: poor fuel or low pressure, a vacuum leak or a single coil pack. Check the trouble codes too.",
+    catalyst_test_failed: "The catalyst test (bank {bank}) failed. Suggests low catalytic converter efficiency (code P0420/P0430 usually follows); first rule out misfires, a wrong mixture and exhaust leaks.",
+    catalyst_near_limit: "The catalyst test (bank {bank}) passed, but close to the limit. The converter may be ageing; keep an eye on it.",
+    o2_test_failed: "An O2 sensor test failed on bank {bank} sensor {sensor}. Suggests a slow or faulty sensor; also check for exhaust leaks before it.",
+    o2_heater_test_failed: "The O2 sensor heater test failed on bank {bank} sensor {sensor}. Suggests a burnt heater, fuse or wiring.",
   },
   monitors: {
     misfire: { name: "Misfire", desc: "Checks that every cylinder burns the mixture correctly." },
