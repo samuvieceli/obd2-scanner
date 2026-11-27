@@ -188,10 +188,12 @@ stateDiagram-v2
     CarroCalado --> Normal: tenta de novo em 5 s
     Recuperando --> Reconectando: adaptador não responde nem ao ATI
     Normal --> Reconectando: porta caiu<br/>(Bluetooth fora de alcance, cabo)
-    Reconectando --> Normal: porta reaberta<br/>(espera 1, 2, 3, 5, 8, 10, 10... s)
+    Reconectando --> Normal: porta reaberta<br/>(espera 1, 2, 3, 5, 8, 10, 10... s;<br/>USB: também na COM nova)
     Reconectando --> Desconectado: 3 minutos sem sucesso<br/>ou você clicou em "Parar"
     Desconectado --> [*]
 ```
+
+Se o adaptador for USB e o Windows mudar o número da COM depois de tirar e pôr o cabo, a reconexão encontra o mesmo adaptador na porta nova pelo número de série do USB.
 
 Com o adaptador parado (sem leitura ao vivo), um `ATRV` silencioso a cada 10 s percebe a queda cedo. No modo demonstração dá para provocar cada falha (Conexão → "Simular falhas de adaptador clone").
 

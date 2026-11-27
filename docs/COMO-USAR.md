@@ -138,7 +138,7 @@ Em **Configurações → Unidades**, escolha um padrão (**Brasil**, **Europa**,
 
 ## 12. Reconexão automática
 
-Com a opção **Reconectar automaticamente se a conexão cair** ligada (na tela Conexão e em Configurações; vem ligada), o programa volta sozinho quando o Bluetooth sai de alcance, o cabo solta ou o adaptador trava. Uma faixa amarela no topo mostra a tentativa e o tempo até a próxima. Ele tenta por até 3 minutos, com esperas de 1, 2, 3, 5, 8 e depois 10 segundos, e mantém a lista de parâmetros e a gravação em andamento. **Parar e desconectar** cancela.
+Com a opção **Reconectar automaticamente se a conexão cair** ligada (na tela Conexão e em Configurações; vem ligada), o programa volta sozinho quando o Bluetooth sai de alcance, o cabo solta ou o adaptador trava. Uma faixa amarela no topo mostra a tentativa e o tempo até a próxima. Ele tenta por até 3 minutos, com esperas de 1, 2, 3, 5, 8 e depois 10 segundos, e mantém a lista de parâmetros e a gravação em andamento. **Parar e desconectar** cancela. Num adaptador USB, se o Windows der outro número de COM depois de tirar e pôr o cabo, o programa acha o mesmo adaptador na porta nova (pelo número de série do USB; em clones sem número de série, só quando há um único adaptador daquele tipo ligado).
 
 ## 13. Teste do adaptador e centrais do carro
 

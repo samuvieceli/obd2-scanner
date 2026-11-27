@@ -1,8 +1,9 @@
 //! Recording of live data and export to CSV / JSON.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
+use std::sync::{Arc, Mutex, OnceLock};
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::elm327::VehicleIdentity;
 use crate::pid::PidMeta;
@@ -12,7 +13,132 @@ use crate::pid::PidMeta;
 pub struct Frame {
     /// Milliseconds since the start of the recording.
     pub t_ms: u64,
-    pub values: BTreeMap<String, f64>,
+    pub values: Values,
+}
+
+/// The values of one frame, kept small because a long recording holds
+/// hundreds of thousands of frames in memory. Frames almost always carry
+/// the same parameters, so the sorted list of names (`["rpm", "speed"]`) is
+/// shared by all of them and each frame keeps only its numbers: about 7
+/// times less memory than a map per frame.
+/// In files it is still a JSON object: `{"rpm": 812.5, "speed": 0}`.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Values {
+    keys: Arc<[&'static str]>,
+    vals: Box<[f64]>,
+}
+
+/// Most distinct name lists kept for sharing; past it new lists are simply
+/// not shared (only memory, never correctness, depends on this).
+const MAX_SHARED_KEY_SETS: usize = 4096;
+
+/// The one shared copy of a parameter name. Names come from the PID
+/// catalog and from opened files, so the set stays small.
+fn intern(name: &str) -> &'static str {
+    static NAMES: OnceLock<Mutex<HashSet<&'static str>>> = OnceLock::new();
+    let mut names = NAMES
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    if let Some(n) = names.get(name) {
+        return n;
+    }
+    let n: &'static str = Box::leak(name.to_owned().into_boxed_str());
+    names.insert(n);
+    n
+}
+
+/// The shared copy of a sorted list of names.
+fn shared_keys(keys: Vec<&'static str>) -> Arc<[&'static str]> {
+    static SETS: OnceLock<Mutex<HashSet<Arc<[&'static str]>>>> = OnceLock::new();
+    let mut sets = SETS
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    if let Some(k) = sets.get(keys.as_slice()) {
+        return k.clone();
+    }
+    let k: Arc<[&'static str]> = keys.into();
+    if sets.len() < MAX_SHARED_KEY_SETS {
+        sets.insert(k.clone());
+    }
+    k
+}
+
+impl Values {
+    pub fn get(&self, key: &str) -> Option<&f64> {
+        self.keys.binary_search(&key).ok().map(|i| &self.vals[i])
+    }
+
+    pub fn keys(&self) -> impl Iterator<Item = &'static str> + '_ {
+        self.keys.iter().copied()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&'static str, &f64)> {
+        self.keys.iter().copied().zip(self.vals.iter())
+    }
+
+    pub fn len(&self) -> usize {
+        self.vals.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.vals.is_empty()
+    }
+}
+
+impl<'a> IntoIterator for &'a Values {
+    type Item = (&'static str, &'a f64);
+    type IntoIter = std::iter::Zip<
+        std::iter::Copied<std::slice::Iter<'a, &'static str>>,
+        std::slice::Iter<'a, f64>,
+    >;
+    fn into_iter(self) -> Self::IntoIter {
+        self.keys.iter().copied().zip(self.vals.iter())
+    }
+}
+
+impl std::ops::Index<&str> for Values {
+    type Output = f64;
+    fn index(&self, key: &str) -> &f64 {
+        self.get(key)
+            .unwrap_or_else(|| panic!("no value for {key}"))
+    }
+}
+
+impl<K: AsRef<str>> FromIterator<(K, f64)> for Values {
+    fn from_iter<I: IntoIterator<Item = (K, f64)>>(iter: I) -> Self {
+        // Sorted by name, one entry per name (the last one wins, as in a map).
+        let map: BTreeMap<&'static str, f64> = iter
+            .into_iter()
+            .map(|(k, v)| (intern(k.as_ref()), v))
+            .collect();
+        let (keys, vals): (Vec<_>, Vec<_>) = map.into_iter().unzip();
+        Values {
+            keys: shared_keys(keys),
+            vals: vals.into(),
+        }
+    }
+}
+
+impl<K: AsRef<str>, const N: usize> From<[(K, f64); N]> for Values {
+    fn from(items: [(K, f64); N]) -> Self {
+        items.into_iter().collect()
+    }
+}
+
+impl Serialize for Values {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.collect_map(self.iter())
+    }
+}
+
+impl<'de> Deserialize<'de> for Values {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        Ok(BTreeMap::<String, f64>::deserialize(d)?
+            .into_iter()
+            .collect())
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -56,8 +182,8 @@ impl Session {
         let mut present: Vec<String> = Vec::new();
         for f in &self.frames {
             for k in f.values.keys() {
-                if !present.contains(k) {
-                    present.push(k.clone());
+                if !present.iter().any(|p| p == k) {
+                    present.push(k.to_string());
                 }
             }
         }
@@ -157,11 +283,11 @@ mod tests {
         };
         s.frames.push(Frame {
             t_ms: 0,
-            values: [("rpm".into(), 812.5), ("speed".into(), 0.0)].into(),
+            values: [("rpm", 812.5), ("speed", 0.0)].into(),
         });
         s.frames.push(Frame {
             t_ms: 1250,
-            values: [("rpm".into(), 1500.0)].into(),
+            values: [("rpm", 1500.0)].into(),
         });
         s
     }
@@ -203,5 +329,34 @@ mod tests {
         assert_eq!(lines[0], "time_s,rpm (rpm),speed (km/h),mark");
         assert_eq!(lines[1], "0,812.5,0,");
         assert_eq!(lines[2], "1.25,1500,,1");
+    }
+
+    #[test]
+    fn values_keep_the_json_object_format() {
+        let f = Frame {
+            t_ms: 5,
+            values: [("speed", 3.0), ("rpm", 800.0)].into(),
+        };
+        let json = serde_json::to_string(&f).unwrap();
+        // Sorted by name, as a map always was.
+        assert_eq!(json, r#"{"t_ms":5,"values":{"rpm":800.0,"speed":3.0}}"#);
+        let back: Frame = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, f);
+        assert_eq!(back.values["rpm"], 800.0);
+        assert_eq!(back.values.get("maf"), None);
+        // A repeated name keeps the last value, like a map.
+        let v: Values = [("rpm", 1.0), ("rpm", 2.0)].into();
+        assert_eq!((v.len(), v["rpm"]), (1, 2.0));
+    }
+
+    #[test]
+    fn frames_with_the_same_parameters_share_one_list_of_names() {
+        let a: Values = [("rpm", 1.0), ("speed", 2.0)].into();
+        let b: Values = [("speed", 5.0), ("rpm", 4.0)].into();
+        assert!(Arc::ptr_eq(&a.keys, &b.keys));
+        assert_eq!(
+            b.iter().collect::<Vec<_>>(),
+            vec![("rpm", &4.0), ("speed", &5.0)]
+        );
     }
 }

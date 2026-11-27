@@ -323,7 +323,28 @@ fn reopener(mut req: ConnectRequest, found: &AdapterInfo, app: AppHandle) -> wor
     if !known.is_empty() {
         req.config.protocol = known.to_string();
     }
-    Box::new(move || open_adapter(&req, &app))
+    // A USB adapter unplugged and plugged back may get another COM number:
+    // remember what identifies it, and look for it there when the old port
+    // fails.
+    let usb = match &req.target {
+        ConnectionTarget::Serial { port, .. } => obd_core::transport::serial::usb_identity(port),
+        _ => None,
+    };
+    Box::new(move || {
+        let first = open_adapter(&req, &app);
+        let (Err(_), Some(id), ConnectionTarget::Serial { port, .. }) =
+            (&first, &usb, &mut req.target)
+        else {
+            return first;
+        };
+        match obd_core::transport::serial::find_usb_port(id) {
+            Some(moved) if !moved.eq_ignore_ascii_case(port) => {
+                *port = moved;
+                open_adapter(&req, &app)
+            }
+            _ => first,
+        }
+    })
 }
 
 /// Tries to reach the vehicle again (e.g. after turning the ignition on).
