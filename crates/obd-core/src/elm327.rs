@@ -88,6 +88,37 @@ fn is_reset_banner(line: &str) -> bool {
     l.starts_with("ELM327") || l.contains("LV RESET")
 }
 
+/// `ATDPN` answer: one protocol digit 1-9 or A-C, `A` first when automatic.
+fn is_protocol_number(n: &str) -> bool {
+    let n = n.trim();
+    let n = if n.len() == 2 {
+        n.strip_prefix('A').unwrap_or(n)
+    } else {
+        n
+    };
+    n.len() == 1 && matches!(n.as_bytes()[0], b'1'..=b'9' | b'A'..=b'C')
+}
+
+/// Protocol number from the `ATDP` text (`AUTO, ISO 15765-4 (CAN 11/500)`).
+fn protocol_from_description(d: &str) -> Option<&'static str> {
+    let d = d.to_ascii_uppercase();
+    let can = d.contains("15765") || d.contains("CAN");
+    let bits29 = d.contains("29/");
+    let k250 = d.contains("/250");
+    Some(match () {
+        _ if can && !bits29 && !k250 => "6",
+        _ if can && bits29 && !k250 => "7",
+        _ if can && !bits29 => "8",
+        _ if can => "9",
+        _ if d.contains("J1850 PWM") => "1",
+        _ if d.contains("J1850 VPW") => "2",
+        _ if d.contains("9141") => "3",
+        _ if d.contains("14230") && d.contains("FAST") => "5",
+        _ if d.contains("14230") => "4",
+        _ => return None,
+    })
+}
+
 impl AdapterInfo {
     /// CAN protocols (6-9, also when prefixed with `A` for "automatic").
     pub fn is_can(&self) -> bool {
@@ -297,7 +328,9 @@ impl Elm327 {
             self.at_optional(cmd)?;
         }
         if let Ok(lines) = self.command("ATI")
-            && let Some(v) = lines.into_iter().find(|l| !l.trim().is_empty() && l != "?")
+            && let Some(v) = lines
+                .into_iter()
+                .find(|l| !l.trim().is_empty() && l != "?" && !l.eq_ignore_ascii_case("OK"))
         {
             self.info.version = v;
         }
@@ -331,6 +364,13 @@ impl Elm327 {
         }
         if let Ok(lines) = self.command("ATDP") {
             self.info.protocol = lines.first().cloned().unwrap_or_default();
+        }
+        // Some clones answer "?" or a description to ATDPN: work the number
+        // out from the ATDP text, or CAN cars would be treated as older ones.
+        if !is_protocol_number(&self.info.protocol_number) {
+            self.info.protocol_number = protocol_from_description(&self.info.protocol)
+                .map(str::to_string)
+                .unwrap_or_default();
         }
 
         // Ranges 0x20, 0x40... are only valid if the previous range says so.
@@ -608,30 +648,36 @@ impl Elm327 {
         let lines = self.command("04")?;
         check_errors(&lines)?;
         let msgs = assemble_messages(&lines);
-        if let Some(m) = msgs.iter().find(|m| m.len() >= 3 && m[0] == 0x7F) {
-            return Err(ObdError::NegativeResponse(m[2]));
+        // Done only when a unit confirms (0x44); a refusal or anything else
+        // (a lone "OK", an echo) is not a confirmation.
+        if msgs.iter().any(|m| m.first() == Some(&0x44)) {
+            return Ok(());
         }
-        Ok(())
+        match msgs.iter().find(|m| m.len() >= 3 && m[0] == 0x7F) {
+            Some(m) => Err(ObdError::NegativeResponse(m[2])),
+            None => Err(ObdError::NoData),
+        }
     }
 
     /// True when the engine turns (RPM ≥ 50) or the car moves (speed > 0),
-    /// asked to the car right now. When the car answers neither question
-    /// (key in accessory position, ECU asleep) the state is unknown:
-    /// [`ObdError::Refused`]`("engine_unknown")`, never "stopped".
+    /// asked to the car right now. "Stopped" needs an RPM answer: speed 0
+    /// alone could be a car idling at a traffic light. Without one the state
+    /// is unknown: [`ObdError::Refused`]`("engine_unknown")`, never "stopped".
     pub fn engine_running(&mut self) -> Result<bool> {
-        let mut answered = false;
-        for (pid, running) in [
-            (0x0C, (|v: f64| v >= 50.0) as fn(f64) -> bool),
-            (0x0D, |v| v > 0.0),
-        ] {
-            match self.read_pid(pid) {
-                Ok(v) if running(v.value) => return Ok(true),
-                Ok(_) => answered = true,
-                Err(ObdError::NoData | ObdError::NegativeResponse(_)) => {}
-                Err(e) => return Err(e),
-            }
+        let rpm = match self.read_pid(0x0C) {
+            Ok(v) => Some(v.value),
+            Err(ObdError::NoData | ObdError::NegativeResponse(_)) => None,
+            Err(e) => return Err(e),
+        };
+        if rpm.is_some_and(|r| r >= 50.0) {
+            return Ok(true);
         }
-        if answered {
+        match self.read_pid(0x0D) {
+            Ok(v) if v.value > 0.0 => return Ok(true),
+            Ok(_) | Err(ObdError::NoData | ObdError::NegativeResponse(_)) => {}
+            Err(e) => return Err(e),
+        }
+        if rpm.is_some() {
             Ok(false)
         } else {
             Err(ObdError::Refused("engine_unknown"))
@@ -694,12 +740,11 @@ impl Elm327 {
     /// The DTC that caused the freeze frame (mode 02 PID 02).
     pub fn read_freeze_frame_dtc(&mut self) -> Result<Option<Dtc>> {
         let msgs = self.request(0x02, &[0x02, 0x00])?;
-        // 42 02 00 HH LL
-        let m = &msgs[0];
-        if m.len() < 5 {
-            return Ok(None);
-        }
-        Ok(decode_dtc_response(&m[3..5], false).into_iter().next())
+        // 42 02 00 HH LL, one per unit: the first unit holding a code wins.
+        Ok(msgs
+            .iter()
+            .filter(|m| m.len() >= 5)
+            .find_map(|m| decode_dtc_response(&m[3..5], false).into_iter().next()))
     }
 
     /// Reads one PID from the freeze frame (mode 02, frame 0).
@@ -709,8 +754,15 @@ impl Elm327 {
             .find(|d| d.pid == pid)
             .ok_or_else(|| ObdError::Parse(format!("PID {pid:02X} not in catalog")))?;
         let msgs = self.request(0x02, &[pid, 0x00])?;
-        // 42 PID FRAME A B ...
-        def.decode_value(&msgs[0][3..])
+        // 42 PID FRAME A B ..., one per unit: the first one that decodes.
+        let mut last = Err(ObdError::NoData);
+        for m in &msgs {
+            last = def.decode_value(m.get(3..).unwrap_or(&[]));
+            if last.is_ok() {
+                break;
+            }
+        }
+        last
     }
 
     /// VIN, calibration ID and ECU name (mode 09). Missing items stay `None`.
@@ -730,5 +782,36 @@ impl Elm327 {
 
     pub fn transport_description(&self) -> String {
         self.transport.describe()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn protocol_number_from_atdp_when_atdpn_fails() {
+        assert!(is_protocol_number("A6"));
+        assert!(is_protocol_number("3"));
+        assert!(!is_protocol_number("?"));
+        assert!(!is_protocol_number("AUTO, ISO 15765-4"));
+        assert_eq!(
+            protocol_from_description("AUTO, ISO 15765-4 (CAN 11/500)"),
+            Some("6")
+        );
+        assert_eq!(
+            protocol_from_description("ISO 15765-4 (CAN 29/500)"),
+            Some("7")
+        );
+        assert_eq!(
+            protocol_from_description("ISO 15765-4 (CAN 11/250)"),
+            Some("8")
+        );
+        assert_eq!(
+            protocol_from_description("ISO 14230-4 (KWP FAST)"),
+            Some("5")
+        );
+        assert_eq!(protocol_from_description("ISO 9141-2"), Some("3"));
+        assert_eq!(protocol_from_description("?"), None);
     }
 }

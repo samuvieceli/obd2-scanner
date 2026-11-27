@@ -9,7 +9,7 @@
 //! btleplug is asynchronous; this transport owns a small Tokio runtime and
 //! exposes the same blocking [`Transport`] interface as every other backend.
 
-use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, TryRecvError};
 use std::time::{Duration, Instant};
 
 use btleplug::api::bleuuid::uuid_from_u16;
@@ -269,6 +269,18 @@ impl Transport for BleTransport {
         buf[..n].copy_from_slice(&self.pending[..n]);
         self.pending.drain(..n);
         Ok(n)
+    }
+
+    /// Drops the answers already received, without waiting for more.
+    fn clear_input(&mut self) -> Result<()> {
+        self.pending.clear();
+        loop {
+            match self.rx.try_recv() {
+                Ok(_) => {}
+                Err(TryRecvError::Empty) => return Ok(()),
+                Err(TryRecvError::Disconnected) => return Err(err("the adapter disconnected")),
+            }
+        }
     }
 
     fn describe(&self) -> String {
