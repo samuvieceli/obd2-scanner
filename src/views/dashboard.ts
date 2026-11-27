@@ -18,7 +18,7 @@ import { resetTrip, trip } from "../trip";
 import { lastDrive, showSummary } from "./drive-summary";
 import { tripCost } from "../cost";
 import { prefs, profile } from "../prefs";
-import { PRESETS, matchPreset, presetKeys, type PresetId } from "../presets";
+import { PRESETS, matchPreset, presetAfterClick, presetKeys, type PresetId } from "../presets";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
 
@@ -186,7 +186,8 @@ export function mount(root: HTMLElement) {
   const presetRow = h("div", { class: "chips preset-row", role: "group", "aria-label": t("dashboard.presets") });
   const renderPresets = () => {
     clear(presetRow);
-    const active = matchPreset(state.liveKeys, isSupported);
+    const all = state.catalog.map((m) => m.key);
+    const active = matchPreset(state.liveKeys, isSupported, all);
     presetRow.append(h("span", { class: "muted small" }, t("dashboard.presets")));
     for (const id of Object.keys(PRESETS) as PresetId[]) {
       presetRow.append(
@@ -198,7 +199,8 @@ export function mount(root: HTMLElement) {
             "aria-pressed": String(id === active),
             title: t(`dashboard.preset.${id}.help`),
             onclick: async () => {
-              const keys = presetKeys(id, isSupported);
+              // Clicking the active preset again unselects it: back to everything.
+              const keys = presetKeys(presetAfterClick(id, active), isSupported, all);
               setLiveKeys(keys);
               try {
                 await api.setLive(keys, state.polling);

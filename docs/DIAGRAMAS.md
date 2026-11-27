@@ -228,7 +228,7 @@ flowchart LR
         units["units.ts<br/>unidades"]
         gauge["gauge.ts<br/>mostradores"]
         theme["theme.ts<br/>temas e botão dia/noite"]
-        presets["presets.ts<br/>painéis prontos"]
+        presets["presets.ts<br/>painéis prontos e Completo"]
         share["share.ts<br/>cartão 'Copiar imagem'"]
         warmup["warmup.ts<br/>motor frio / pronto"]
         summary["summary.ts + drive-summary.ts<br/>resumo ao desligar o motor"]
