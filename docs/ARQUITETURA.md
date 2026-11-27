@@ -5,8 +5,9 @@
 ```
 ┌──────────────────────── Interface (src/, TypeScript + Vite) ────────────────────────┐
 │ telas (views/) · textos pt-BR/en-US (locales/) · gráficos uPlot · estado (store.ts) │
-│ playback · trip · summary · perf · battery · o2test · trims · alerts · prefs       │
-│ units · fuels · cost · presets · warmup · search · share · gauge · theme · awake    │
+│ playback · trip · summary · drives · perf · battery · o2test · trims · alerts       │
+│ prefs · units · fuels · cost · presets · warmup · search · share · gauge · theme    │
+│ awake                                                                               │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
@@ -53,6 +54,7 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 - `src/presets.test.ts` e `src/warmup.test.ts` (Vitest): painéis prontos (só o que o carro informa, alternativas) e selo de motor frio/pronto.
 - `src/cost.test.ts` (Vitest): custo da viagem, comparação gasolina × etanol pela energia e preço da mistura no flex.
 - `src/search.test.ts` (Vitest): busca global (acentos e maiúsculas ignorados, todas as palavras, título vale mais que descrição, códigos de falha).
+- `src/drives.test.ts` (Vitest): histórico de viagens (grupos por combustível, flex pela porcentagem de etanol, médias pela distância total, viagens curtas sem média).
 - `src/summary.test.ts` (Vitest): resumo da viagem (tempo parado e em movimento, distância, picos, alertas, viagens curtas ignoradas, falhas de leitura, conexão encerrada).
 - `src/perf.test.ts` (Vitest): detecção dos testes de desempenho com perfis de velocidade simulados (arrancada, retomadas, frenagem, desistência, falha de leitura, adaptador lento).
 - CI (`.github/workflows/ci.yml`): testes no Linux e geração do instalador no Windows.
