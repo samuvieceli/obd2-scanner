@@ -5,7 +5,8 @@
 ```
 ┌──────────────────────── Interface (src/, TypeScript + Vite) ────────────────────────┐
 │ telas (views/) · textos pt-BR/en-US (locales/) · gráficos uPlot · estado (store.ts) │
-│ playback · trip · perf · battery · alerts · prefs · units · gauge · theme · awake   │
+│ playback · trip · summary · perf · battery · o2test · trims · alerts · prefs       │
+│ units · fuels · cost · presets · warmup · search · share · gauge · theme · awake    │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
@@ -23,7 +24,7 @@
 
 ## Decisões principais
 
-- **Núcleo separado da interface.** `obd-core` não depende do Tauri: pode ser testado com `cargo test` em qualquer sistema e reaproveitado (linha de comando, outro app).
+- **Núcleo separado da interface.** `obd-core` não depende do Tauri: pode ser testado com `cargo test -p obd-core --all-features` em qualquer sistema, sem as bibliotecas gráficas que o Tauri pede e reaproveitado (linha de comando, outro app).
 - **Uma interface `Transport` para todas as conexões.** Só move bytes (`write_all`, `read` com tempo limite). O BLE (`btleplug`, assíncrono) tem um pequeno runtime Tokio interno e expõe a mesma interface bloqueante; ele escolhe sozinho a característica de escrita e a de notificação (serviços FFF0, FFE0, 18F0 ou qualquer outro com essas propriedades). Fica atrás da feature `ble` do núcleo.
 - **O simulador é um transporte.** O modo demonstração recebe os mesmos comandos de texto de um ELM327 real e responde igual, então ele testa o programa inteiro. Com `quirky` ele imita clones (eco que não desliga, `SEARCHING...`, bytes nulos, comandos AT recusados).
 - **Tolerância a clones.** Tempos configuráveis; `OK` e eco nunca são exigidos; comandos AT não suportados (`?`) são ignorados e listados em `AdapterInfo::unsupported_at`; resposta sem `>` é aproveitada; velocidade serial automática (38400, 9600, 115200...); pedidos OBD perdidos ou interrompidos (`STOPPED`, `BUFFER FULL`, erro de barramento) são repetidos uma vez, com um `ATI` antes para destravar o adaptador (um CR sozinho faria o ELM327 repetir o último comando); plano B de protocolo um por um; leitura de vários PIDs por pedido com volta automática para um por vez.
@@ -40,6 +41,8 @@
 - **Nada carregado da internet.** O gráfico (uPlot) é empacotado no app; a política de segurança (CSP) bloqueia fontes externas.
 
 ## Testes
+
+Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p` tenta compilar o app Tauri inteiro, que no Linux pede WebKit/GTK) e `npm test` (interface).
 
 - `crates/obd-core/src/*`: testes de saúde da conexão (`health.rs`), fórmulas, DTC, VIN, prontidão, interpretação, CSV/JSON.
 - `crates/obd-core/tests/elm327_integration.rs`: sessão completa contra o simulador (normal e clone), recuperação de adaptador travado, reiniciado, congelado e com conexão caída e respostas gravadas de adaptadores reais (clone sem `OK`, ignição desligada, protocolo ISO 9141 com duas centrais, `STOPPED`/`BUFFER FULL`, comandos AT recusados, Modo 06, leitura rápida).
