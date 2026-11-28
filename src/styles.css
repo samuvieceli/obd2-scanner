@@ -523,3 +523,11 @@ body.mini-mode > :not(.mini) { display: none !important; }
 .refuel-box { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
 .refuel-box .row { align-items: center; }
 .calibration-row { align-items: center; margin-top: 8px; }
+
+/* Manufacturer parameters in the dashboard's picker (views/maker-picker.ts). */
+.picker > .maker-box { grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: 10px; }
+.maker-picker h3 { margin: 0 0 4px; font-size: 1rem; }
+.maker-picker select { max-width: 100%; }
+.maker-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; }
+.maker-list .badge { margin-left: 6px; }
+.maker-warn { color: var(--warn); font-weight: 600; }

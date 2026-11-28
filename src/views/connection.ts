@@ -5,6 +5,7 @@ import { t } from "../i18n";
 import { emit, on, resetLiveData, state } from "../store";
 import { busy, button, clear, errorText, h, infoTip, section, toast } from "../ui";
 import { matchVin, prefs, savePrefs } from "../prefs";
+import { loadMaker } from "../maker";
 
 /** Picks the vehicle profile of the connected car and says so. */
 export function reportVin(vin: string | null) {
@@ -450,6 +451,8 @@ export function mount(root: HTMLElement) {
             if (state.connection !== "connected" || state.adapter !== adapter) return;
             state.vehicle = v;
             reportVin(v.identity.vin);
+            // The model year may change which manufacturer parameters apply.
+            void loadMaker();
           })
           .catch(() => undefined);
       }

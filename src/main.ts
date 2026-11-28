@@ -18,6 +18,7 @@ import { initKeepAwake } from "./awake";
 import { initSafety } from "./views/safety";
 import { SPEEDS, seek, setSpeed, stopPlayback, togglePlay } from "./playback";
 import { fmtNum } from "./i18n";
+import { loadMaker } from "./maker";
 
 import * as connection from "./views/connection";
 import * as dashboard from "./views/dashboard";
@@ -361,6 +362,7 @@ async function boot() {
   }
   try {
     state.catalog = await api.pidCatalog();
+    await loadMaker();
     const info = await api.appInfo();
     state.appVersion = info.version;
     state.portableData = info.portableData;

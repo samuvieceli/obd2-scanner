@@ -24,6 +24,38 @@ export interface PidMeta {
   category: Category;
 }
 
+/** Car model with manufacturer parameters (OBDb data, crates/obd-core/src/maker.rs). */
+export interface MakerModel {
+  id: string;
+  make: string;
+  model: string;
+  params: number;
+  /** Parameters confirmed on a real car in some model year. */
+  verified: number;
+}
+
+/** A named raw value: `word` is on/off/yes/no, otherwise `en`/`pt` name it. */
+export interface MakerState {
+  raw: number;
+  word?: "on" | "off" | "yes" | "no";
+  en?: string;
+  pt?: string;
+}
+
+/** One manufacturer parameter of the chosen model. */
+export interface MakerParam {
+  key: string;
+  name: string;
+  /** OBDb group: Engine, Transmission, Battery... */
+  group: string;
+  unit: string;
+  min: number;
+  max: number;
+  /** Confirmed on a real car (in this model year, when known). */
+  verified: boolean;
+  states?: MakerState[];
+}
+
 export interface AdapterInfo {
   version: string;
   protocol: string;
@@ -243,6 +275,8 @@ export const api = {
   listPorts: () => invoke<PortInfo[]>("list_ports"),
   scanBle: (seconds?: number) => invoke<BleDevice[]>("scan_ble", { seconds }),
   pidCatalog: () => invoke<PidMeta[]>("pid_catalog"),
+  makerModels: () => invoke<MakerModel[]>("maker_models"),
+  makerParams: (model: string, year: number | null, lang: string) => invoke<MakerParam[]>("maker_params", { model, year, lang }),
   describeDtc: (code: string, lang: string) => invoke<DtcInfo>("describe_dtc", { code, lang }),
   connect: (target: ConnectionTarget, config: ElmConfig, demoQuirky: boolean, autoReconnect: boolean) =>
     invoke<ConnectResult>("connect", { request: { target, config, demoQuirky, autoReconnect } }),

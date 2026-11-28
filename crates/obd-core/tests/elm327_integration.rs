@@ -403,3 +403,57 @@ fn clear_needs_a_confirmation_from_a_unit() {
         Err(ObdError::NegativeResponse(0x22))
     ));
 }
+
+#[test]
+fn manufacturer_parameters_against_simulator() {
+    use obd_core::maker;
+    for quirky in [false, true] {
+        let mut elm = demo(quirky);
+        let keys: Vec<String> = [
+            "mfr_corolla_eot",
+            "mfr_corolla_vvtot",
+            "mfr_corolla_prev_trip_dst",
+        ]
+        .iter()
+        .map(|k| k.to_string())
+        .collect();
+        let request = maker::request_of(&keys[0]).unwrap();
+        assert_eq!(maker::request_of(&keys[1]), Some(request));
+        let got = maker::read(&mut elm, request, &keys).expect("manufacturer read");
+        let value = |k: &str| got.iter().find(|(key, _)| key == k).map(|(_, v)| *v);
+        let oil = value("mfr_corolla_eot").unwrap();
+        assert!((-40.0..=215.0).contains(&oil), "{oil}");
+        assert_eq!(value("mfr_corolla_prev_trip_dst"), Some(12.34));
+
+        // Transmission fluid: another request to the same unit.
+        let atf = ["mfr_corolla_atf_pan_t".to_string()];
+        let got = maker::read(&mut elm, maker::request_of(&atf[0]).unwrap(), &atf).unwrap();
+        assert_eq!(got.len(), 1);
+
+        // Standard requests go back to every unit afterwards.
+        elm.read_pid(0x0C).expect("rpm after manufacturer read");
+        let ecus = obd_core::ecu_scan::scan_ecus(&mut elm).expect("scan");
+        assert_eq!(ecus.len(), 2, "quirky={quirky}");
+    }
+}
+
+#[test]
+fn manufacturer_request_needs_can_and_a_read_service() {
+    use obd_core::elm327::Addressing;
+    let mut elm = demo(false);
+    let to = Addressing {
+        header: "7E0".into(),
+        receive: "7E8".into(),
+        flow_control: false,
+    };
+    // Writing services are refused before anything is sent.
+    assert!(matches!(
+        elm.read_manufacturer(&to, 0x2E, &[0x01, 0x02]),
+        Err(ObdError::Refused("blocked_write"))
+    ));
+    // An identifier the unit does not know: a refusal, not a link problem.
+    assert!(matches!(
+        elm.read_manufacturer(&to, 0x21, &[0x99]),
+        Err(ObdError::NegativeResponse(0x31))
+    ));
+}

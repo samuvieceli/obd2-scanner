@@ -153,6 +153,22 @@ fn pid_catalog() -> Vec<PidMeta> {
     pid::catalog()
 }
 
+/// Car models with manufacturer parameters (OBDb data, see obd_core::maker).
+#[tauri::command]
+fn maker_models() -> Vec<obd_core::maker::ModelInfo> {
+    obd_core::maker::models()
+}
+
+/// Manufacturer parameters of a model, for its model year when known.
+#[tauri::command]
+fn maker_params(
+    model: String,
+    year: Option<u16>,
+    lang: String,
+) -> Vec<obd_core::maker::MakerParam> {
+    obd_core::maker::params(&model, year, &lang)
+}
+
 #[tauri::command]
 fn describe_dtc(state: State<'_, AppState>, code: String, lang: String) -> DtcInfo {
     let vin = state.identity.lock().unwrap().vin.clone();
@@ -786,6 +802,8 @@ pub fn run() {
             list_ports,
             scan_ble,
             pid_catalog,
+            maker_models,
+            maker_params,
             describe_dtc,
             connect,
             retry_vehicle,

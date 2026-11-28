@@ -568,6 +568,8 @@ impl Simulator {
                 vec![format!("{:.1}V", e.module_voltage + 0.1)]
             }
             a if a.starts_with("SP")
+                || a.starts_with("CRA")
+                || a.starts_with("FCS")
                 || a.starts_with("TP")
                 || a.starts_with("ST")
                 || a.starts_with("AT")
@@ -718,6 +720,40 @@ impl Simulator {
                     None => vec![0x7F, 0x22, 0x31],
                 })
             }
+            // Manufacturer data (service 0x21), laid out like a Toyota
+            // engine unit in OBDb, so the demo can show the manufacturer
+            // parameters of the Toyota Corolla.
+            0x21 if req.len() == 2 => Some(match req[1] {
+                _ if self.header != "7E0" => return None,
+                0x51 => {
+                    // Previous trip 12.34 km, VVT oil and engine oil temperature.
+                    let temp = |t: f64| (t + 40.0).round().clamp(0.0, 255.0) as u8;
+                    vec![
+                        0x61,
+                        0x51,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0x04,
+                        0xD2,
+                        0,
+                        temp(e.coolant + 2.0),
+                        0,
+                        temp(e.coolant + 5.0),
+                    ]
+                }
+                0x82 => {
+                    // Automatic transmission fluid, pan and torque converter.
+                    let raw =
+                        |t: f64| (((t + 40.0) * 256.0).clamp(0.0, 65535.0) as u16).to_be_bytes();
+                    let pan = raw(e.coolant - 12.0);
+                    let conv = raw(e.coolant - 8.0);
+                    vec![0x61, 0x82, pan[0], pan[1], conv[0], conv[1]]
+                }
+                _ => vec![0x7F, 0x21, 0x31],
+            }),
             0x09 if req.len() >= 2 => match req[1] {
                 0x00 => {
                     Some([&[0x49, 0x00][..], &encode_supported(0, &[0x02, 0x04, 0x0A])].concat())

@@ -125,12 +125,14 @@ flowchart TB
         adaptertest["adapter_test.rs<br/>versão real do ELM327"]
         ecuscan["ecu_scan.rs<br/>centrais e identificação"]
         safety["safety.rs<br/>filtro só leitura<br/>do Terminal AT"]
+        maker["maker.rs + data/maker_params.json<br/>parâmetros do fabricante<br/>(OBDb, modos 21/22)"]
     end
     adaptertest --> elm327
     ecuscan --> elm327
     elm327 --> transport
     elm327 --> response
     elm327 --> pid & dtc & vin & readiness & mode06
+    maker --> elm327
     simulator -. "é um" .-> transport
     interpret --> pid
     session --> pid
@@ -151,6 +153,22 @@ flowchart LR
     end
     t3 & b3 --> r["ATZ + configuração<br/>(Elm327::reconfigure)"]
 ```
+
+### Parâmetros do fabricante (piloto)
+
+Além dos parâmetros padrão, que valem para qualquer carro, alguns modelos têm leituras próprias da montadora (temperatura do óleo, marcha engatada, temperatura do câmbio...). A tabela de cada modelo vem do projeto aberto OBDb e fica dentro do programa (`data/maker_params.json`, gerado por `tools/obdb_import.py`). O pedido vai para uma central só, e depois o adaptador volta ao modo normal, em que o pedido vai para todas.
+
+```mermaid
+flowchart LR
+    pick["Painel: Escolher parâmetros<br/>→ modelo do carro<br/>(o chassi sugere a marca)"] --> list["Lista do modelo<br/>conferidos + (opcional)<br/>experimentais"]
+    list --> keys["Parâmetros marcados<br/>entram na leitura ao vivo"]
+    keys --> worker["worker.rs: no fim de cada ciclo,<br/>um pedido por grupo"]
+    worker --> addr["ATSH + ATCRA<br/>(endereço de uma central)"] --> ask["21 xx ou 22 xxxx<br/>(só leitura)"] --> dec["maker.rs decodifica<br/>(bits, escala, unidade)"]
+    dec --> screen["Cartões, gráficos<br/>e gravações"]
+    ask --> back["Próximo pedido padrão:<br/>ATSH 7DF + ATCRA<br/>(volta ao normal)"]
+```
+
+O que o programa importa do OBDb é só leitura: pedidos 21 ou 22 direto para uma central. Pedidos que exigem abrir uma sessão de diagnóstico na central ficam de fora. Um parâmetro "conferido" foi confirmado num carro de verdade (às vezes de outro país); os "experimentais" ficam escondidos até o usuário pedir.
 
 ### Só leitura: o que nunca sai do programa
 
@@ -238,6 +256,7 @@ flowchart LR
         trims["trims.ts<br/>mapa de correção<br/>de combustível"]
         m06hints["mode06hints.ts<br/>indícios dos testes<br/>da central (Modo 06)"]
         dtcadvice["dtcadvice.ts<br/>aviso de código da montadora<br/>sem descrição confiável"]
+        makerts["maker.ts + views/maker-picker.ts<br/>modelo do carro e parâmetros<br/>do fabricante no Painel"]
         alerts["alerts.ts<br/>alertas e bipe"]
         playback["playback.ts<br/>reprodução"]
         prefs["prefs.ts<br/>preferências e perfis"]
@@ -258,7 +277,7 @@ flowchart LR
         i18n["i18n.ts + locales/<br/>textos pt-BR, en-US e en-GB<br/>(English Europe)"]
         upresets["unit-presets.ts<br/>unidades de cada idioma"]
     end
-    dashboard --> gauge & trip & alerts & presets & warmup & findings
+    dashboard --> gauge & trip & alerts & presets & warmup & findings & makerts
     diagnostics --> dtcadvice
     settings --> safetydlg
     safetydlg --> safety
