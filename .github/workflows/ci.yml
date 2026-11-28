@@ -6,17 +6,50 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Cancela execuções antigas do mesmo PR para economizar minutos
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   core-tests:
     name: Testes do núcleo (Linux)
     runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.paths.outputs.docs_only }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detectar se PR é só documentação
+        id: paths
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=${{ github.event.pull_request.base.sha }}
+            HEAD=${{ github.event.pull_request.head.sha }}
+            CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+            echo "Arquivos alterados:"
+            echo "$CHANGED"
+            NON_DOCS=$(echo "$CHANGED" | grep -Ev '^(AGENTS\.md|README\.md|LICENSE|docs/|\.github/ISSUE_TEMPLATE/|packaging/)' || true)
+            if [ -z "$NON_DOCS" ]; then
+              echo "docs_only=true" >> "$GITHUB_OUTPUT"
+              echo "✅ Apenas documentação — instalador Windows será pulado"
+            else
+              echo "docs_only=false" >> "$GITHUB_OUTPUT"
+              echo "⚙️ Código alterado — instalador Windows será executado"
+            fi
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            echo "Push para main — instalador Windows sempre executado"
+          fi
+
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: sudo apt-get update && sudo apt-get install -y libudev-dev libdbus-1-dev pkg-config
       - run: cargo test -p obd-core --all-features
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
           node-version: 26
           cache: npm
@@ -27,18 +60,20 @@ jobs:
   windows-installer:
     name: Instalador Windows
     runs-on: windows-latest
+    needs: core-tests
+    if: needs.core-tests.outputs.docs_only != 'true'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
           node-version: 26
           cache: npm
       - run: npm ci
       - run: cargo test -p obd-core --all-features
       - run: npm run tauri build
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         with:
           name: obd2-scanner-windows-instalador
           path: |
@@ -51,7 +86,7 @@ jobs:
           mkdir -p portable
           cp target/release/obd2-scanner.exe portable/OBD2-Scanner.exe
           cp packaging/portable.txt LICENSE portable/
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         with:
           name: obd2-scanner-windows-portatil
           path: portable/
