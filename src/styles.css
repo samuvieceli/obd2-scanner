@@ -596,6 +596,21 @@ body.mini-mode > :not(.mini) { display: none !important; }
 .diagram.zoomed { cursor: zoom-out; text-align: left; }
 .diagram.zoomed svg { max-width: none !important; }
 .md table.numbered td:first-child { white-space: nowrap; font-weight: 600; }
+.journey-trim summary { cursor: pointer; padding: 2px 0; }
+.journey-trim[open] summary { margin-bottom: 8px; }
+.journey-trim input[type="range"] { width: 100%; }
+.journey-charts rect.shade-sel { fill: var(--accent); stroke: var(--accent); }
+.journey-list input[type="checkbox"] { width: 18px; height: 18px; flex: none; }
+.journey-check { margin-top: 12px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); }
+.journey-check.check-ok { border-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+.journey-check.check-warn { border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
+.journey-check.check-bad { border-color: color-mix(in srgb, var(--danger) 60%, transparent); }
+.check-item { display: flex; gap: 10px; align-items: baseline; line-height: 1.45; }
+.check-icon { flex: none; width: 1.4em; text-align: center; font-weight: 700; }
+.check-item.check-ok .check-icon { color: var(--ok); }
+.check-item.check-warn .check-icon { color: var(--warn); }
+.check-item.check-bad .check-icon { color: var(--danger); }
+.check-item.check-unknown .check-icon { color: var(--muted); }
 /* Pre-purchase check (views/prepurchase.ts) */
 .pp-stepper { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0 0 16px; counter-reset: pp; }
 .pp-stepper li { counter-increment: pp; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-size: 0.85rem; }

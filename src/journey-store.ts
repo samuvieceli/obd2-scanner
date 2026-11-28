@@ -4,7 +4,7 @@
 // rows (big) live in two stores and the rows are loaded only when a trip is
 // opened. Every call fails soft: without storage the trip lives in memory.
 import type { FuelType } from "./fuels";
-import type { JourneyLog } from "./journey";
+import type { Cut, JourneyLog } from "./journey";
 
 export interface JourneyMeta {
   id: string;
@@ -23,6 +23,8 @@ export interface JourneyMeta {
   /** How the fuel was calculated, and whether the pump calibration was done. */
   method: "pid" | "maf" | "map" | null;
   calibrated: boolean;
+  /** Parts left out of the analysis by the user (seconds since the start). */
+  cuts?: Cut[];
   /** Still being recorded. */
   active?: boolean;
   /** Totals for the list, filled when the trip ends. */

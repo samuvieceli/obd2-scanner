@@ -210,7 +210,16 @@ export function chartSvg(c: RecordingReport["charts"][number], durationS: number
 }
 
 /** A series already in display units over time (seconds), as an SVG figure. */
-export function seriesSvg(title: string, t_: number[], vals: number[], durationS: number, marks: number[] = [], dots = false): string {
+export function seriesSvg(
+  title: string,
+  t_: number[],
+  vals: number[],
+  durationS: number,
+  marks: number[] = [],
+  dots = false,
+  /** Shaded spans in seconds: "cut" (left out, grey) or "sel" (selected). */
+  shades: { from: number; to: number; kind: "cut" | "sel" }[] = [],
+): string {
   let lo = Math.min(...vals);
   let hi = Math.max(...vals);
   if (!vals.length) lo = hi = 0;
@@ -229,7 +238,15 @@ export function seriesSvg(title: string, t_: number[], vals: number[], durationS
   const markLines = marks
     .map((m) => `<line x1="${x(m / 1000).toFixed(1)}" x2="${x(m / 1000).toFixed(1)}" y1="${PAD.t}" y2="${H - PAD.b}" stroke="#b45309" stroke-dasharray="3 3"/>`)
     .join("");
+  const shade = shades
+    .map((z) => {
+      const x1 = x(Math.max(0, z.from));
+      const x2 = x(Math.min(span, z.to));
+      const fill = z.kind === "cut" ? 'fill="#9ca3af" fill-opacity="0.45"' : 'fill="#0e7490" fill-opacity="0.18" stroke="#0e7490"';
+      return `<rect class="shade-${z.kind}" x="${x1.toFixed(1)}" y="${PAD.t}" width="${Math.max(1, x2 - x1).toFixed(1)}" height="${H - PAD.t - PAD.b}" ${fill}/>`;
+    })
+    .join("");
   const line = `<polyline points="${pts}" fill="none" stroke="#0e7490" stroke-width="1.5" stroke-linejoin="round"/>`;
   const points = dots ? t_.map((s, i) => `<circle cx="${x(s).toFixed(1)}" cy="${y(vals[i]).toFixed(1)}" r="2.5" fill="#0e7490"/>`).join("") : "";
-  return `<figure><figcaption>${e(title)}</figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${e(title)}" font-size="11" fill="#555">${grid}${markLines}${line}${points}<text x="${PAD.l}" y="${H - 4}">0:00</text><text x="${W - PAD.r}" y="${H - 4}" text-anchor="end">${e(clock(span))}</text></svg></figure>`;
+  return `<figure><figcaption>${e(title)}</figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${e(title)}" font-size="11" fill="#555">${grid}${shade}${markLines}${line}${points}<text x="${PAD.l}" y="${H - 4}">0:00</text><text x="${W - PAD.r}" y="${H - 4}" text-anchor="end">${e(clock(span))}</text></svg></figure>`;
 }

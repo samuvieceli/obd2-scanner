@@ -472,3 +472,86 @@ export function logFromFrames(
   for (const r of rows) r[0] = (r[0] ?? 0) - t0;
   return { keys, rows };
 }
+
+// --- Stage 2: cutting parts out, comparing two trips ----------------------
+
+/** A part of a trip left out of the analysis, in seconds since the start. */
+export type Cut = [from: number, to: number];
+
+/** The log without the rows inside any cut (the gap is then skipped like missing data). */
+export function applyCuts(log: JourneyLog, cuts: Cut[] | undefined): JourneyLog {
+  if (!cuts?.length) return log;
+  const inCut = (t: number) => cuts.some(([a, b]) => t >= a && t <= b);
+  return { keys: log.keys, rows: log.rows.filter((r) => !inCut(r[0] ?? 0)) };
+}
+
+/** Cuts that keep only `from`–`to` of a trip lasting `end` seconds. */
+export function keepOnly(from: number, to: number, end: number): Cut[] {
+  const out: Cut[] = [];
+  if (from > 0) out.push([0, from - 0.001]);
+  if (to < end) out.push([to + 0.001, end]);
+  return out;
+}
+
+export type Better = "higher" | "lower" | null;
+
+export interface CompareRow {
+  id: string;
+  a?: number;
+  b?: number;
+  /** Which way is better, to colour the difference (null = neither). */
+  better: Better;
+  /** How the numbers are shown: km/L, km, L, %, s, count, km/h, °C, R$. */
+  kind: "economy" | "km" | "L" | "share" | "time" | "count" | "speed" | "trim" | "money";
+}
+
+const share = (part: number, whole: number | undefined) => (whole ? part / whole : undefined);
+
+/** The numbers worth comparing between two trips, side by side. */
+export function compare(a: JourneyAnalysis, b: JourneyAnalysis, costA?: number, costB?: number): CompareRow[] {
+  const per100 = (x: JourneyAnalysis) => (x.distanceKm >= 5 ? ((x.hardAccels + x.hardBrakes) / x.distanceKm) * 100 : undefined);
+  const rows: CompareRow[] = [
+    { id: "distance", a: a.distanceKm, b: b.distanceKm, better: null, kind: "km" },
+    { id: "running", a: a.runningS, b: b.runningS, better: null, kind: "time" },
+    { id: "fuel", a: a.fuelL, b: b.fuelL, better: null, kind: "L" },
+    { id: "economy", a: a.kmPerL, b: b.kmPerL, better: "higher", kind: "economy" },
+    { id: "cost", a: costA, b: costB, better: null, kind: "money" },
+    { id: "costPerKm", a: costA !== undefined && a.distanceKm >= 1 ? costA / a.distanceKm : undefined, b: costB !== undefined && b.distanceKm >= 1 ? costB / b.distanceKm : undefined, better: "lower", kind: "money" },
+    { id: "avgSpeed", a: a.avgMovingKmh, b: b.avgMovingKmh, better: null, kind: "speed" },
+    { id: "idleTime", a: share(a.idle.timeS, a.runningS), b: share(b.idle.timeS, b.runningS), better: "lower", kind: "share" },
+    { id: "cityEconomy", a: a.city.kmPerL, b: b.city.kmPerL, better: "higher", kind: "economy" },
+    { id: "roadEconomy", a: a.road.kmPerL, b: b.road.kmPerL, better: "higher", kind: "economy" },
+    { id: "hardPer100", a: per100(a), b: per100(b), better: "lower", kind: "count" },
+    { id: "highRpm", a: a.highRpmShare, b: b.highRpmShare, better: "lower", kind: "share" },
+    { id: "coast", a: a.coastShare, b: b.coastShare, better: "higher", kind: "share" },
+    { id: "coldFuel", a: share(a.cold.fuelL, a.fuelL), b: share(b.cold.fuelL, b.fuelL), better: "lower", kind: "share" },
+    { id: "trim", a: a.trimAvg, b: b.trimAvg, better: null, kind: "trim" },
+  ];
+  return rows.filter((r) => r.a !== undefined || r.b !== undefined);
+}
+
+/** Difference of b against a in % (undefined when either is missing or a is 0). */
+export function diffPct(r: CompareRow): number | undefined {
+  return r.a !== undefined && r.b !== undefined && Math.abs(r.a) > 1e-9 ? (r.b / r.a - 1) * 100 : undefined;
+}
+
+/** Which trip did better in a row ("a", "b" or null when about even or not comparable). */
+export function winner(r: CompareRow): "a" | "b" | null {
+  if (!r.better || r.a === undefined || r.b === undefined) return null;
+  // Shares (0–1) must differ by 2 points; other numbers by 3%.
+  const even = r.kind === "share" ? Math.abs(r.b - r.a) < 0.02 : Math.abs(diffPct(r) ?? 0) < 3 || Math.abs(r.a) < 1e-9;
+  if (even) return null;
+  return (r.b > r.a) === (r.better === "higher") ? "b" : "a";
+}
+
+/**
+ * How much better the winner is, in %, for rows where a percentage reads
+ * naturally (economy, cost per km): "20% more km per litre", "30% cheaper".
+ */
+export function advantage(r: CompareRow): number | undefined {
+  if (!winner(r) || (r.kind !== "economy" && r.kind !== "money") || r.a === undefined || r.b === undefined) return undefined;
+  const hi = Math.max(r.a, r.b);
+  const lo = Math.min(r.a, r.b);
+  if (lo <= 0) return undefined;
+  return r.better === "higher" ? (hi / lo - 1) * 100 : (1 - lo / hi) * 100;
+}

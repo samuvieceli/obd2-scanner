@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyze, economySeries, journeyInputs, logFromFrames, seriesOf, type JourneyLog } from "./journey";
+import { analyze, applyCuts, compare, economySeries, journeyInputs, keepOnly, logFromFrames, seriesOf, winner, advantage, type JourneyLog } from "./journey";
 
 const KEYS = ["speed", "rpm", "engine_load", "throttle", "coolant_temp", "stft_b1", "ltft_b1", "closed_loop_b1"];
 
@@ -137,5 +137,34 @@ describe("trip analysis", () => {
     expect(l.rows.length).toBe(20);
     expect(l.rows[0][0]).toBe(0);
     expect(l.rows[5]).toEqual([5, 3, 50, 2000, 10]);
+  });
+
+  it("cuts parts out of a trip: keeping one stretch or taking a stop out", () => {
+    const l = log([...cruise(600, 60, 3), ...idle(300), ...cruise(600, 100, 5)]);
+    // Take the 5-minute stop out.
+    const noStop = analyze(applyCuts(l, [[600, 899]]));
+    expect(noStop.idle.timeS).toBeLessThan(5);
+    expect(noStop.distanceKm).toBeCloseTo(26.7, 0);
+    // Keep only the road part.
+    const road = analyze(applyCuts(l, keepOnly(900, 1499, 1499)));
+    expect(road.distanceKm).toBeCloseTo(16.7, 0);
+    expect(road.city.distanceKm).toBe(0);
+    expect(applyCuts(l, undefined)).toBe(l);
+  });
+
+  it("compares two trips and says which did better", () => {
+    const a = analyze(log(cruise(1800, 80, 5))); // 16 km/L
+    const b = analyze(log(cruise(1800, 80, 4))); // 20 km/L
+    const rows = compare(a, b, 30, 24);
+    const eco = rows.find((r) => r.id === "economy")!;
+    expect(eco.a).toBeCloseTo(16);
+    expect(winner(eco)).toBe("b");
+    expect(advantage(eco)).toBeCloseTo(25);
+    const perKm = rows.find((r) => r.id === "costPerKm")!;
+    expect(winner(perKm)).toBe("b");
+    // R$ 24 against R$ 30 for the same distance: 20% cheaper.
+    expect(advantage(perKm)).toBeCloseTo(20);
+    // Neither is better at distance: no winner.
+    expect(winner(rows.find((r) => r.id === "distance")!)).toBeNull();
   });
 });
