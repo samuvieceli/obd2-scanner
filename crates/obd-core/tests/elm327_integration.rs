@@ -459,3 +459,36 @@ fn manufacturer_request_needs_can_and_a_read_service() {
         Err(ObdError::NegativeResponse(0x31))
     ));
 }
+
+/// The black box's fault watch against the simulator: the codes the car
+/// already had are learned, and a new one (`ATSIMDTC`) is reported once.
+#[test]
+fn black_box_notices_a_new_code() {
+    use obd_core::blackbox::FaultWatch;
+    let codes = |l: Vec<Dtc>| l.into_iter().map(|d| d.0).collect::<Vec<_>>();
+    let mut elm = demo(false);
+    elm.connect_vehicle().expect("vehicle");
+    let mut w = FaultWatch::new();
+    let r = elm.read_readiness().unwrap();
+    assert!(w.status(r.mil_on, r.dtc_count));
+    let (s, p) = (
+        codes(elm.read_stored_dtcs().unwrap()),
+        codes(elm.read_pending_dtcs().unwrap()),
+    );
+    assert!(w.codes(&s, &p).is_empty());
+
+    elm.command("ATSIMDTC").unwrap();
+    let r = elm.read_readiness().unwrap();
+    assert!(w.status(r.mil_on, r.dtc_count), "the code count went up");
+    let (s, p) = (
+        codes(elm.read_stored_dtcs().unwrap()),
+        codes(elm.read_pending_dtcs().unwrap()),
+    );
+    let faults = w.codes(&s, &p);
+    assert_eq!(faults.len(), 1);
+    assert_eq!(
+        (faults[0].kind, faults[0].code.as_str()),
+        ("dtc_stored", "P0302")
+    );
+    assert!(w.codes(&s, &p).is_empty());
+}

@@ -1,13 +1,15 @@
 // Recording, export (CSV/JSON), opening recordings and the diagnostic report.
-import { open, save } from "@tauri-apps/plugin-dialog";
-import { api } from "../api";
-import { fmtNum, t } from "../i18n";
+import { ask, open, save } from "@tauri-apps/plugin-dialog";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import { api, type AutoRecording, type Session } from "../api";
+import { fmtNum, getLang, t } from "../i18n";
 import { emit, on, readKeys, state } from "../store";
 import { busy, button, clear, errorText, h, section, timestampForFile, toast } from "../ui";
 import { startPlayback } from "../playback";
 import { buildReportHtml } from "./report";
 import { diagnosticsSaved, savingDiagnostics } from "../recording-diagnostics";
 import { toggleRecording } from "./dashboard";
+import { eventsText, saveLastMinutes } from "../blackbox";
 
 function duration(s: number): string {
   const m = Math.floor(s / 60);
@@ -88,23 +90,7 @@ export function mount(root: HTMLElement) {
   }, "secondary");
   const replayBtn = button(t("sessions.replay"), async () => {
     const r = await pick();
-    if (!r) return;
-    if (!r.session.frames.length) {
-      toast(t("sessions.replayEmpty"), "info");
-      return;
-    }
-    if (state.polling) {
-      try {
-        await api.setLive(readKeys(), false);
-      } catch {
-        /* the worker may already be gone */
-      }
-      state.polling = false;
-      emit("connection");
-    }
-    state.viewSession = null;
-    startPlayback(r.name, r.session);
-    location.hash = "#/dashboard";
+    if (r) await replay(r.name, r.session);
   }, "primary");
 
   // Report: made only when asked, from the last recording or a saved one.
@@ -120,6 +106,85 @@ export function mount(root: HTMLElement) {
     await busy(fileReportBtn, () => showReport(path, path.split(/[\\/]/).pop()));
   }, "secondary");
 
+  // Black box: recordings saved by themselves around a fault.
+  const autoList = h("div", { class: "auto-list" });
+  const autoState = h("p", { class: "muted small" });
+  const lastBtn = button(t("blackbox.saveLast"), () => busy(lastBtn, saveLastMinutes), "secondary", { title: t("blackbox.saveLastHelp") });
+  const folderBtn = button(t("blackbox.openFolder"), async () => {
+    try {
+      await revealItemInDir(await api.autoRecordingsDir());
+    } catch (e) {
+      toast(errorText(e), "error");
+    }
+  }, "ghost");
+  const autoItem = (r: AutoRecording) => {
+    const when = new Date(r.startedAtUnixMs).toLocaleString(getLang());
+    const load = async () => {
+      try {
+        return await api.loadSession(r.path);
+      } catch (e) {
+        toast(errorText(e), "error");
+        return null;
+      }
+    };
+    const pinBtn = button(t(r.pinned ? "blackbox.unpin" : "blackbox.pin"), async () => {
+      await busy(pinBtn, () => api.pinAutoRecording(r.name, !r.pinned));
+      void renderAuto();
+    }, "ghost", { title: t("blackbox.pinHelp") });
+    return h(
+      "div",
+      { class: "auto-item" },
+      h(
+        "div",
+        null,
+        h("strong", null, when),
+        r.pinned ? h("span", { class: "badge" }, t("blackbox.pinned")) : null,
+        h("div", null, eventsText(r.events)),
+        h("div", { class: "muted small" }, t("blackbox.itemInfo", { duration: duration(r.durationS), size: fmtNum(r.bytes / 1_048_576, 1) })),
+      ),
+      h(
+        "div",
+        { class: "row wrap" },
+        button(t("sessions.replay"), async () => {
+          const s = await load();
+          if (s) await replay(r.name, s);
+        }, "primary"),
+        button(t("sessions.openCharts"), async () => {
+          const s = await load();
+          if (!s) return;
+          state.viewSession = { name: r.name, session: s };
+          location.hash = "#/charts";
+        }, "secondary"),
+        button(t("blackbox.report"), () => showReport(r.path, r.name).catch((e) => toast(errorText(e), "error")), "secondary"),
+        pinBtn,
+        button(t("blackbox.delete"), async () => {
+          if (!(await ask(t("blackbox.deleteConfirm", { when }), { kind: "warning" }))) return;
+          try {
+            await api.deleteAutoRecording(r.name);
+          } catch (e) {
+            toast(errorText(e), "error");
+          }
+          void renderAuto();
+        }, "ghost"),
+      ),
+    );
+  };
+  let autoSeq = 0;
+  const renderAuto = async () => {
+    autoState.textContent = state.blackbox ? t("blackbox.on") : t("blackbox.off");
+    lastBtn.disabled = !state.blackbox || !state.polling;
+    const seq = ++autoSeq;
+    let list: AutoRecording[] = [];
+    try {
+      list = await api.listAutoRecordings();
+    } catch {
+      /* no data folder: the list stays empty */
+    }
+    if (seq !== autoSeq) return;
+    clear(autoList);
+    autoList.append(...(list.length ? list.map(autoItem) : [h("p", { class: "muted" }, t("blackbox.none"))]));
+  };
+
   page.append(
     section(t("sessions.recordingTitle"), h("p", { class: "muted" }, t("sessions.recordingIntro")), recBtn, statusBox),
     section(
@@ -131,6 +196,13 @@ export function mount(root: HTMLElement) {
         h("div", { class: "option" }, lastReportBtn, h("p", { class: "muted small" }, t("sessions.reportLastDesc"))),
         h("div", { class: "option" }, fileReportBtn, h("p", { class: "muted small" }, t("sessions.reportFileDesc"))),
       ),
+    ),
+    section(
+      t("blackbox.title"),
+      h("p", { class: "muted" }, t("blackbox.intro")),
+      autoState,
+      h("div", { class: "row wrap" }, lastBtn, folderBtn, h("a", { class: "btn btn-ghost", href: "#/settings" }, t("blackbox.settingsLink"))),
+      autoList,
     ),
     section(t("sessions.export"), h("div", { class: "options" }, opts.map((o) => o.el))),
     section(
@@ -146,6 +218,7 @@ export function mount(root: HTMLElement) {
   );
 
   renderStatus();
+  void renderAuto();
   const tick = setInterval(async () => {
     if (state.connection !== "connected") return;
     try {
@@ -155,11 +228,38 @@ export function mount(root: HTMLElement) {
       /* ignore */
     }
   }, 1000);
-  const offs = [on("recording", renderStatus), on("connection", renderStatus)];
+  const offs = [
+    on("recording", renderStatus),
+    on("connection", () => {
+      renderStatus();
+      lastBtn.disabled = !state.blackbox || !state.polling;
+    }),
+    on("blackbox", () => void renderAuto()),
+  ];
   return () => {
     clearInterval(tick);
     offs.forEach((f) => f());
   };
+}
+
+/** Replays a recording on the dashboard as if it were live (reading stops). */
+async function replay(name: string, session: Session) {
+  if (!session.frames.length) {
+    toast(t("sessions.replayEmpty"), "info");
+    return;
+  }
+  if (state.polling) {
+    try {
+      await api.setLive(readKeys(), false);
+    } catch {
+      /* the worker may already be gone */
+    }
+    state.polling = false;
+    emit("connection");
+  }
+  state.viewSession = null;
+  startPlayback(name, session);
+  location.hash = "#/dashboard";
 }
 
 /** Shows a report over the screen, with print (PDF) and save (HTML). */

@@ -25,6 +25,7 @@ import { flexPair, type FuelId } from "../fuels";
 import { normalize } from "../search";
 import { prefs, profile, saveProfile } from "../prefs";
 import { saveDiagnostics } from "../recording-diagnostics";
+import { recordingStoppedNotice, saveLastMinutes } from "../blackbox";
 import { PRESETS, matchPreset, presetAfterClick, presetKeys, type PresetId } from "../presets";
 
 const CATEGORY_ORDER: Category[] = ["engine", "fuel", "air", "temperature", "emissions", "electrical", "vehicle"];
@@ -59,6 +60,7 @@ export async function toggleRecording() {
   emit("recording");
   // Codes, readiness and Mode 06 are saved with the recording.
   saveDiagnostics(starting ? "start" : "end");
+  if (!starting) recordingStoppedNotice(state.recording.events ?? []);
   if (!starting && state.recording.lastFrames && !location.hash.startsWith("#/sessions") && !location.hash.startsWith("#/prepurchase")) toast(t("sessions.stoppedHint"), "ok");
   // A recording only gets frames while reading: start reading with it.
   if (starting && !state.polling && !state.playback) await startPolling(true);
@@ -145,6 +147,8 @@ export function mount(root: HTMLElement) {
     await busy(recBtn, toggleRecording);
     renderToolbar();
   }, "secondary");
+  // Black box: keep the last minutes now (the driver felt something odd).
+  const lastBtn = button(t("blackbox.saveLast"), () => void saveLastMinutes(), "ghost", { title: t("blackbox.saveLastHelp") });
   const chooseBtn = button(t("dashboard.choose"), () => {
     picker.hidden = !picker.hidden;
     if (!picker.hidden) renderPicker();
@@ -155,6 +159,7 @@ export function mount(root: HTMLElement) {
     pollBtn.className = `btn ${state.polling ? "btn-secondary" : "btn-primary"}`;
     recBtn.textContent = state.recording.recording ? t("dashboard.stopRecord") : t("dashboard.record");
     recBtn.className = `btn ${state.recording.recording ? "btn-danger" : "btn-secondary"}`;
+    lastBtn.hidden = !state.blackbox || !state.polling;
   };
 
   // Picker filter: kept while the picker is open and re-rendered.
@@ -575,7 +580,7 @@ export function mount(root: HTMLElement) {
 
   renderToolbar();
   page.append(
-    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title"), " ", warmEl), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [markButton(), chooseBtn, recBtn, pollBtn])),
+    h("div", { class: "page-head" }, h("h1", null, t("dashboard.title"), " ", warmEl), h("div", { class: "toolbar" }, styleSeg, state.playback ? [] : [markButton(), lastBtn, chooseBtn, recBtn, pollBtn])),
     state.playback ? "" : presetRow,
     picker,
     h(
@@ -618,6 +623,7 @@ export function mount(root: HTMLElement) {
     }),
     on("recording", renderToolbar),
     on("connection", renderToolbar),
+    on("blackbox", renderToolbar),
   ];
   void autoStartReading();
   return () => {

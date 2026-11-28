@@ -8,6 +8,7 @@ import { findingText } from "./findings";
 import { fmtTest, monitorName, testName } from "./diagnostics";
 import type { DiagnosticSnapshot, DtcInfo, RecordingReport } from "../api";
 import { makerInfoAdvice, needsMakerInfo } from "../dtcadvice";
+import { eventLabel } from "../blackbox";
 
 /** "m:ss" (or "h:mm:ss") since the start of the recording. */
 export function clock(s: number): string {
@@ -41,6 +42,8 @@ export function buildReportHtml(r: RecordingReport, name?: string): string {
     [t("report.duration"), clock(r.duration_s)],
     [t("report.readings"), fmtNum(r.frames, 0)],
   );
+  if (r.automatic) recRows.push([t("report.kind"), t("blackbox.automatic")]);
+  if (r.events?.length) recRows.push([t("report.faultsNoticed"), r.events.map((ev) => `${clock(ev.t_ms / 1000)} ${eventLabel(ev)}`).join(" · ")]);
   if (r.marks.length) recRows.push([t("report.marks"), r.marks.map((m) => clock(m / 1000)).join(", ")]);
   parts.push(`<h2>${e(t("report.recording"))}</h2>`, table(recRows));
 
@@ -91,9 +94,13 @@ export function buildReportHtml(r: RecordingReport, name?: string): string {
     );
   }
 
-  // Freeze frame
-  const freeze = first.freeze;
-  if (freeze?.dtc) {
+  // Freeze frames: the one read at the start and any the car took during
+  // the recording (read by the black box when a fault showed up).
+  const shownFreeze = new Set<string>();
+  for (const snap of diag) {
+    const freeze = snap.freeze;
+    if (!freeze?.dtc || shownFreeze.has(freeze.dtc.code)) continue;
+    shownFreeze.add(freeze.dtc.code);
     parts.push(`<h3>${e(t("dtc.freezeFrame"))} — ${e(freeze.dtc.code)}</h3>`);
     parts.push(table(freeze.values.map((x) => [pidText(x.key).name, `${fmtValue(x.key, x.value)} ${unitOf(x.key)}`])));
   }

@@ -3,7 +3,8 @@
 //! The recording lives in memory (fast to export and replay) and, as a safety
 //! copy, is also written as it goes to [`BACKUP_FILE`] in the program's data
 //! folder: one JSON line with the session details, then one line per frame
-//! (a `{"mark":t_ms}` line per event the driver marks and a
+//! (a `{"mark":t_ms}` line per event the driver marks, an `{"event":{...}}`
+//! line per fault the black box noticed, and a
 //! `{"diagnostics":{...}}` line per diagnostic read saved with it), and an
 //! `{"end":true}` line when it stops. Lines are buffered and written to
 //! disk at least every [`FLUSH_EVERY`]. If the program or the computer stops
@@ -15,7 +16,7 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use obd_core::session::{Frame, Session, Snapshot};
+use obd_core::session::{Event, Frame, Session, Snapshot};
 
 /// Adds the unit and range of the manufacturer parameters the recording
 /// holds: they are not in the standard catalog copied at the start.
@@ -116,6 +117,39 @@ impl Recorder {
             }
         }
         Some(s.marks.len())
+    }
+
+    /// Marks a fault the program noticed by itself (a new trouble code, the
+    /// check-engine light...) in the recording in progress. False when there
+    /// is none.
+    pub fn event(&mut self, kind: &str, code: &str) -> bool {
+        let Some((start, s)) = self.active.as_mut() else {
+            return false;
+        };
+        let event = Event {
+            t_ms: start.elapsed().as_millis() as u64,
+            kind: kind.to_string(),
+            code: code.to_string(),
+        };
+        if let Some(b) = self.backup.as_mut()
+            && (serde_json::to_writer(&mut b.file, &EventLine { event: &event }).is_err()
+                || b.file.write_all(b"\n").and_then(|_| flush(b)).is_err())
+        {
+            self.backup = None;
+        }
+        s.marks.push(event.t_ms);
+        s.events.push(event);
+        true
+    }
+
+    /// Faults noticed in the recording in progress, or else in the last one.
+    pub fn events(&self) -> &[Event] {
+        self.active
+            .as_ref()
+            .map(|(_, s)| s)
+            .or(self.last.as_ref())
+            .map(|s| s.events.as_slice())
+            .unwrap_or_default()
     }
 
     /// Saves diagnostic reads with the recording that started at
@@ -225,6 +259,16 @@ struct DiagnosticsLine<'a> {
     diagnostics: &'a Snapshot,
 }
 
+#[derive(serde::Serialize)]
+struct EventLine<'a> {
+    event: &'a Event,
+}
+
+#[derive(serde::Deserialize)]
+struct EventLineIn {
+    event: Event,
+}
+
 #[derive(serde::Deserialize)]
 struct DiagnosticsLineIn {
     diagnostics: Snapshot,
@@ -247,6 +291,9 @@ fn read_interrupted(path: &Path) -> Option<Session> {
             session.marks.push(m.mark);
         } else if let Ok(d) = serde_json::from_str::<DiagnosticsLineIn>(&line) {
             session.diagnostics.push(d.diagnostics);
+        } else if let Ok(e) = serde_json::from_str::<EventLineIn>(&line) {
+            session.marks.push(e.event.t_ms);
+            session.events.push(e.event);
         }
     }
     (!session.frames.is_empty()).then_some(session)
@@ -279,6 +326,7 @@ mod tests {
         });
         r.push(frame(800.0));
         assert_eq!(r.mark(), Some(1));
+        assert!(r.event("dtc_stored", "P0301"));
         let started = r.started_at().unwrap();
         assert!(r.attach(
             started,
@@ -303,7 +351,8 @@ mod tests {
         let s = next.last.as_ref().unwrap();
         assert_eq!(s.adapter, "Demo");
         assert_eq!(s.frames[1].values["rpm"], 900.0);
-        assert_eq!(s.marks.len(), 1);
+        assert_eq!(s.marks.len(), 2);
+        assert_eq!(s.events[0].code, "P0301");
         assert_eq!(s.diagnostics.len(), 1);
         assert!(s.diagnostics[0].dtcs.is_some());
         // Offered only once.
@@ -317,7 +366,10 @@ mod tests {
         let mut r = Recorder::with_backup(dir.clone());
         r.start(Session::default());
         r.push(frame(800.0));
+        assert!(r.event("mil", ""));
         r.stop();
+        assert_eq!(r.events().len(), 1);
+        assert!(!r.event("mil", ""));
         assert_eq!(Recorder::with_backup(dir.clone()).recover(), None);
         // Reads that finish after the stop still join that recording...
         let started = r.started_at().unwrap();

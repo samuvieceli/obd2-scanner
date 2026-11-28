@@ -162,6 +162,29 @@ pub struct Session {
     /// (codes and readiness again). Missing in older files.
     #[serde(default)]
     pub diagnostics: Vec<Snapshot>,
+    /// What happened at some marks, found by the program itself (a new
+    /// trouble code, the check-engine light...). Missing in older files.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events: Vec<Event>,
+    /// True for a recording the black box saved by itself around a fault
+    /// (see [`crate::blackbox`]), false for one the user started.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub automatic: bool,
+}
+
+/// Something the program noticed during a recording.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Event {
+    /// Milliseconds since the start of the recording.
+    pub t_ms: u64,
+    /// `dtc_stored`, `dtc_pending`, `mil` (check-engine light turned on),
+    /// `alert` (a value left the limits set by the user) or `manual` (the
+    /// user asked to keep the last minutes).
+    pub kind: String,
+    /// The trouble code (`P0301`) or the parameter (`coolant_temp`); empty
+    /// when there is none.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub code: String,
 }
 
 /// Diagnostic reads taken at one moment of a recording. Each part is kept

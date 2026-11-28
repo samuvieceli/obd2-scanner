@@ -11,6 +11,7 @@ import { pidText } from "../i18n";
 import { CURRENCY } from "../cost";
 import { FUEL_REGIONS, FUELS, isFuelRegion, regionFuels } from "../fuels";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { setBlackboxEnabled } from "../blackbox";
 
 const REPO_URL = "https://github.com/samuvieceli/obd2-scanner";
 
@@ -244,6 +245,26 @@ function unitsSection(): HTMLElement {
   return section(t("units.title"), box);
 }
 
+/** Black box: automatic recordings around a fault (blackbox.ts). */
+function blackboxSection(): HTMLElement {
+  const p = prefs();
+  const check = (label: string, help: string, value: boolean, set: (v: boolean) => void) =>
+    h(
+      "label",
+      { class: "check" },
+      h("input", { type: "checkbox", checked: value, onchange: (e: Event) => set((e.target as HTMLInputElement).checked) }),
+      h("span", null, label),
+      infoTip(help),
+    );
+  return section(
+    t("blackbox.title"),
+    h("p", { class: "muted small" }, t("blackbox.settingsIntro")),
+    check(t("blackbox.enable"), t("blackbox.enableHelp"), p.blackbox, (v) => void setBlackboxEnabled(v)),
+    check(t("blackbox.alerts"), t("blackbox.alertsHelp"), p.blackboxAlerts, (v) => savePrefs({ blackboxAlerts: v })),
+    h("p", { class: "muted small" }, t("blackbox.limits")),
+  );
+}
+
 function connectionSection(): HTMLElement {
   const p = prefs();
   return section(
@@ -475,6 +496,7 @@ export function mount(root: HTMLElement) {
     connectionSection(),
     pricesSection(offs),
     alertsSection(offs),
+    blackboxSection(),
     section(
       t("settings.about"),
       h("p", null, h("strong", null, t("app.name")), " — ", t("settings.version", { version: state.appVersion })),

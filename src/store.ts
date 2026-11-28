@@ -20,7 +20,7 @@ import type {
   VehicleInfo,
 } from "./api";
 
-export type Topic = "maker" | "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units" | "dtcs" | "journey";
+export type Topic = "maker" | "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units" | "dtcs" | "journey" | "blackbox";
 
 export interface Series {
   t: number[];
@@ -42,6 +42,26 @@ export const DEFAULT_KEYS = [
   "intake_temp",
   "o2_b1s1",
   "o2_b1s2",
+  "battery_voltage",
+];
+
+/**
+ * Parameters the black box always reads besides the ones on the screen
+ * (see blackbox.ts): together they explain most faults. Those the car lacks
+ * are skipped.
+ */
+export const ESSENTIAL_KEYS = [
+  "rpm",
+  "speed",
+  "coolant_temp",
+  "engine_load",
+  "throttle",
+  "stft_b1",
+  "ltft_b1",
+  "intake_map",
+  "maf",
+  "intake_temp",
+  "timing_advance",
   "battery_voltage",
 ];
 
@@ -101,6 +121,8 @@ export const state = {
   journeyActive: false,
   /** Parameters read only for a moment (the pre-trip check). */
   extraKeys: [] as string[],
+  /** The black box is on (Settings): it adds ESSENTIAL_KEYS to the reading. */
+  blackbox: true,
   /** Demo only: the virtual engine is stopped (ATSIMOFF). */
   demoEngineOff: false,
 };
@@ -181,7 +203,8 @@ export function setChartKeys(keys: string[] | null) {
 /**
  * Everything the adapter must read: the dashboard parameters plus those
  * chosen only for the charts (for a calculated value, the ones it needs)
- * and, during a trip of the "Viagem" screen, what its analysis needs.
+ * during a trip of the "Viagem" screen, what its analysis needs and, with
+ * the black box on, the essential parameters.
  */
 export function readKeys(): string[] {
   const out = [...state.liveKeys];
@@ -191,6 +214,7 @@ export function readKeys(): string[] {
   }
   if (state.journeyActive) for (const a of journeyInputs(isSupported)) if (!out.includes(a)) out.push(a);
   for (const a of state.extraKeys) if (isSupported(a) && !out.includes(a)) out.push(a);
+  if (state.blackbox && !state.playback) for (const a of ESSENTIAL_KEYS) if (isSupported(a) && !out.includes(a)) out.push(a);
   return out;
 }
 

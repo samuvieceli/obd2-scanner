@@ -4,6 +4,7 @@
 //! `invoke("name", {...})` (see `src/api.ts`). Long operations run on a
 //! blocking thread so the window never freezes.
 
+mod blackbox;
 mod portable;
 mod recorder;
 mod worker;
@@ -59,6 +60,8 @@ type CmdResult<T> = Result<T, CmdError>;
 struct AppState {
     worker: Mutex<Option<Worker>>,
     recorder: Arc<Mutex<Recorder>>,
+    /// Last minutes of live data, saved around a fault (see blackbox.rs).
+    blackbox: Mutex<blackbox::BlackBoxState>,
     adapter: Mutex<Option<AdapterInfo>>,
     identity: Mutex<VehicleIdentity>,
     /// Frames of a recording recovered at start-up, shown once to the user.
@@ -192,7 +195,7 @@ fn describe_dtc(state: State<'_, AppState>, code: String, lang: String) -> DtcIn
 }
 
 /// Brand table for manufacturer-specific codes, found through the VIN.
-fn brand_of(vin: Option<&str>) -> Option<&'static str> {
+pub(crate) fn brand_of(vin: Option<&str>) -> Option<&'static str> {
     let info = decode_vin(vin?, current_year());
     brand_from_manufacturer(info.manufacturer.as_deref()?)
 }
@@ -425,10 +428,30 @@ fn set_live(state: State<'_, AppState>, keys: Vec<String>, polling: bool) -> Cmd
 }
 
 #[derive(Serialize)]
-struct DtcReport {
+pub(crate) struct DtcReport {
     stored: Vec<DtcInfo>,
     pending: Vec<DtcInfo>,
     permanent: Vec<DtcInfo>,
+}
+
+/// The code lists described in the user's language.
+pub(crate) fn describe_codes(
+    stored: &[obd_core::dtc::Dtc],
+    pending: &[obd_core::dtc::Dtc],
+    permanent: &[obd_core::dtc::Dtc],
+    lang: &str,
+    brand: Option<&'static str>,
+) -> DtcReport {
+    let d = |list: &[obd_core::dtc::Dtc]| {
+        list.iter()
+            .map(|c| describe_for(&c.0, lang, brand))
+            .collect::<Vec<_>>()
+    };
+    DtcReport {
+        stored: d(stored),
+        pending: d(pending),
+        permanent: d(permanent),
+    }
 }
 
 #[tauri::command]
@@ -437,16 +460,13 @@ async fn read_dtcs(state: State<'_, AppState>, lang: String) -> CmdResult<DtcRep
     on_worker(&state, move |elm| {
         let vin = ensure_vin(elm, known_vin);
         let brand = brand_of(vin.as_deref());
-        let d = |list: Vec<obd_core::dtc::Dtc>| {
-            list.iter()
-                .map(|c| describe_for(&c.0, &lang, brand))
-                .collect::<Vec<_>>()
-        };
-        Ok(DtcReport {
-            stored: d(elm.read_stored_dtcs()?),
-            pending: d(elm.read_pending_dtcs()?),
-            permanent: d(elm.read_permanent_dtcs()?),
-        })
+        Ok(describe_codes(
+            &elm.read_stored_dtcs()?,
+            &elm.read_pending_dtcs()?,
+            &elm.read_permanent_dtcs()?,
+            &lang,
+            brand,
+        ))
     })
     .await
 }
@@ -463,7 +483,7 @@ struct FreezeValue {
 }
 
 #[derive(Serialize)]
-struct FreezeFrame {
+pub(crate) struct FreezeFrame {
     dtc: Option<DtcInfo>,
     values: Vec<FreezeValue>,
 }
@@ -472,28 +492,37 @@ const FREEZE_PIDS: [u8; 12] = [
     0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11,
 ];
 
+/// The "photo" of the sensors the car took when it confirmed a code (mode 02).
+pub(crate) fn freeze_frame(
+    elm: &mut Elm327,
+    lang: &str,
+    brand: Option<&'static str>,
+) -> Result<FreezeFrame, ObdError> {
+    let dtc = match elm.read_freeze_frame_dtc() {
+        Ok(d) => d.map(|d| describe_for(&d.0, lang, brand)),
+        Err(ObdError::NoData) => None,
+        Err(e) => return Err(e),
+    };
+    let mut values = Vec::new();
+    if dtc.is_some() {
+        for p in FREEZE_PIDS {
+            if let (Ok(v), Some(def)) = (elm.read_freeze_frame_pid(p), pid::find(p)) {
+                values.push(FreezeValue {
+                    key: def.key.into(),
+                    value: v.value,
+                });
+            }
+        }
+    }
+    Ok(FreezeFrame { dtc, values })
+}
+
 #[tauri::command]
 async fn read_freeze_frame(state: State<'_, AppState>, lang: String) -> CmdResult<FreezeFrame> {
     let known_vin = state.identity.lock().unwrap().vin.clone();
     on_worker(&state, move |elm| {
         let brand = brand_of(ensure_vin(elm, known_vin).as_deref());
-        let dtc = match elm.read_freeze_frame_dtc() {
-            Ok(d) => d.map(|d| describe_for(&d.0, &lang, brand)),
-            Err(ObdError::NoData) => None,
-            Err(e) => return Err(e),
-        };
-        let mut values = Vec::new();
-        if dtc.is_some() {
-            for p in FREEZE_PIDS {
-                if let (Ok(v), Some(def)) = (elm.read_freeze_frame_pid(p), pid::find(p)) {
-                    values.push(FreezeValue {
-                        key: def.key.into(),
-                        value: v.value,
-                    });
-                }
-            }
-        }
-        Ok(FreezeFrame { dtc, values })
+        freeze_frame(elm, &lang, brand)
     })
     .await
 }
@@ -644,6 +673,9 @@ struct RecordingStatus {
     /// Identifies the recording in progress (or the last one) when saving
     /// diagnostic reads with it.
     started_at_unix_ms: Option<u64>,
+    /// Faults the program noticed during the recording in progress (or the
+    /// last one): shown when it stops.
+    events: Vec<obd_core::session::Event>,
 }
 
 fn recording_status(r: &Recorder) -> RecordingStatus {
@@ -654,13 +686,14 @@ fn recording_status(r: &Recorder) -> RecordingStatus {
         last_frames: r.last.as_ref().map(|s| s.frames.len()).unwrap_or(0),
         last_duration_s: r.last.as_ref().map(|s| s.duration_s()).unwrap_or(0.0),
         started_at_unix_ms: r.started_at(),
+        events: r.events().to_vec(),
     }
 }
 
-#[tauri::command]
-fn start_recording(state: State<'_, AppState>) -> RecordingStatus {
+/// A new recording of the connected adapter and car (no frames yet).
+fn session_template(state: &AppState) -> Session {
     let adapter = state.adapter.lock().unwrap().clone().unwrap_or_default();
-    let template = Session {
+    Session {
         format_version: 1,
         app_version: env!("CARGO_PKG_VERSION").into(),
         adapter: format!("{} ({})", adapter.version, adapter.transport),
@@ -668,7 +701,12 @@ fn start_recording(state: State<'_, AppState>) -> RecordingStatus {
         vehicle: state.identity.lock().unwrap().clone(),
         pids: pid::catalog(),
         ..Default::default()
-    };
+    }
+}
+
+#[tauri::command]
+fn start_recording(state: State<'_, AppState>) -> RecordingStatus {
+    let template = session_template(&state);
     let mut r = state.recorder.lock().unwrap();
     r.start(template);
     recording_status(&r)
@@ -833,6 +871,7 @@ pub fn run() {
             };
             if let Some(dir) = data_dir {
                 let state = app.state::<AppState>();
+                state.blackbox.lock().unwrap().dir = Some(dir.join(blackbox::DIR));
                 let mut recorder = Recorder::with_backup(dir);
                 *state.recovered.lock().unwrap() = recorder.recover();
                 *state.recorder.lock().unwrap() = recorder;
@@ -881,6 +920,13 @@ pub fn run() {
             interpret_frames,
             save_file,
             save_text,
+            blackbox::set_blackbox,
+            blackbox::blackbox_save_now,
+            blackbox::blackbox_alert,
+            blackbox::list_auto_recordings,
+            blackbox::pin_auto_recording,
+            blackbox::delete_auto_recording,
+            blackbox::auto_recordings_dir,
         ])
         .run(tauri::generate_context!())
         .expect("error while running the application");

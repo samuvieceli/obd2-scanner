@@ -177,6 +177,39 @@ export interface RecordingStatus {
   lastDurationS: number;
   /** Identifies the recording in progress (or the last one). */
   startedAtUnixMs: number | null;
+  /** Faults the program noticed during it (shown when it stops). */
+  events: AutoEvent[];
+}
+
+/** Something the program noticed by itself during a recording (see blackbox.ts). */
+export interface AutoEvent {
+  /** Milliseconds since the start of the recording. */
+  t_ms: number;
+  kind: "dtc_stored" | "dtc_pending" | "mil" | "alert" | "manual";
+  /** Trouble code or parameter key; missing when there is none. */
+  code?: string;
+}
+
+/** News of the black box (`blackbox` event). */
+export interface BlackBoxNews {
+  /** fault: collecting the minutes after it; saved / save_failed: the file. */
+  state: "fault" | "saved" | "save_failed";
+  events: AutoEvent[];
+  /** The faults were also marked in the user's own recording. */
+  inRecording: boolean;
+  name: string | null;
+}
+
+/** A recording the black box saved by itself. */
+export interface AutoRecording {
+  name: string;
+  path: string;
+  startedAtUnixMs: number;
+  durationS: number;
+  events: AutoEvent[];
+  vin: string | null;
+  pinned: boolean;
+  bytes: number;
 }
 
 export interface LiveFrame {
@@ -238,6 +271,10 @@ export interface Session {
   marks?: number[];
   /** Diagnostic reads saved with the recording (missing in old files). */
   diagnostics?: DiagnosticSnapshot[];
+  /** Faults the program noticed (missing when none). */
+  events?: AutoEvent[];
+  /** Saved by the black box around a fault. */
+  automatic?: boolean;
 }
 
 /** Diagnostic reads taken at one moment of a recording; a part that could
@@ -262,6 +299,8 @@ export interface RecordingReport {
   duration_s: number;
   frames: number;
   marks: number[];
+  events: AutoEvent[];
+  automatic: boolean;
   diagnostics: DiagnosticSnapshot[];
   stats: { key: string; unit: string; min: number; avg: number; max: number; count: number }[];
   findings: { id: string; severity: Severity; values: Record<string, number>; first_s: number; last_s: number; seconds: number }[];
@@ -319,6 +358,16 @@ export const api = {
   interpretFrames: (frames: Session["frames"]) => invoke<Finding[]>("interpret_frames", { frames }),
   saveFile: (path: string, data: number[]) => invoke<void>("save_file", { path, data }),
   saveText: (path: string, text: string) => invoke<void>("save_text", { path, text }),
+  /** Black box on or off, and the language of the codes it saves. */
+  setBlackbox: (enabled: boolean, lang: string) => invoke<void>("set_blackbox", { enabled, lang }),
+  /** Keeps the last 2 minutes now: "saved", or "added" to a fault being recorded. */
+  blackboxSaveNow: () => invoke<"saved" | "added">("blackbox_save_now"),
+  /** A value left its alert limits (alerts used as a black box trigger). */
+  blackboxAlert: (key: string) => invoke<boolean>("blackbox_alert", { key }),
+  listAutoRecordings: () => invoke<AutoRecording[]>("list_auto_recordings"),
+  pinAutoRecording: (name: string, pinned: boolean) => invoke<void>("pin_auto_recording", { name, pinned }),
+  deleteAutoRecording: (name: string) => invoke<void>("delete_auto_recording", { name }),
+  autoRecordingsDir: () => invoke<string>("auto_recordings_dir"),
 };
 
 export const events = {
@@ -328,4 +377,5 @@ export const events = {
   linkStatus: (f: (e: LinkStatus) => void): Promise<UnlistenFn> => listen<LinkStatus>("link-status", (e) => f(e.payload)),
   connectionLost: (f: (e: CmdError) => void): Promise<UnlistenFn> =>
     listen<CmdError>("connection-lost", (e) => f(e.payload)),
+  blackbox: (f: (e: BlackBoxNews) => void): Promise<UnlistenFn> => listen<BlackBoxNews>("blackbox", (e) => f(e.payload)),
 };

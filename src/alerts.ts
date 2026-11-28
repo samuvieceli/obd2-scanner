@@ -5,6 +5,7 @@ import { emit, on, recentValues, state } from "./store";
 import { prefs, profile } from "./prefs";
 import { fmtValue, toast, unitOf } from "./ui";
 import { isSeeking } from "./playback";
+import { alertTriggered } from "./blackbox";
 
 /** Keys currently outside their limits. */
 export const activeAlerts = new Set<string>();
@@ -65,6 +66,7 @@ function check() {
         "error",
       );
       if (p.alertSound) beep();
+      alertTriggered(rule.key);
     } else if (back && activeAlerts.has(rule.key)) {
       activeAlerts.delete(rule.key);
       changed = true;
