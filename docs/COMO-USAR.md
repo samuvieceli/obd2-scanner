@@ -13,7 +13,7 @@ Na primeira vez que o programa abre, aparece a janela **Antes de usar: seguranç
 
 O quadro **Primeiros passos**, no alto da tela Conexão, resume esse caminho com botões que levam a cada tela. Clique em **Entendi, esconder** quando não precisar mais; o link **Mostrar os primeiros passos** traz o quadro de volta.
 
-**Busca:** aperte **Ctrl+F** (ou **Ctrl+K**, ou o botão **Buscar** no alto) em qualquer tela e digite parte de um nome: uma tela ("gráficos"), um parâmetro ("temperatura", "sonda"), um termo do glossário ("malha fechada") ou um código de falha ("P0301"). Acentos não importam. Use ↑ ↓ e **Enter** para abrir; **Esc** fecha. Parâmetros e termos abrem no Glossário; códigos abrem a consulta na tela Códigos de falha, mesmo sem carro conectado.
+**Busca:** aperte **Ctrl+F** (ou **Ctrl+K**, ou o botão **Buscar** no alto) em qualquer tela e digite parte de um nome: uma tela ("gráficos"), um parâmetro ("temperatura", "sonda"), um termo do glossário ("malha fechada") ou um código de falha ("P0301"). Acentos não importam. Use ↑ ↓ e **Enter** para abrir; **Esc** fecha. Parâmetros e termos abrem no Glossário; códigos abrem a consulta na tela Códigos de falha, mesmo sem carro conectado; seções dos manuais abrem na tela Documentação.
 
 A opção *Simular adaptador clone com defeitos* imita um adaptador barato que responde de forma bagunçada. Serve para testar.
 
@@ -246,6 +246,16 @@ Detalhes sobre a base de códigos e as particularidades brasileiras: [CARROS-BRA
 ## 13b. Tela acesa durante a leitura
 
 Enquanto a leitura ao vivo estiver ligada, uma gravação estiver em andamento ou a tela **HUD** estiver aberta, o programa pede ao Windows para não apagar a tela nem suspender o computador. Ao parar, o Windows volta ao normal. Assim a conexão não cai no meio de uma viagem.
+
+## 13c. Documentação
+
+A tela **Documentação** (no menu, logo abaixo do Glossário) reúne, sem precisar de internet:
+
+- **Início:** atalhos e os **dados do programa** (quantos parâmetros, códigos de falha, tabelas de marcas e fabricantes ele conhece).
+- **Como usar** (este manual), **Sobre o projeto**, **Novidades da versão** e as **Regras do projeto** (o que o programa sempre faz e nunca faz).
+- **Carros brasileiros**, **Mapa visual** (os diagramas de todas as partes do programa, nas cores do tema), **Fontes e licenças**, **Arquitetura** e o **Guia do código para iniciantes**.
+
+Use **Ir para a seção…** para pular dentro de um documento. Diagramas largos aparecem encolhidos: clique para ver no tamanho real e de novo para encolher. Os documentos estão em português; em inglês, a página Sobre o projeto tem um resumo no final. Também dá para chegar aqui por **Configurações → Sobre → Documentação, fontes e licenças**.
 
 ## 14. Só leitura (segurança)
 

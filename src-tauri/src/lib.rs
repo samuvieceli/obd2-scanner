@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use obd_core::ObdError;
-use obd_core::dtc::{DtcInfo, brand_from_manufacturer, describe_for};
+use obd_core::dtc::{self, DtcInfo, DtcStats, brand_from_manufacturer, describe_for};
 use obd_core::elm327::{AdapterInfo, Elm327, ElmConfig, LogDirection, VehicleIdentity};
 use obd_core::pid::{self, PidMeta};
 use obd_core::readiness::Readiness;
@@ -21,7 +21,7 @@ use obd_core::session::{CsvStyle, Session};
 use obd_core::simulator::{Simulator, SimulatorOptions};
 use obd_core::transport::tcp::TcpTransport;
 use obd_core::transport::{COMMON_BAUD_RATES, ConnectionTarget, PortInfo, Transport};
-use obd_core::vin::{VinInfo, decode_vin};
+use obd_core::vin::{self, VinInfo, decode_vin};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -151,6 +151,22 @@ async fn scan_ble(seconds: Option<u64>) -> CmdResult<Vec<obd_core::transport::bl
 #[tauri::command]
 fn pid_catalog() -> Vec<PidMeta> {
     pid::catalog()
+}
+
+/// Size of the bundled databases, for the Documentation screen.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DataInfo {
+    dtc: DtcStats,
+    wmis: usize,
+}
+
+#[tauri::command]
+fn data_info() -> DataInfo {
+    DataInfo {
+        dtc: dtc::stats(),
+        wmis: vin::wmi_count(),
+    }
 }
 
 #[tauri::command]
@@ -786,6 +802,7 @@ pub fn run() {
             list_ports,
             scan_ble,
             pid_catalog,
+            data_info,
             describe_dtc,
             connect,
             retry_vehicle,

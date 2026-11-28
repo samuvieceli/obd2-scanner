@@ -8,6 +8,8 @@ import { state } from "../store";
 import { clear, h } from "../ui";
 import { openDtcLookup } from "./diagnostics";
 import { openGlossary } from "./glossary";
+import { openDocs } from "./docs";
+import { docSections } from "../docs";
 
 let open: HTMLElement | null = null;
 let screens: string[] = [];
@@ -20,6 +22,10 @@ function entries(): Entry[] {
   }
   for (const x of msgs().terms) out.push({ kind: "term", id: x.term, title: x.term, detail: x.desc });
   for (const [id, m] of Object.entries(msgs().monitors)) out.push({ kind: "monitor", id, title: m.name, detail: m.desc });
+  // Sections of the documents (Documentation screen).
+  for (const { doc, heading } of docSections()) {
+    out.push({ kind: "doc", id: `${doc.id}#${heading.id}`, title: heading.text, detail: t(`docs.list.${doc.id}.title`) });
+  }
   // Codes already read from the car.
   const d = state.dtcs;
   if (d) {
@@ -46,6 +52,11 @@ function go(e: Entry) {
     case "dtc":
       openDtcLookup(e.id);
       break;
+    case "doc": {
+      const [doc, anchor] = e.id.split("#");
+      openDocs(doc, anchor);
+      break;
+    }
   }
 }
 
