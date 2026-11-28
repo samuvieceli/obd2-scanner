@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compareByFuel, fuelGroup, type StoredDrive } from "./drives";
+import { compareByFuel, fuelGroup, monthlyTotals, usualKmPerL, type StoredDrive } from "./drives";
 
 function drive(fuel: StoredDrive["fuel"], km: number, l: number, extra: Partial<StoredDrive> = {}): StoredDrive {
   return {
@@ -45,5 +45,27 @@ describe("trip history", () => {
 
   it("gives no average for tiny drives", () => {
     expect(compareByFuel([drive("ethanol", 0.5, 0.01)])[0].kmPerL).toBeUndefined();
+  });
+
+  it("adds up each month, newest first, with the cost of the drives that have one", () => {
+    const nov = new Date(2026, 10, 20).getTime();
+    const oct = new Date(2026, 9, 5).getTime();
+    const months = monthlyTotals([
+      drive("gasoline", 10, 1, { endedAt: oct, cost: 6.3 }),
+      drive("gasoline", 30, 2, { endedAt: nov, cost: 12.6 }),
+      drive("gasoline", 20, 1, { endedAt: nov }),
+    ]);
+    expect(months.map((m) => m.month)).toEqual(["2026-11", "2026-10"]);
+    expect(months[0]).toMatchObject({ drives: 2, distanceKm: 50, fuelL: 3, cost: 12.6, noCost: 1 });
+    expect(months[0].kmPerL).toBeCloseTo(50 / 3);
+    expect(months[1].cost).toBeCloseTo(6.3);
+  });
+
+  it("knows the usual economy only with enough history", () => {
+    const few = [drive("gasoline", 10, 1), drive("gasoline", 10, 1)];
+    expect(usualKmPerL(few, "gasoline")).toBeUndefined();
+    const enough = [...few, drive("gasoline", 20, 1)];
+    expect(usualKmPerL(enough, "gasoline")).toBeCloseTo(40 / 3);
+    expect(usualKmPerL(enough, "ethanol")).toBeUndefined();
   });
 });

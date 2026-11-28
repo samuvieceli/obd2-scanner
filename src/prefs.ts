@@ -44,6 +44,10 @@ export interface Profile {
   alerts: AlertRule[];
   /** The one performance test being measured (see `chosenTest`). */
   perfTest?: PerfTestId;
+  /** Car model whose manufacturer parameters are offered (see maker.ts). */
+  makerModel?: string | null;
+  /** Also offer manufacturer parameters nobody confirmed on a real car. */
+  makerExperimental?: boolean;
 }
 
 export interface Prefs {

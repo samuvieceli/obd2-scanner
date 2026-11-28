@@ -1,0 +1,1447 @@
+# OBDb parameter names: English<TAB>Portuguese (see tools/obdb_import.py)
++B	+B (alimentação da bateria)
++BM voltage	Tensão +BM
+0	0
+1	1
+12V battery age	Idade da bateria de 12 V
+12V battery current	Corrente da bateria de 12 V
+12V battery state of charge	Estado de carga da bateria de 12 V
+12V battery temperature	Temperatura da bateria de 12 V
+12V battery voltage	Tensão da bateria de 12 V
+12V battery voltage before system main relay	Tensão da bateria de 12 V antes do relé principal
+12V battery voltage smoothed	Tensão da bateria de 12 V (suavizada)
+12V network allowed stop	Rede de 12 V permite parada automática
+1st turbocharger outlet pressure, control valve	Pressão de saída do 1º turbo, válvula de controle
+2nd air monitor available?	Monitor de ar secundário 2 disponível?
+2nd air monitor incomplete?	Monitor de ar secundário 2 incompleto?
+2nd air monitor_avail	Monitor de ar secundário 2 disponível
+2nd air monitor_incmpl	Monitor de ar secundário 2 incompleto
+2nd turbocharger outlet pressure	Pressão de saída do 2º turbo
+2nd turbocharger outlet pressure, control valve	Pressão de saída do 2º turbo, válvula de controle
+5V power supply state number 1	Estado da alimentação de 5 V nº 1
+5V power supply state number 2	Estado da alimentação de 5 V nº 2
+5V power supply state number 3	Estado da alimentação de 5 V nº 3
+5V power supply state number 4	Estado da alimentação de 5 V nº 4
+A/C clutch	Embreagem do ar-condicionado
+A/C compressor	Compressor do ar-condicionado
+A/C compressor drive flag	Sinal de acionamento do compressor do ar-condicionado
+A/C compressor drive request	Pedido de acionamento do compressor do ar-condicionado
+A/C compressor pressure	Pressão do compressor do ar-condicionado
+A/C compressor pressure sensor voltage	Tensão do sensor de pressão do compressor do ar-condicionado
+A/C compressor relay	Relé do compressor do ar-condicionado
+A/C compressor, state	Compressor do ar-condicionado, estado
+A/C gate status	Estado do gate do ar-condicionado
+A/C monitor available?	Monitor do ar-condicionado disponível?
+A/C monitor incomplete?	Monitor do ar-condicionado incompleto?
+A/C monitor_avail	Monitor do ar-condicionado disponível
+A/C monitor_incmpl	Monitor do ar-condicionado incompleto
+A/C pressure	Pressão do ar-condicionado
+A/C refrigerant pressure	Pressão do gás refrigerante do ar-condicionado
+A/F heater duty bank 1 sensor 1	Ciclo do aquecedor do sensor A/F banco 1 sensor 1
+A/F ratio learn value high, bank 1	Aprendizado da mistura em carga alta, banco 1
+A/F ratio learn value idle, bank 1	Aprendizado da mistura em marcha lenta, banco 1
+A/F ratio learn value low, bank 1	Aprendizado da mistura em carga baixa, banco 1
+A/F ratio learn value mid.1, bank 1	Aprendizado da mistura em carga média 1, banco 1
+A/F ratio learn value mid.2, bank 1	Aprendizado da mistura em carga média 2, banco 1
+A/F ratio learned high, bank 1	Mistura aprendida em carga alta, banco 1
+A/F ratio learned idle, bank 1	Mistura aprendida em marcha lenta, banco 1
+A/F ratio learned low, bank 1	Mistura aprendida em carga baixa, banco 1
+A/F ratio learned mid 1, bank 1	Mistura aprendida em carga média 1, banco 1
+A/F ratio learned mid 2, bank 1	Mistura aprendida em carga média 2, banco 1
+A/F test results 1, incomplete	Resultado do teste A/F 1, incompleto
+AF lambda, bank 1 sensor 1	Lambda do sensor A/F, banco 1 sensor 1
+ANTI START PROGRAMMING STATUS	Estado da programação do imobilizador
+AT position	Posição do câmbio automático
+Absolute load	Carga absoluta
+Accelerator fully close learn 1	Aprendizado do acelerador totalmente fechado 1
+Accelerator fully close learn 2	Aprendizado do acelerador totalmente fechado 2
+Accelerator idle position on	Acelerador em posição de repouso
+Accelerator pedal	Pedal do acelerador
+Accelerator pedal closed position learning, main	Aprendizado da posição fechada do pedal do acelerador, principal
+Accelerator pedal position	Posição do pedal do acelerador
+Accelerator pedal position 1	Posição do pedal do acelerador 1
+Accelerator pedal position 2	Posição do pedal do acelerador 2
+Accelerator pedal position, recalculated	Posição do pedal do acelerador, recalculada
+Accelerator pedal position, track 1	Posição do pedal do acelerador, pista 1
+Accelerator pedal position, track 2	Posição do pedal do acelerador, pista 2
+Accelerator pedal signal 1 voltage	Tensão do sinal 1 do pedal do acelerador
+Accelerator pedal signal 2 voltage	Tensão do sinal 2 do pedal do acelerador
+Accelerator pedal, position 1	Pedal do acelerador, posição 1
+Accelerator pedal, position 2	Pedal do acelerador, posição 2
+Accelerator position	Posição do acelerador
+Accelerator sensor out, number 1	Saída do sensor do acelerador nº 1
+Accelerator sensor out, number 2	Saída do sensor do acelerador nº 2
+Accelerator sensor volt %, 1	Tensão do sensor do acelerador em %, 1
+Accelerator sensor volt %, 2	Tensão do sensor do acelerador em %, 2
+Accelerator sensor voltage, 1	Tensão do sensor do acelerador, 1
+Accelerator sensor voltage, 2	Tensão do sensor do acelerador, 2
+Accessory relay on	Relé de acessórios ligado
+Accumulated time of DC inhibit	Tempo acumulado de bloqueio do conversor CC
+Accumulated time of battery low	Tempo acumulado com bateria baixa
+Accumulated time of battery too high	Tempo acumulado com bateria alta demais
+Accumulated time of hot temperature	Tempo acumulado em temperatura alta
+Accumulator open	Acumulador aberto
+Acoustic control induction system vacuum switching valve on	Válvula de vácuo do sistema de admissão acústica ligada
+Activation count, additional oil pump, ATN8 gearbox	Acionamentos da bomba de óleo adicional, câmbio ATN8
+Activation count, brake electromagnetic valve B1	Acionamentos da válvula eletromagnética do freio B1
+Activation count, clutch electromagnetic valve C2	Acionamentos da válvula eletromagnética da embreagem C2
+Activation count, clutch electromagnetic valve C3	Acionamentos da válvula eletromagnética da embreagem C3
+Activation count, clutch protection C1	Acionamentos da proteção da embreagem C1
+Activation count, clutch protection C2	Acionamentos da proteção da embreagem C2
+Activation count, gear 7	Acionamentos da 7ª marcha
+Activation count, line pressure control solenoid	Acionamentos do solenoide de controle da pressão de linha
+Activation count, shift solenoid SC2	Acionamentos do solenoide de troca SC2
+Activation count, shift solenoid SC3	Acionamentos do solenoide de troca SC3
+Activation count, the electromagnetic valve for controlling the automatic transmission locking finger in position p	Acionamentos da válvula eletromagnética da trava de estacionamento (P) do câmbio automático
+Activation count, the electromagnetic valve of brake B2	Acionamentos da válvula eletromagnética do freio B2
+Activation count, the electromagnetic valve of clutch C4	Acionamentos da válvula eletromagnética da embreagem C4
+Activation count, the electromagnetic valve of the clutch C1	Acionamentos da válvula eletromagnética da embreagem C1
+Activation count, torque converter lockup electromagnetic valve	Acionamentos da válvula eletromagnética do travamento do conversor de torque
+Activation of additional oil pump, ATN8 gearbox	Acionamento da bomba de óleo adicional, câmbio ATN8
+Active cylinders	Cilindros ativos
+Actual engine percent torque	Torque real do motor em %
+Actual engine torque	Torque real do motor
+Actuator power supply on	Alimentação dos atuadores ligada
+Additional heater control 1	Controle do aquecedor adicional 1
+Additional oil pump control status, atn8 transmission	Estado da bomba de óleo adicional, câmbio ATN8
+Additive mass in the particulate filter, grams	Massa de aditivo no filtro de partículas, gramas
+Additive mass in the particulate filter, grams, second reading	Massa de aditivo no filtro de partículas, gramas, segunda leitura
+Adjusted ambient temperature	Temperatura ambiente ajustada
+Air conditioner clutch	Embreagem do ar-condicionado
+Air conditioning	Ar-condicionado
+Air conditioning compressor	Compressor do ar-condicionado
+Air conditioning compressor current	Corrente do compressor do ar-condicionado
+Air conditioning consumption power, w	Potência consumida pelo ar-condicionado, W
+Air conditioning inverter gate	Gate do inversor do ar-condicionado
+Air conditioning power consumption	Potência consumida pelo ar-condicionado
+Air conditioning pressure	Pressão do ar-condicionado
+Air conditioning pressure, raw count	Pressão do ar-condicionado, valor bruto
+Air conditioning requested	Ar-condicionado solicitado
+Air conditioning switch	Botão do ar-condicionado
+Air flow	Fluxo de ar
+Air flow sensor voltage	Tensão do sensor de fluxo de ar
+Air flow target	Fluxo de ar desejado
+Air fuel sensor current, bank 1 sensor 1	Corrente do sensor de mistura, banco 1 sensor 1
+Air fuel sensor voltage, bank 1 sensor 1	Tensão do sensor de mistura, banco 1 sensor 1
+Air inlet damper actual pulse	Portinhola de entrada de ar, pulso real
+Air inlet damper target pulse	Portinhola de entrada de ar, pulso desejado
+Air mix servo target pulse, driver	Servo de mistura de ar, pulso desejado, motorista
+Air mix servo, actual pulse, d	Servo de mistura de ar, pulso real, motorista
+Air outlet servo actual pulse, driver	Servo de saída de ar, pulso real, motorista
+Air outlet servo pulse, driver	Servo de saída de ar, pulso, motorista
+Air temperature by air flow meter	Temperatura do ar no medidor de fluxo
+Air temperature sensor	Sensor de temperatura do ar
+Air-fuel equivalence ratio, bank 1 sensor 1	Relação ar/combustível equivalente (lambda), banco 1 sensor 1
+Air-fuel mixture heater	Aquecedor da mistura ar/combustível
+Air-fuel sensor current, bank 1 sensor 1	Corrente do sensor de mistura, banco 1 sensor 1
+Air-fuel sensor voltage, bank 1 sensor 1	Tensão do sensor de mistura, banco 1 sensor 1
+Air/fuel ratio	Relação ar/combustível
+Air/gas ratio	Relação ar/gás
+All cylinders misfire count	Falhas de combustão de todos os cilindros
+All-wheel drive clutch diagnostic signal	Sinal de diagnóstico da embreagem da tração integral
+All-wheel drive clutch, commanded control signal	Embreagem da tração integral, sinal de controle comandado
+Alt voltage - active test	Tensão do alternador, teste ativo
+Alt voltage - non active test	Tensão do alternador, sem teste ativo
+Alternator current output	Corrente de saída do alternador
+Alternator load value	Carga do alternador
+Alternator output duty	Ciclo de saída do alternador
+Alternator output duty cycle	Ciclo de trabalho da saída do alternador
+Ambient air temperature	Temperatura do ar ambiente
+Ambient air temperature, cabin	Temperatura do ar ambiente, cabine
+Ambient air temperature, outside	Temperatura do ar ambiente, externa
+Ambient temperature	Temperatura ambiente
+Ambient temperature sensor voltage	Tensão do sensor de temperatura ambiente
+Ambient temperature, alternate	Temperatura ambiente, alternativa
+Anti-lock brake actuator signal	Sinal do atuador do ABS
+Anti-lock brake or stability control regulating	ABS ou controle de estabilidade atuando
+Anti-lock brake warning light	Luz de aviso do ABS
+Anti-lock braking system warning light	Luz de aviso do ABS
+Approximate position of turbocharger actuator	Posição aproximada do atuador do turbo
+Atmosphere pressure	Pressão atmosférica
+Atmosphere pressure_7e2	Pressão atmosférica (7E2)
+Atmospheric pressure	Pressão atmosférica
+Automatic restart request from body control module	Pedido de nova partida automática pelo módulo da carroceria (BCM)
+Automatic restart request from engine management computer	Pedido de nova partida automática pela central do motor
+Automatic restart request from transmission computer	Pedido de nova partida automática pela central do câmbio
+Automatic stop allowed by body control module	Parada automática permitida pelo módulo da carroceria (BCM)
+Automatic stop allowed by gearbox computer	Parada automática permitida pela central do câmbio
+Automatic stop allowed by power steering computer	Parada automática permitida pela central da direção elétrica
+Automatic transmission fluid temperature	Temperatura do fluido do câmbio automático
+Automatic transmission fluid thermal degradation estimate	Estimativa de degradação térmica do fluido do câmbio automático
+Automatic transmission in emergency mode	Câmbio automático em modo de emergência
+Automatic transmission in park position	Câmbio automático na posição P (estacionamento)
+Automatic transmission input shaft mode, calculated	Modo do eixo de entrada do câmbio automático, calculado
+Automatic transmission input shaft mode, measured	Modo do eixo de entrada do câmbio automático, medido
+Automatic transmission lubrication solenoid control current	Corrente do solenoide de lubrificação do câmbio automático
+Automatic transmission oil aging sensor	Sensor de envelhecimento do óleo do câmbio automático
+Automatic transmission oil drain	Dreno de óleo do câmbio automático
+Automatic transmission output shaft mode, calculated	Modo do eixo de saída do câmbio automático, calculado
+Automatic transmission output shaft mode, measured	Modo do eixo de saída do câmbio automático, medido
+Automatic transmission overheat indicator request	Pedido do aviso de superaquecimento do câmbio automático
+Automatic transmission temperature	Temperatura do câmbio automático
+Automatic transmission torque request	Pedido de torque do câmbio automático
+Aux battery voltage	Tensão da bateria auxiliar
+Aux. battery capacity after IG OFF	Capacidade da bateria auxiliar após desligar a ignição
+Aux. battery capacity after IG ON	Capacidade da bateria auxiliar após ligar a ignição
+Auxiliary battery current	Corrente da bateria auxiliar
+Auxiliary battery temperature	Temperatura da bateria auxiliar
+Auxiliary battery voltage	Tensão da bateria auxiliar
+Auxiliary heater 2 control	Controle do aquecedor auxiliar 2
+Average distance per regeneration over the last 10	Distância média por regeneração nas últimas 10
+Average engine speed of all cylinders	Rotação média de todos os cilindros
+Average front wheel speed	Velocidade média das rodas dianteiras
+Average speed front wheels	Velocidade média das rodas dianteiras
+Axle gear ratio, measured	Relação do diferencial, medida
+B+ battery voltage	Tensão da bateria (B+)
+Barometric pressure	Pressão barométrica
+Barometric pressure sensor voltage	Tensão do sensor de pressão barométrica
+Battery block 1 voltage	Tensão do bloco 1 da bateria
+Battery block 10 voltage	Tensão do bloco 10 da bateria
+Battery block 10 voltage, raw count	Tensão do bloco 10 da bateria, valor bruto
+Battery block 11 voltage	Tensão do bloco 11 da bateria
+Battery block 12 voltage	Tensão do bloco 12 da bateria
+Battery block 13 voltage	Tensão do bloco 13 da bateria
+Battery block 14 voltage	Tensão do bloco 14 da bateria
+Battery block 15 voltage	Tensão do bloco 15 da bateria
+Battery block 16 voltage	Tensão do bloco 16 da bateria
+Battery block 17 voltage	Tensão do bloco 17 da bateria
+Battery block 2 voltage	Tensão do bloco 2 da bateria
+Battery block 3 voltage	Tensão do bloco 3 da bateria
+Battery block 4 voltage	Tensão do bloco 4 da bateria
+Battery block 5 voltage	Tensão do bloco 5 da bateria
+Battery block 6 voltage	Tensão do bloco 6 da bateria
+Battery block 7 voltage	Tensão do bloco 7 da bateria
+Battery block 8 voltage	Tensão do bloco 8 da bateria
+Battery block 9 voltage	Tensão do bloco 9 da bateria
+Battery block number with, maximum voltage	Número do bloco da bateria com tensão máxima
+Battery block number with, minimum voltage	Número do bloco da bateria com tensão mínima
+Battery block, maximum voltage	Bloco da bateria, tensão máxima
+Battery block, minimum voltage	Bloco da bateria, tensão mínima
+Battery capacity too low for start/stop	Capacidade da bateria baixa demais para o start/stop
+Battery current	Corrente da bateria
+Battery current too high for start/stop	Corrente da bateria alta demais para o start/stop
+Battery current, predicted	Corrente da bateria, prevista
+Battery heater temperature	Temperatura do aquecedor da bateria
+Battery pack current	Corrente do pacote de baterias
+Battery pack, current value	Pacote de baterias, corrente atual
+Battery percentage, state of charge	Porcentagem da bateria, estado de carga
+Battery quiescent current, low range	Corrente de repouso da bateria, faixa baixa
+Battery refresh cycle in progress for start/stop	Ciclo de recarga da bateria em andamento para o start/stop
+Battery state detection status	Estado da detecção da bateria
+Battery state of charge too low for start/stop	Estado de carga da bateria baixo demais para o start/stop
+Battery status of full charge	Estado de carga completa da bateria
+Battery temperature	Temperatura da bateria
+Battery temperature 01	Temperatura da bateria 01
+Battery temperature 02	Temperatura da bateria 02
+Battery temperature 03	Temperatura da bateria 03
+Battery temperature 04	Temperatura da bateria 04
+Battery temperature 05	Temperatura da bateria 05
+Battery temperature 06	Temperatura da bateria 06
+Battery temperature 07	Temperatura da bateria 07
+Battery temperature 08	Temperatura da bateria 08
+Battery temperature 09	Temperatura da bateria 09
+Battery temperature 10	Temperatura da bateria 10
+Battery temperature 11	Temperatura da bateria 11
+Battery temperature 12	Temperatura da bateria 12
+Battery temperature 13	Temperatura da bateria 13
+Battery temperature 14	Temperatura da bateria 14
+Battery temperature 15	Temperatura da bateria 15
+Battery temperature 16	Temperatura da bateria 16
+Battery temperature TB1	Temperatura da bateria TB1
+Battery temperature TB2	Temperatura da bateria TB2
+Battery temperature TB3	Temperatura da bateria TB3
+Battery temperature too low for auto stop	Temperatura da bateria baixa demais para a parada automática
+Battery voltage	Tensão da bateria
+Battery voltage at the battery sensor	Tensão da bateria no sensor da bateria
+Battery voltage too low for auto restart	Tensão da bateria baixa demais para a nova partida automática
+Battery voltage too low for cold cranking capability	Tensão da bateria baixa demais para partida a frio
+Battery voltage too low for start/stop	Tensão da bateria baixa demais para o start/stop
+Battery voltage, BCM	Tensão da bateria, BCM
+Blower motor speed level	Nível de velocidade do ventilador interno
+Boost	Pressão do turbo
+Boost air temperature	Temperatura do ar do turbo
+Boost converter carrier frequency	Frequência portadora do conversor elevador
+Boost converter gate	Gate do conversor elevador
+Boost converter input voltage	Tensão de entrada do conversor elevador
+Boost converter output voltage	Tensão de saída do conversor elevador
+Boost converter pressure ratio	Relação de pressão do conversor elevador
+Boost converter temperature	Temperatura do conversor elevador
+Boost converter temperature at ignition on	Temperatura do conversor elevador ao ligar a ignição
+Boost converter temperature max	Temperatura máxima do conversor elevador
+Boost converter temperature, lower	Temperatura do conversor elevador, inferior
+Boost converter temperature, upper	Temperatura do conversor elevador, superior
+Boost pressure	Pressão do turbo
+Boost pressure target	Pressão do turbo desejada
+Boost pressure, actual	Pressão do turbo, real
+Boost ratio	Relação de pressão do turbo
+Boosting converter temperature, lower	Temperatura do conversor elevador, inferior
+Boosting converter temperature, upper	Temperatura do conversor elevador, superior
+Both	Ambos
+Brake assist status	Estado da assistência de frenagem
+Brake circuit pressure	Pressão do circuito de freio
+Brake fluid pressure	Pressão do fluido de freio
+Brake pedal	Pedal do freio
+Brake pedal stroke	Curso do pedal do freio
+Brake pressure	Pressão do freio
+Brake switch	Interruptor do freio
+Brake system backup contactor status	Estado do contator de reserva do sistema de freio
+Brake warning light	Luz de aviso do freio
+Buckle switch, left side	Fivela do cinto, lado esquerdo
+Buckle switch, right side	Fivela do cinto, lado direito
+Button state	Estado do botão
+Buzzer	Alarme sonoro (buzzer)
+Bypass valve	Válvula de desvio (bypass)
+CHANGE REPORT IN PROGRESS	Relatório de mudança em andamento
+Cabin temperature	Temperatura da cabine
+Calculated gear in gearbox	Marcha calculada no câmbio
+Calculated load	Carga calculada
+Calculated load_7e0	Carga calculada (7E0)
+Calculated load_7e2	Carga calculada (7E2)
+Camshaft position error, exhaust	Erro de posição do comando de válvulas, escape
+Camshaft position error, intake	Erro de posição do comando de válvulas, admissão
+Camshaft position, exhaust actual	Posição do comando de válvulas, escape, real
+Camshaft position, exhaust desired	Posição do comando de válvulas, escape, desejada
+Camshaft position, intake actual	Posição do comando de válvulas, admissão, real
+Camshaft position, intake desired	Posição do comando de válvulas, admissão, desejada
+Camshaft solenoid duty cycle, exhaust	Ciclo do solenoide do comando de válvulas, escape
+Camshaft solenoid duty cycle, intake	Ciclo do solenoide do comando de válvulas, admissão
+Camshaft/crankshaft position synchronization	Sincronismo entre comando de válvulas e virabrequim
+Cancel switch	Botão de cancelar
+Catalyst monitor available?	Monitor do catalisador disponível?
+Catalyst monitor incomplete?	Monitor do catalisador incompleto?
+Catalyst monitor_avail	Monitor do catalisador disponível
+Catalyst monitor_incmpl	Monitor do catalisador incompleto
+Catalyst temperature	Temperatura do catalisador
+Catalyst temperature B1S1	Temperatura do catalisador B1S1
+Catalyst temperature B1S2	Temperatura do catalisador B1S2
+Catalyst temperature bank 1 sensor 2	Temperatura do catalisador banco 1 sensor 2
+Catalyst temperature bank 2 sensor 1	Temperatura do catalisador banco 2 sensor 1
+Catalyst temperature bank 2 sensor 2	Temperatura do catalisador banco 2 sensor 2
+Catalyst temperature, bank 1 sensor 1	Temperatura do catalisador, banco 1 sensor 1
+Catalyst temperature, bank 1 sensor 2	Temperatura do catalisador, banco 1 sensor 2
+Catalyst temperature, bank 1 sensor 2, variant 2	Temperatura do catalisador, banco 1 sensor 2, variante 2
+Charge air cooler temperature	Temperatura do intercooler
+Charge air temperature	Temperatura do ar de admissão pressurizado
+Charge air temperature sensor voltage	Tensão do sensor de temperatura do ar pressurizado
+Charge contactor current	Corrente do contator de carga
+Charging integrated current of aux. battery	Corrente integrada de carga da bateria auxiliar
+Check engine SW	Interruptor da luz de injeção
+Check mode	Modo de verificação
+Check mode on	Modo de verificação ligado
+Climate control engine run requested	Climatização pediu motor ligado
+Closed throttle position switch on	Interruptor de borboleta fechada ligado
+Clutch pedal	Pedal da embreagem
+Clutch pedal position value	Posição do pedal da embreagem
+Clutch release state at stop, creep speed reduction	Estado da embreagem liberada na parada, redução da velocidade de arrasto
+Codes, include history	Códigos, incluindo histórico
+Combustion engine state	Estado do motor a combustão
+Commanded generator duty	Ciclo comandado do gerador
+Commanded generator voltage	Tensão comandada do gerador
+Communication with HV	Comunicação com o sistema híbrido (HV)
+Communication with air conditioner	Comunicação com o ar-condicionado
+Communication with brake	Comunicação com o freio
+Communication with valvematic	Comunicação com o Valvematic
+Complete	Completo
+Complete parts monitor available?	Monitor de componentes disponível?
+Complete parts monitor_avail	Monitor de componentes disponível
+Compressor ON/OFF count	Contagem de liga/desliga do compressor
+Compressor speed	Rotação do compressor
+Compressor work time	Tempo de trabalho do compressor
+Compressor, target speed	Compressor, rotação desejada
+Computer lock	Bloqueio da central
+Computer power supply voltage	Tensão de alimentação da central
+Computer remote wake-up state	Estado de ativação remota da central
+Computer restarts since memory erase	Reinícios da central desde que a memória foi apagada
+Computer temperature	Temperatura da central
+Conditioner work time	Tempo de trabalho do ar-condicionado
+Continuously variable transmission learning complete	Aprendizado do câmbio CVT concluído
+Continuously variable transmission oil pressure	Pressão do óleo do câmbio CVT
+Control current of electromagnetic valve for changing the pressure in the brake system B2	Corrente de controle da válvula eletromagnética de pressão do freio B2
+Control current of electromagnetic valve for regulating the pressure in the control system of the oil pressure accumulator, AMN8 gearbox	Corrente de controle da válvula eletromagnética do acumulador de pressão de óleo, câmbio AMN8
+Control current of electromagnetic valve of actuator of automatic transmission lock-up in position p	Corrente de controle da válvula eletromagnética da trava P do câmbio automático
+Control current of electromagnetic valve of change of pressure of torque converter lock-up	Corrente de controle da válvula eletromagnética de pressão do travamento do conversor de torque
+Control current of the electromagnetic valve for changing the gear shift SC2	Corrente de controle da válvula eletromagnética de troca SC2
+Control current of the electromagnetic valve for changing the pressure in the brake system B1	Corrente de controle da válvula eletromagnética de pressão do freio B1
+Control current of the electromagnetic valve of change of pressure of clutch C3	Corrente de controle da válvula eletromagnética de pressão da embreagem C3
+Control current of the electromagnetic valve of change of pressure of clutch C4	Corrente de controle da válvula eletromagnética de pressão da embreagem C4
+Control current of the solenoid valve for changing the pressure of the clutch C1	Corrente de controle da válvula solenoide de pressão da embreagem C1
+Control current of the solenoid valve for changing the pressure of the clutch C2	Corrente de controle da válvula solenoide de pressão da embreagem C2
+Converter carrier frequency, 9.55khz=0,9.13khz=1,8.71khz=2,8.29khz=3,7.87khz=4,7.45khz=5,4.8khz=6	Frequência portadora do conversor (0 = 9,55 kHz ... 6 = 4,8 kHz)
+Converter fail	Falha do conversor
+Converter gate status	Estado do gate do conversor
+Converter shutdown	Desligamento do conversor
+Converter speed ratio	Relação de rotação do conversor
+Coolant temp	Temperatura do líquido de arrefecimento
+Coolant temperature	Temperatura do líquido de arrefecimento
+Coolant temperature target	Temperatura desejada do líquido de arrefecimento
+Coolant temperature, corrected	Temperatura do líquido de arrefecimento, corrigida
+Coolant water route switching valve 1, closed?	Válvula 1 de desvio do líquido de arrefecimento fechada?
+Coolant water route switching valve 2, closed?	Válvula 2 de desvio do líquido de arrefecimento fechada?
+Cooling fan 0	Ventoinha 0
+Cooling fan duty	Ciclo da ventoinha
+Cooling fan duty ratio	Ciclo de trabalho da ventoinha
+Cooling fan mode 1	Ventoinha modo 1
+Cooling fan relay status	Estado do relé da ventoinha
+Corrected driver temperature setting	Temperatura ajustada do motorista, corrigida
+Corrected passenger temperature setting	Temperatura ajustada do passageiro, corrigida
+Counter of occurrence of enhanced resonance of the twin flywheel of the engine	Ocorrências de ressonância forte do volante bimassa
+Counter of occurrence of resonance of the twin flywheel of the engine	Ocorrências de ressonância do volante bimassa
+Coupling temperature	Temperatura do acoplamento
+Crank angle sensor	Sensor de ângulo do virabrequim
+Crank position	Posição do virabrequim
+Cranking signal	Sinal de partida
+Crankshaft speed	Rotação do virabrequim
+Crankshaft speed determined by camshaft sensor	Rotação do virabrequim pelo sensor do comando
+Cruise control	Piloto automático
+Cruise control active	Piloto automático ativo
+Cruise control cancel switch	Botão de cancelar do piloto automático
+Cruise control indicator	Indicador do piloto automático
+Cruise control live brake cancel	Piloto automático cancelado pelo freio
+Cruise control main switch	Botão principal do piloto automático
+Cruise control on	Piloto automático ligado
+Cruise control ready	Piloto automático pronto
+Cruise control remembered vehicle speed	Velocidade memorizada do piloto automático
+Cruise control resume switch	Botão de retomar do piloto automático
+Cruise control set speed	Velocidade programada do piloto automático
+Cruise control set switch	Botão de programar do piloto automático
+Cruise control speed	Velocidade do piloto automático
+Cruise control throttle opening	Abertura da borboleta pelo piloto automático
+Cruise control vehicle speed	Velocidade do veículo no piloto automático
+Cruise control, RW status	Piloto automático, estado RW
+Cruise operation status	Estado de funcionamento do piloto automático
+Cruise resume and accelerate switch	Botão de retomar e acelerar do piloto automático
+Current gear	Marcha atual
+Current gear, variant 2	Marcha atual, variante 2
+Current gear, variant 3	Marcha atual, variante 3
+Cycle consumption	Consumo do ciclo
+Cylinder #1 misfire count	Falhas de combustão do cilindro 1
+Cylinder #2 misfire count	Falhas de combustão do cilindro 2
+Cylinder #3 misfire count	Falhas de combustão do cilindro 3
+Cylinder #4 misfire count	Falhas de combustão do cilindro 4
+Cylinder 1 injection volume	Volume injetado no cilindro 1
+Cylinder 1 misfire count	Falhas de combustão do cilindro 1
+Cylinder 2 injection volume	Volume injetado no cilindro 2
+Cylinder 2 misfire count	Falhas de combustão do cilindro 2
+Cylinder 3 injection volume	Volume injetado no cilindro 3
+Cylinder 3 misfire count	Falhas de combustão do cilindro 3
+Cylinder 4 injection volume	Volume injetado no cilindro 4
+Cylinder 4 misfire count	Falhas de combustão do cilindro 4
+Cylinder 5 misfire count	Falhas de combustão do cilindro 5
+Cylinder 6 misfire count	Falhas de combustão do cilindro 6
+Cylinder 7 misfire count	Falhas de combustão do cilindro 7
+Cylinder 8 misfire count	Falhas de combustão do cilindro 8
+Cylinder head temperature	Temperatura do cabeçote
+Cylinder head temperature, alternate	Temperatura do cabeçote, alternativa
+Cylinder head temperature, sensor 2	Temperatura do cabeçote, sensor 2
+Cylinder number	Número do cilindro
+DC-DC converter high side voltage	Tensão do lado de alta do conversor CC-CC
+DC-DC converter low side voltage	Tensão do lado de baixa do conversor CC-CC
+DC-DC converter output current	Corrente de saída do conversor CC-CC
+DC-DC converter, target voltage before charging	Conversor CC-CC, tensão desejada antes da carga
+DC/DC converter, target pulse duty	Conversor CC-CC, ciclo de pulso desejado
+DTC clear min, raw count	Minutos desde que os códigos foram apagados, valor bruto
+DTC clear run distance	Distância desde que os códigos foram apagados
+DTC clear warm up	Aquecimentos desde que os códigos foram apagados
+Dark current of battery	Corrente de fuga da bateria
+Dashboard voltage	Tensão do painel de instrumentos
+Date	Data
+Deceleration	Desaceleração
+Deceleration 2	Desaceleração 2
+Deceleration open	Desaceleração (circuito aberto)
+Delta SOC	Variação do estado de carga
+Desired gear	Marcha desejada
+Destination	Destino (mercado)
+Destination code	Código de destino (mercado)
+Detonation control learned	Controle de detonação aprendido
+Detonation retard	Atraso de ignição por detonação
+Diesel particulate filter differential pressure	Pressão diferencial do filtro de partículas diesel
+Diesel particulate filter differential pressure 2	Pressão diferencial do filtro de partículas diesel 2
+Diesel particulate filter odometer	Hodômetro do filtro de partículas diesel
+Diesel particulate filter regeneration request mileage	Quilometragem do pedido de regeneração do filtro de partículas
+Diesel particulate filter regeneration total count	Total de regenerações do filtro de partículas
+Diesel particulate filter soot	Fuligem no filtro de partículas diesel
+Diesel particulate filter soot accumulation	Acúmulo de fuligem no filtro de partículas diesel
+Diesel particulate filter soot accumulation for distance 1	Acúmulo de fuligem no filtro de partículas pela distância 1
+Diesel particulate filter soot load, summation method	Carga de fuligem do filtro de partículas, método da soma
+Diesel particulate filter soot pressure method, g/l	Fuligem do filtro de partículas pelo método da pressão, g/L
+Diesel particulate filter temperature	Temperatura do filtro de partículas diesel
+Diesel particulate filter, maximum temperature 1	Filtro de partículas diesel, temperatura máxima 1
+Diesel particulate filter, maximum temperature 2	Filtro de partículas diesel, temperatura máxima 2
+Diesel particulate filter, maximum temperature 3	Filtro de partículas diesel, temperatura máxima 3
+Diesel particulate filter, maximum temperature 4	Filtro de partículas diesel, temperatura máxima 4
+Diesel particulate filter, maximum temperature 5	Filtro de partículas diesel, temperatura máxima 5
+Diesel particulate filter, maximum temperature, previous	Filtro de partículas diesel, temperatura máxima anterior
+Direct	Direta
+Direct injection fuel pressure	Pressão de combustível da injeção direta
+Discharging integrated current of aux. battery	Corrente integrada de descarga da bateria auxiliar
+Dist battery cable disconnect	Distância desde que o cabo da bateria foi desligado
+Distance remaining before particulate filter replacement	Distância restante até trocar o filtro de partículas
+Distance since DTC clear	Distância desde que os códigos foram apagados
+Distance since last DPF regeneration	Distância desde a última regeneração do filtro de partículas
+Distance since last battery cable disconnection	Distância desde que o cabo da bateria foi desligado pela última vez
+Distance since last oil change	Distância desde a última troca de óleo
+Distance since oil change	Distância desde a troca de óleo
+Distance since the last particulate filter replacement	Distância desde a última troca do filtro de partículas
+Distance to empty, calculated	Autonomia, calculada
+Distance to empty, displayed	Autonomia, mostrada no painel
+Distance traveled since last charge	Distância percorrida desde a última carga
+Distance traveled since the last regeneration	Distância percorrida desde a última regeneração
+Distance with MIL	Distância com a luz de injeção acesa
+Drive	D (dirigir)
+Drive condition	Condição de condução
+Drive selected	D (dirigir) selecionado
+Drive time since engine start	Tempo de condução desde a partida
+Drive, eighth gear	D, oitava marcha
+Drive, fifth gear	D, quinta marcha
+Drive, first gear	D, primeira marcha
+Drive, fourth gear	D, quarta marcha
+Drive, ninth gear	D, nona marcha
+Drive, second gear	D, segunda marcha
+Drive, seventh gear	D, sétima marcha
+Drive, sixth gear	D, sexta marcha
+Drive, third gear	D, terceira marcha
+Driver door ajar	Porta do motorista aberta
+Driver presence	Presença do motorista
+Driver side output speed	Rotação de saída do lado do motorista
+Driver temperature setting	Temperatura ajustada pelo motorista
+Driver, requested torque value	Torque pedido pelo motorista
+Driving pattern 1	Padrão de condução 1
+Driving pattern 2	Padrão de condução 2
+Driving pattern 3	Padrão de condução 3
+EGR/VVT monitor available?	Monitor da EGR/VVT disponível?
+EGR/VVT monitor incomplete?	Monitor da EGR/VVT incompleto?
+EGR/VVT monitor_avail	Monitor da EGR/VVT disponível
+EGR/VVT monitor_incmpl	Monitor da EGR/VVT incompleto
+EVAP monitor available?	Monitor do EVAP disponível?
+EVAP monitor_avail	Monitor do EVAP disponível
+EVAP monitor_icmpl	Monitor do EVAP incompleto
+EVAP purge duty	Ciclo da purga do cânister (EVAP)
+Economy mode off state	Modo econômico desligado
+Eighth gear	Oitava marcha
+Electric cooling fan control	Controle da ventoinha elétrica
+Electric fan motor on	Motor da ventoinha elétrica ligado
+Electric load detector current	Corrente do detector de carga elétrica
+Electric motor load	Carga do motor elétrico
+Electric thermostat duty ratio	Ciclo da válvula termostática elétrica
+Electric water pump	Bomba d'água elétrica
+Electric water pump RPM	Rotação da bomba d'água elétrica
+Electric water pump target speed	Rotação desejada da bomba d'água elétrica
+Electrical load signal 1	Sinal de carga elétrica 1
+Electrical load signal 2	Sinal de carga elétrica 2
+Electromagnetic oil pump duty	Ciclo da bomba de óleo eletromagnética
+Electronic control brake warning light	Luz de aviso do freio com controle eletrônico
+Electronically controlled brake warning light	Luz de aviso do freio com controle eletrônico
+Energy accumulator discharge permission state	Permissão de descarga do acumulador de energia
+Engaged gear	Marcha engatada
+Engine RPM	Rotação do motor
+Engine code, P410, raw count	Código do motor, P410, valor bruto
+Engine control computer supply voltage	Tensão de alimentação da central do motor
+Engine control module code, raw count	Código da central do motor, valor bruto
+Engine control module control mode, driving control mode=1,current sensor offset mode=2,external charge control mode=3,power supply end mode=4	Modo de controle da central do motor (1 condução, 2 offset do sensor de corrente, 3 carga externa, 4 fim de alimentação)
+Engine control module status	Estado da central do motor
+Engine control module voltage	Tensão da central do motor
+Engine control relay	Relé de controle do motor
+Engine coolant temperature	Temperatura do líquido de arrefecimento do motor
+Engine coolant temperature sensor 1	Sensor 1 de temperatura do líquido de arrefecimento
+Engine coolant temperature sensor 2	Sensor 2 de temperatura do líquido de arrefecimento
+Engine coolant temperature sensor 3	Sensor 3 de temperatura do líquido de arrefecimento
+Engine coolant temperature sensor 4	Sensor 4 de temperatura do líquido de arrefecimento
+Engine coolant temperature, at ignition	Temperatura do líquido de arrefecimento ao ligar a ignição
+Engine coolant temperature, initial	Temperatura do líquido de arrefecimento, inicial
+Engine coolant temperature_7e2	Temperatura do líquido de arrefecimento (7E2)
+Engine fuel rate	Consumo de combustível do motor
+Engine idle requested	Marcha lenta solicitada
+Engine independent	Motor independente
+Engine independent control	Controle independente do motor
+Engine load	Carga do motor
+Engine load, actual	Carga do motor, real
+Engine oil level sensor voltage	Tensão do sensor de nível do óleo do motor
+Engine oil pressure	Pressão do óleo do motor
+Engine oil pressure - desired	Pressão do óleo do motor, desejada
+Engine oil pressure control valve	Válvula de controle da pressão do óleo do motor
+Engine oil temperature	Temperatura do óleo do motor
+Engine oil temperature, variant 3	Temperatura do óleo do motor, variante 3
+Engine oil temperature, variant 4	Temperatura do óleo do motor, variante 4
+Engine oil temperature, variation 2	Temperatura do óleo do motor, variante 2
+Engine operating mode	Modo de funcionamento do motor
+Engine reference torque	Torque de referência do motor
+Engine restart counter	Contador de novas partidas do motor
+Engine restart counter by stop and start function	Contador de novas partidas pelo start/stop
+Engine restart request sent by ESP computer	Pedido de nova partida enviado pela central do ESP
+Engine rev, sensor	Rotação do motor, sensor
+Engine run time	Tempo de funcionamento do motor
+Engine run time, up to 255 sec. only	Tempo de funcionamento do motor, até 255 s
+Engine speed	Rotação do motor
+Engine speed deviation time 1	Tempo de desvio de rotação 1
+Engine speed deviation time 2	Tempo de desvio de rotação 2
+Engine speed deviation time 3	Tempo de desvio de rotação 3
+Engine speed deviation time 4	Tempo de desvio de rotação 4
+Engine speed of cylinder 1	Rotação no cilindro 1
+Engine speed of cylinder 2	Rotação no cilindro 2
+Engine speed of cylinder 3	Rotação no cilindro 3
+Engine speed of cylinder 4	Rotação no cilindro 4
+Engine speed_7e2	Rotação do motor (7E2)
+Engine stall control FB flow	Fluxo de realimentação do controle contra apagamento
+Engine stalls	Vezes que o motor apagou
+Engine start prohibition control, start lock	Bloqueio de partida do motor
+Engine stop inhibit requested	Pedido para impedir a parada do motor
+Engine stop requested	Pedido de parada do motor
+Engine stop time	Tempo de motor parado
+Engine warm-up requested	Pedido de aquecimento do motor
+Estimated torque of internal friction of the engine	Torque estimado de atrito interno do motor
+Evaporative pressure sensor voltage	Tensão do sensor de pressão do EVAP
+Evaporative purge	Purga do cânister (EVAP)
+Evaporative purge control load	Carga de controle da purga do cânister
+Evaporative purge duty	Ciclo da purga do cânister
+Evaporative purge flow	Fluxo da purga do cânister
+Evaporative purge vacuum switching valve on	Válvula de vácuo da purga do cânister ligada
+Evaporator fin thermistor	Termistor da aleta do evaporador
+Evaporator target temperature	Temperatura desejada do evaporador
+Exhaust VVT change angle, bank 1	Ângulo de variação do VVT de escape, banco 1
+Exhaust VVT hold learn value, bank 1	Valor aprendido de retenção do VVT de escape, banco 1
+Exhaust VVT oil control valve control duty	Ciclo da válvula de óleo do VVT de escape
+Exhaust VVT target angle B1	Ângulo desejado do VVT de escape B1
+Exhaust VVT timing most over-advanced learn value, bank 1	Valor aprendido de avanço máximo do VVT de escape, banco 1
+Exhaust gas flow through the particulate filter	Fluxo de gases pelo filtro de partículas
+Exhaust gas pressure at the particulate filter outlet	Pressão dos gases na saída do filtro de partículas
+Exhaust gas recirculation	Recirculação dos gases de escape (EGR)
+Exhaust gas recirculation duty cycle	Ciclo da EGR
+Exhaust gas recirculation open	EGR aberta
+Exhaust gas recirculation step position	Posição de passo da EGR
+Exhaust gas recirculation temperature	Temperatura da EGR
+Exhaust gas recirculation valve duty	Ciclo da válvula EGR
+Exhaust gas recirculation valve step	Passo da válvula EGR
+Exhaust gas temperature	Temperatura dos gases de escape
+Exhaust gas temperature 1	Temperatura dos gases de escape 1
+Exhaust gas temperature 2	Temperatura dos gases de escape 2
+Exhaust gas temperature after DPF	Temperatura dos gases depois do filtro de partículas
+Exhaust gas temperature after upstream catalytic converter	Temperatura dos gases depois do primeiro catalisador
+Exhaust gas temperature before upstream catalytic converter	Temperatura dos gases antes do primeiro catalisador
+Exhaust gas temperature sensor 0	Sensor 0 de temperatura dos gases de escape
+Exhaust gas temperature sensor 1	Sensor 1 de temperatura dos gases de escape
+Exhaust gas temperature sensor 2	Sensor 2 de temperatura dos gases de escape
+Exhaust gas temperature sensor 3	Sensor 3 de temperatura dos gases de escape
+Exhaust gas temperature sensor 4	Sensor 4 de temperatura dos gases de escape
+Exhaust thermistor temperature	Temperatura do termistor de escape
+Exterior lighting state	Estado das luzes externas
+External voltage	Tensão externa
+FUGITIVE TRIP IN EMERGENCY MODE	Viagem em modo de emergência
+Fan M1 work time	Tempo de trabalho da ventoinha M1
+Fan M2 work time	Tempo de trabalho da ventoinha M2
+Fan speed sensor	Sensor de rotação da ventoinha
+Fan speed, desired	Rotação desejada da ventoinha
+Fifth gear	Quinta marcha
+Final fuel injection amount	Quantidade final de combustível injetada
+First gear	Primeira marcha
+Fourth gear	Quarta marcha
+Front axle coupling clutch current	Corrente da embreagem de acoplamento do eixo dianteiro
+Front axle coupling clutch position sensor status	Estado do sensor de posição da embreagem do eixo dianteiro
+Front left tire pressure	Pressão do pneu dianteiro esquerdo
+Front left wheel ABS status	Estado do ABS da roda dianteira esquerda
+Front left wheel acceleration	Aceleração da roda dianteira esquerda
+Front left wheel speed	Velocidade da roda dianteira esquerda
+Front left wheel speed open	Velocidade da roda dianteira esquerda (circuito aberto)
+Front left wheel speed?	Velocidade da roda dianteira esquerda?
+Front left wheel vehicle stability control status	Estado do controle de estabilidade da roda dianteira esquerda
+Front right tire pressure	Pressão do pneu dianteiro direito
+Front right wheel ABS status	Estado do ABS da roda dianteira direita
+Front right wheel acceleration	Aceleração da roda dianteira direita
+Front right wheel cylinder open	Cilindro da roda dianteira direita aberto
+Front right wheel speed	Velocidade da roda dianteira direita
+Front right wheel speed open	Velocidade da roda dianteira direita (circuito aberto)
+Front right wheel speed?	Velocidade da roda dianteira direita?
+Front right wheel vehicle stability control status	Estado do controle de estabilidade da roda dianteira direita
+Front/rear motor torque ratio	Divisão de torque dianteiro/traseiro dos motores
+Fuel correction, cylinder 1	Correção de combustível, cilindro 1
+Fuel correction, cylinder 2	Correção de combustível, cilindro 2
+Fuel correction, cylinder 3	Correção de combustível, cilindro 3
+Fuel correction, cylinder 4	Correção de combustível, cilindro 4
+Fuel correction, cylinder 5	Correção de combustível, cilindro 5
+Fuel correction, cylinder 6	Correção de combustível, cilindro 6
+Fuel cut	Corte de combustível
+Fuel cut TAU on	Corte de combustível (TAU) ligado
+Fuel cut for engine stop request	Corte de combustível por pedido de parada do motor
+Fuel cut time	Tempo de corte de combustível
+Fuel filter temperature	Temperatura do filtro de combustível
+Fuel injection amount at startup	Quantidade injetada na partida
+Fuel injection amount, after	Quantidade injetada, pós-injeção
+Fuel injection amount, main	Quantidade injetada, principal
+Fuel injection amount, pilot	Quantidade injetada, piloto
+Fuel injection amount, pilot 1	Quantidade injetada, piloto 1
+Fuel injection amount, pilot 2	Quantidade injetada, piloto 2
+Fuel injection amount, pilot 3	Quantidade injetada, piloto 3
+Fuel injection amount, post 1	Quantidade injetada, pós 1
+Fuel injection amount, post 2	Quantidade injetada, pós 2
+Fuel injection amount, post 3	Quantidade injetada, pós 3
+Fuel injection duration, main	Duração da injeção, principal
+Fuel injection duration, pilot	Duração da injeção, piloto
+Fuel injection impulse width	Largura do pulso de injeção
+Fuel injection interval	Intervalo de injeção
+Fuel injection timing	Ponto de injeção
+Fuel injection volume control, cylinder 1	Controle do volume injetado, cilindro 1
+Fuel injection volume control, cylinder 2	Controle do volume injetado, cilindro 2
+Fuel injection volume control, cylinder 3	Controle do volume injetado, cilindro 3
+Fuel level	Nível de combustível
+Fuel level input	Entrada do nível de combustível
+Fuel level, mirrored read	Nível de combustível, leitura espelhada
+Fuel level, volume	Nível de combustível, volume
+Fuel meter	Marcador de combustível
+Fuel pressure	Pressão de combustível
+Fuel pressure 1	Pressão de combustível 1
+Fuel pressure 2	Pressão de combustível 2
+Fuel pressure 3	Pressão de combustível 3
+Fuel pressure 4	Pressão de combustível 4
+Fuel pressure 5	Pressão de combustível 5
+Fuel pressure 6	Pressão de combustível 6
+Fuel pressure from the fuel pressure sensor	Pressão de combustível medida pelo sensor
+Fuel pressure sensor a, raw count	Sensor de pressão de combustível A, valor bruto
+Fuel pressure sensor voltage, low	Tensão do sensor de pressão de combustível, baixa
+Fuel pressure, low	Pressão de combustível, baixa
+Fuel pressure, low actual	Pressão de combustível de baixa, real
+Fuel pressure, low desired	Pressão de combustível de baixa, desejada
+Fuel pump duty cycle	Ciclo da bomba de combustível
+Fuel pump duty cycle, low pressure	Ciclo da bomba de combustível, baixa pressão
+Fuel pump duty ratio	Ciclo de trabalho da bomba de combustível
+Fuel pump pulse width, bank 2	Largura de pulso da bomba de combustível, banco 2
+Fuel pump relay	Relé da bomba de combustível
+Fuel pump/speed status on	Bomba de combustível/velocidade ligada
+Fuel quantity correction, cylinder 1	Correção da quantidade de combustível, cilindro 1
+Fuel quantity correction, cylinder 2	Correção da quantidade de combustível, cilindro 2
+Fuel quantity correction, cylinder 3	Correção da quantidade de combustível, cilindro 3
+Fuel quantity correction, cylinder 4	Correção da quantidade de combustível, cilindro 4
+Fuel rail pressure	Pressão no tubo distribuidor (rail)
+Fuel rail pressure, desired	Pressão no tubo distribuidor, desejada
+Fuel rail sensor voltage, high pressure	Tensão do sensor do tubo distribuidor, alta pressão
+Fuel remaining	Combustível restante
+Fuel return temperature	Temperatura do retorno de combustível
+Fuel system monitor available?	Monitor do sistema de combustível disponível?
+Fuel system monitor_avail	Monitor do sistema de combustível disponível
+Fuel tank level	Nível do tanque de combustível
+Fuel tank pressure	Pressão do tanque de combustível
+Fuel temperature	Temperatura do combustível
+Fuel temperature 1	Temperatura do combustível 1
+Fuel temperature 2	Temperatura do combustível 2
+Fuel temperature 3	Temperatura do combustível 3
+Fuel temperature 4	Temperatura do combustível 4
+Fuel temperature 5	Temperatura do combustível 5
+Fuel temperature 6	Temperatura do combustível 6
+Fuel trim, long term	Correção de mistura de longo prazo
+Fuel trim, short term	Correção de mistura de curto prazo
+Fuel/air commanded equivalence ratio	Relação ar/combustível comandada (lambda)
+G sensor calibration, complete	Calibração do sensor G concluída
+G sensor learning value	Valor aprendido do sensor G
+Gear	Marcha
+Gear in the process of engaging	Marcha sendo engatada
+Gear lock-up	Travamento da marcha (lock-up)
+Gear number	Número da marcha
+Gear ratio, commanded	Relação de marcha comandada
+Gear shift knob under steering wheel	Seletor de marchas atrás do volante
+Gear shift lever position displayed on instrument panel	Posição da alavanca mostrada no painel
+Gear, engaged	Marcha engatada
+Gearbox output speed	Rotação de saída do câmbio
+Generator	Gerador
+Generator control	Controle do gerador
+Generator current	Corrente do gerador
+Generator inverter temperature	Temperatura do inversor do gerador
+Generator inverter temperature after ignition on	Temperatura do inversor do gerador após ligar a ignição
+Glass humidity	Umidade do vidro
+Glass temperature	Temperatura do vidro
+Grill shutter duty cycle	Ciclo da veneziana da grade
+Grill shutter position	Posição da veneziana da grade
+HV battery DC inhibit time	Tempo de bloqueio CC da bateria de alta tensão
+HV battery block count	Quantidade de blocos da bateria de alta tensão
+HV battery block voltage, highest	Tensão do bloco mais alto da bateria de alta tensão
+HV battery block voltage, lowest	Tensão do bloco mais baixo da bateria de alta tensão
+HV battery block with the highest voltage	Bloco da bateria de alta tensão com a maior tensão
+HV battery block with the lowest voltage	Bloco da bateria de alta tensão com a menor tensão
+HV battery charge	Carga da bateria de alta tensão
+HV battery charge power limit	Limite de potência de carga da bateria de alta tensão
+HV battery charge spread	Diferença de carga da bateria de alta tensão
+HV battery charge voltage	Tensão de carga da bateria de alta tensão
+HV battery charge, displayed	Carga da bateria de alta tensão, mostrada
+HV battery charge, hybrid control	Carga da bateria de alta tensão, controle híbrido
+HV battery charge, maximum	Carga da bateria de alta tensão, máxima
+HV battery charge, minimum	Carga da bateria de alta tensão, mínima
+HV battery current	Corrente da bateria de alta tensão
+HV battery discharge power limit	Limite de potência de descarga da bateria de alta tensão
+HV battery fan motor voltage	Tensão do motor da ventoinha da bateria de alta tensão
+HV battery fan speed	Rotação da ventoinha da bateria de alta tensão
+HV battery high charge time	Tempo com carga alta da bateria de alta tensão
+HV battery hot temperature time	Tempo em temperatura alta da bateria de alta tensão
+HV battery intake air temperature	Temperatura do ar de entrada da bateria de alta tensão
+HV battery low charge time	Tempo com carga baixa da bateria de alta tensão
+HV battery maximum temperature	Temperatura máxima da bateria de alta tensão
+HV battery minimum temperature	Temperatura mínima da bateria de alta tensão
+HV battery voltage	Tensão da bateria de alta tensão
+HV communication open	Comunicação com o sistema híbrido aberta
+Hazard switch history	Histórico do botão do pisca-alerta
+Heated catalyst monitor available?	Monitor do catalisador aquecido disponível?
+Heated catalyst monitor incomplete?	Monitor do catalisador aquecido incompleto?
+Heated catalyst monitor_avail	Monitor do catalisador aquecido disponível
+Heated catalyst monitor_incmpl	Monitor do catalisador aquecido incompleto
+High beam status	Estado do farol alto
+High fuel pressure measured	Alta pressão de combustível, medida
+High fuel pressure, actual	Alta pressão de combustível, real
+High fuel pressure, target	Alta pressão de combustível, desejada
+High voltage battery cells, max state of charge	Células da bateria de alta tensão, carga máxima
+High voltage battery charge control, kw	Controle de carga da bateria de alta tensão, kW
+High voltage battery discharge control, kw	Controle de descarga da bateria de alta tensão, kW
+High voltage battery intake air temperature	Temperatura do ar de entrada da bateria de alta tensão
+High voltage battery module 1A temperature	Temperatura do módulo 1A da bateria de alta tensão
+High voltage battery module 3A temperature	Temperatura do módulo 3A da bateria de alta tensão
+High voltage battery total capacity	Capacidade total da bateria de alta tensão
+High voltage battery total current	Corrente total da bateria de alta tensão
+High voltage battery voltage	Tensão da bateria de alta tensão
+High voltage, target engine speed	Alta tensão, rotação desejada do motor
+Hood ajar?	Capô aberto?
+Hybrid battery 1 fan	Ventoinha 1 da bateria híbrida
+Hydraulic valve, communication open	Válvula hidráulica, comunicação aberta
+IG OFF elapsed time	Tempo desde que a ignição foi desligada
+Idle control	Controle da marcha lenta
+Idle speed control learning	Aprendizado do controle da marcha lenta
+Idle speed control learning value, l/s	Valor aprendido do controle da marcha lenta, L/s
+Idle status	Estado da marcha lenta
+Idle up request	Pedido de aceleração da marcha lenta
+Ignition 1	Ignição 1
+Ignition advance	Avanço de ignição
+Ignition correction, cylinder 1	Correção de ignição, cilindro 1
+Ignition switch	Chave de ignição
+Ignition timing advance	Avanço do ponto de ignição
+Ignition timing, cylinder 1	Ponto de ignição, cilindro 1
+Ignition trigger count	Contagem de disparos da ignição
+Immobilizer code programming status	Estado da programação do código do imobilizador
+Immobilizer communication on	Comunicação com o imobilizador ligada
+In car temperature	Temperatura dentro do carro
+Incomplete	Incompleto
+Indicated engine torque	Torque indicado do motor
+Initial engine battery voltage lower limit	Limite inferior inicial da tensão da bateria do motor
+Initial engine coolant temperature	Temperatura inicial do líquido de arrefecimento
+Initial intake air temperature	Temperatura inicial do ar de admissão
+Injection	Injeção
+Injection amount, smoke limit	Quantidade injetada, limite de fumaça
+Injection duration for cylinder 1	Duração da injeção no cilindro 1
+Injection mode	Modo de injeção
+Injection quantity	Quantidade injetada
+Injection volume	Volume injetado
+Injection volume - target	Volume injetado, desejado
+Injection volume per 10 injections, cylinder 1	Volume injetado a cada 10 injeções, cilindro 1
+Injection volume total	Volume injetado total
+Injector impulse width	Largura do pulso do bico injetor
+Injector port	Injeção no coletor (porta)
+Injector pulse width	Largura do pulso do bico injetor
+Input over-voltage to converter	Sobretensão na entrada do conversor
+Input over-voltage to inverter	Sobretensão na entrada do inversor
+Input shaft speed	Rotação do eixo de entrada
+Input speed	Rotação de entrada
+Inspection mode	Modo de inspeção
+Intake VVT change angle, bank 1	Ângulo de variação do VVT de admissão, banco 1
+Intake VVT most over-retarded learn value, bank 1	Valor aprendido de atraso máximo do VVT de admissão, banco 1
+Intake VVT target angle B1	Ângulo desejado do VVT de admissão B1
+Intake air	Ar de admissão
+Intake air temperature	Temperatura do ar de admissão
+Intake air temperature 2	Temperatura do ar de admissão 2
+Intake air temperature, bank 1 sensor 1	Temperatura do ar de admissão, banco 1 sensor 1
+Intake air temperature, bank 1 sensor 2	Temperatura do ar de admissão, banco 1 sensor 2
+Intake air temperature_7e2	Temperatura do ar de admissão (7E2)
+Intake temperature fault	Falha da temperatura de admissão
+Intake temperature sensor voltage	Tensão do sensor de temperatura de admissão
+Intake temperature, alternate	Temperatura de admissão, alternativa
+Integrated engine run time	Tempo total de funcionamento do motor
+Intercooler coolant temperature	Temperatura do líquido do intercooler
+Intercooler water pump	Bomba d'água do intercooler
+Intercooler water pump speed, raw count	Rotação da bomba d'água do intercooler, valor bruto
+Interior temperature	Temperatura interna
+Internal temperature	Temperatura interna
+Inverter MG1 temperature	Temperatura do inversor do MG1
+Inverter MG1 temperature at ignition on	Temperatura do inversor do MG1 ao ligar a ignição
+Inverter MG1 temperature max	Temperatura máxima do inversor do MG1
+Inverter MG2 temperature	Temperatura do inversor do MG2
+Inverter MG2 temperature at ignition on	Temperatura do inversor do MG2 ao ligar a ignição
+Inverter MG2 temperature max	Temperatura máxima do inversor do MG2
+Inverter coolant temperature	Temperatura do líquido de arrefecimento do inversor
+Inverter water pump duty	Ciclo da bomba d'água do inversor
+Inverter water pump revolution	Rotação da bomba d'água do inversor
+Judge time engine ignition	Tempo de avaliação da ignição do motor
+Judge time engine output	Tempo de avaliação da potência do motor
+Key cycle	Ciclos de chave
+Key remind sound	Aviso sonoro de chave esquecida
+Kilometers	Quilômetros
+Knock adjust	Ajuste de detonação
+Knock control	Controle de detonação
+Knock correct learn value	Valor aprendido da correção de detonação
+Knock correction, learned value	Correção de detonação, valor aprendido
+Knock feedback	Realimentação de detonação
+Knock feedback value	Valor de realimentação de detonação
+Knock sensor, 1	Sensor de detonação 1
+Knock sensor, 2	Sensor de detonação 2
+Lambda correction	Correção lambda
+Lambda, commanded	Lambda comandado
+Lateral g	Aceleração lateral (g)
+Leak indicator	Indicador de vazamento
+Leak indicator at 20%	Indicador de vazamento a 20%
+Left coupling clutch current	Corrente da embreagem de acoplamento esquerda
+Line pressure control solenoid duty	Ciclo do solenoide de controle da pressão de linha
+Line pressure solenoid valve control current	Corrente de controle da válvula solenoide de pressão de linha
+Loading condition	Condição de carga
+Lock status	Estado da trava
+Lock up state	Estado do travamento (lock-up)
+Lock-up control solenoid duty	Ciclo do solenoide de controle do lock-up
+Lock-up solenoid	Solenoide do lock-up
+Lock-up solenoid monitor current	Corrente monitorada do solenoide do lock-up
+Lock-up solenoid output current	Corrente de saída do solenoide do lock-up
+Lock-up/select changeover solenoid monitor	Monitor do solenoide de troca lock-up/seleção
+Lock-up/select changeover solenoid output	Saída do solenoide de troca lock-up/seleção
+Locked	Travado
+Long FT B1S1	Correção de longo prazo B1S1
+Long term fuel trim, bank 1	Correção de mistura de longo prazo, banco 1
+Long term fuel trim, bank 2	Correção de mistura de longo prazo, banco 2
+Long-term fuel trim, bank 1	Correção de mistura de longo prazo, banco 1
+Long-term regeneration capability	Capacidade de regeneração de longo prazo
+Longitudinal g	Aceleração longitudinal (g)
+Low	L (reduzida)
+Low fuel pressure	Baixa pressão de combustível
+Low fuel pressure sensor	Sensor de baixa pressão de combustível
+Low pressure fuel pump actuator duty cycle raw	Ciclo do atuador da bomba de baixa pressão, valor bruto
+Low pressure fuel pump status	Estado da bomba de combustível de baixa pressão
+Low selected	L (reduzida) selecionada
+MG1 carrier frequency	Frequência portadora do MG1
+MG1 control mode, pwm=0,variable pwm=1,rectangular wave=2	Modo de controle do MG1 (0 PWM, 1 PWM variável, 2 onda quadrada)
+MG1 gate status	Estado do gate do MG1
+MG1 inverter fail	Falha do inversor do MG1
+MG1 inverter shutdown	Desligamento do inversor do MG1
+MG1 revolution	Rotação do MG1
+MG1 temperature	Temperatura do MG1
+MG1 temperature at ignition on	Temperatura do MG1 ao ligar a ignição
+MG1 temperature max	Temperatura máxima do MG1
+MG1 torque	Torque do MG1
+MG1 torque execution value	Torque executado do MG1
+MG2 carrier frequency	Frequência portadora do MG2
+MG2 control mode, pwm=0,variable pwm=1,rectangular wave=2	Modo de controle do MG2 (0 PWM, 1 PWM variável, 2 onda quadrada)
+MG2 gate status	Estado do gate do MG2
+MG2 inverter fail	Falha do inversor do MG2
+MG2 inverter shutdown	Desligamento do inversor do MG2
+MG2 revolution	Rotação do MG2
+MG2 temperature	Temperatura do MG2
+MG2 temperature at ignition on	Temperatura do MG2 ao ligar a ignição
+MG2 temperature max	Temperatura máxima do MG2
+MG2 torque	Torque do MG2
+MG2 torque execution value	Torque executado do MG2
+MIL	Luz de injeção (MIL)
+MIL ON run distance	Distância com a luz de injeção acesa
+Main accelerator position	Posição principal do acelerador
+Main battery charging requested	Pedido de carga da bateria principal
+Main brake contactor status	Estado do contator principal do freio
+Main connector solenoid current	Corrente do solenoide do conector principal
+Main idle	Marcha lenta principal
+Main injection timing	Ponto da injeção principal
+Main relay a, solenoid current	Corrente do solenoide do relé principal A
+Main relay r solenoid current	Corrente do solenoide do relé principal R
+Main throttle position	Posição principal da borboleta
+Maintenance, air cleaner	Manutenção: filtro de ar
+Maintenance, cabin filter	Manutenção: filtro da cabine
+Maintenance, engine coolant	Manutenção: líquido de arrefecimento
+Maintenance, general inspection	Manutenção: inspeção geral
+Maintenance, oil & filter	Manutenção: óleo e filtro
+Maintenance, rake fluid	Manutenção: fluido de freio
+Maintenance, spark plugs & valves	Manutenção: velas e válvulas
+Maintenance, tire rotation	Manutenção: rodízio dos pneus
+Maintenance, transmission fluid	Manutenção: fluido do câmbio
+Manifold absolute pressure	Pressão absoluta do coletor (MAP)
+Manifold absolute pressure, high resolution	Pressão absoluta do coletor, alta resolução
+Manifold air pressure_7e2	Pressão do coletor (7E2)
+Manifold pressure	Pressão do coletor
+Manifold pressure sensor voltage	Tensão do sensor de pressão do coletor
+Manifold temperature	Temperatura do coletor
+Manual	Manual
+Mass air flow	Fluxo de massa de ar (MAF)
+Master cylinder open	Cilindro mestre aberto
+Master cylinder sensor temperature	Temperatura do sensor do cilindro mestre
+Master cylinder stroke	Curso do cilindro mestre
+Master cylinder torque	Torque do cilindro mestre
+Max pressure	Pressão máxima
+Maximum allowable torque	Torque máximo permitido
+Maximum clutch travel during gear shift	Curso máximo da embreagem na troca de marcha
+Maximum generator inverter temperature	Temperatura máxima do inversor do gerador
+Maximum motor inverter temperature	Temperatura máxima do inversor do motor elétrico
+Measured current of control of electromagnetic valve of automatic transmission lubrication	Corrente medida da válvula eletromagnética de lubrificação do câmbio automático
+Measured current of control of electromagnetic valve of change of pressure of torque converter lock-up	Corrente medida da válvula eletromagnética de pressão do lock-up do conversor
+Measured current of electromagnetic valve for changing the pressure in the brake system B2	Corrente medida da válvula eletromagnética de pressão do freio B2
+Measured current of the electromagnetic valve for changing the gear shift SC2	Corrente medida da válvula eletromagnética de troca SC2
+Measured current of the electromagnetic valve for changing the pressure in the brake system B1	Corrente medida da válvula eletromagnética de pressão do freio B1
+Measured current of the electromagnetic valve for regulating the pressure in the oil pressure accumulator control system, AMN8 gearbox	Corrente medida da válvula eletromagnética do acumulador de pressão de óleo, câmbio AMN8
+Measured current of the electromagnetic valve of change of pressure of clutch C3	Corrente medida da válvula eletromagnética de pressão da embreagem C3
+Measured current of the electromagnetic valve of change of pressure of clutch C4	Corrente medida da válvula eletromagnética de pressão da embreagem C4
+Measured current of the solenoid valve for changing the pressure of the clutch C1	Corrente medida da válvula solenoide de pressão da embreagem C1
+Measured current of the solenoid valve for changing the pressure of the clutch C2	Corrente medida da válvula solenoide de pressão da embreagem C2
+Measured current of the solenoid valve for controlling the locking finger of the automatic transmission in position p	Corrente medida da válvula solenoide da trava P do câmbio automático
+Measured line pressure variation solenoid valve current	Corrente medida da válvula solenoide de variação da pressão de linha
+Mileage	Quilometragem
+Mileage before servicing	Quilometragem até a revisão
+Miles	Milhas
+Minimum battery voltage at startup	Tensão mínima da bateria na partida
+Minimum engine speed	Rotação mínima do motor
+Minimum fuel level	Nível mínimo de combustível
+Misfire RPM	Rotação na falha de combustão
+Misfire count, all cylinders	Falhas de combustão, todos os cilindros
+Misfire events, latest cycle	Falhas de combustão, último ciclo
+Misfire load	Carga na falha de combustão
+Misfire margin	Margem de falha de combustão
+Misfire monitor available?	Monitor de falha de combustão disponível?
+Misfire monitor_avail	Monitor de falha de combustão disponível
+Misfire test result, incomplete	Resultado do teste de falha de combustão, incompleto
+Model code_7e2, raw count	Código do modelo (7E2), valor bruto
+Model year	Ano-modelo
+Module voltage	Tensão do módulo
+Months before servicing	Meses até a revisão
+Motor RPM	Rotação do motor elétrico
+Motor assist battery temperature	Temperatura da bateria de assistência do motor elétrico
+Motor generator 1 inverter gate	Gate do inversor do motor-gerador 1
+Motor generator 1 inverter temperature	Temperatura do inversor do motor-gerador 1
+Motor generator 1 speed	Rotação do motor-gerador 1
+Motor generator 1 torque	Torque do motor-gerador 1
+Motor generator 1 torque executed	Torque executado do motor-gerador 1
+Motor generator 2 inverter gate	Gate do inversor do motor-gerador 2
+Motor generator 2 inverter temperature	Temperatura do inversor do motor-gerador 2
+Motor generator 2 speed	Rotação do motor-gerador 2
+Motor generator 2 torque	Torque do motor-gerador 2
+Motor generator 2 torque executed	Torque executado do motor-gerador 2
+Motor inverter temperature	Temperatura do inversor do motor elétrico
+Motor inverter temperature after ignition on	Temperatura do inversor do motor elétrico após ligar a ignição
+Motor inverter, maximum temperature	Inversor do motor elétrico, temperatura máxima
+Motor regenerative brake torque	Torque de frenagem regenerativa do motor elétrico
+Motor regenerative brake torque, requested	Torque de frenagem regenerativa do motor elétrico, pedido
+Motor temperature 1	Temperatura do motor elétrico 1
+Motor temperature 2	Temperatura do motor elétrico 2
+Motor torque	Torque do motor elétrico
+NC1 speed	Rotação NC1
+NO speed	Rotação NO
+NT speed	Rotação NT
+Navigation altitude	Altitude da navegação
+Navigation heading	Direção da navegação
+Navigation speed	Velocidade da navegação
+Neutral	N (neutro)
+Neutral position	Posição neutra
+Neutral position sensor status	Estado do sensor de posição neutra
+Neutral selected	N (neutro) selecionado
+Neutral status	Estado do neutro
+Ninth gear	Nona marcha
+Normal brake closed status	Estado do freio normal fechado
+Normalized cumulative charge when ignition is on	Carga acumulada normalizada com a ignição ligada
+Normalized cumulative discharge from battery with engine off	Descarga acumulada normalizada da bateria com o motor desligado
+Normalized cumulative discharge from battery with engine on	Descarga acumulada normalizada da bateria com o motor ligado
+Number of battery blocks	Número de blocos da bateria
+Number of current code	Número de códigos atuais
+Number of emission DTC	Número de códigos de emissões
+Number of engagements of the electromagnetic valve for regulating the pressure in the oil pressure accumulator control system, AMN8 gearbox	Acionamentos da válvula eletromagnética do acumulador de pressão de óleo, câmbio AMN8
+Number of engine stop information deletion cycles	Ciclos de exclusão das informações de parada do motor
+Number of gear engagements n	Número de engates da marcha N
+Number of gear engagements right	Número de engates da marcha (direita)
+Number of history code	Número de códigos no histórico
+Number of shift solenoid operated SC4	Acionamentos do solenoide de troca SC4
+Number of shift solenoid operated SC5	Acionamentos do solenoide de troca SC5
+Number of shift solenoid operated automatic transmission lubrication control valve	Acionamentos da válvula de lubrificação do câmbio automático
+Number of shift solenoid operated torque converter lock-up pressure regulating valve	Acionamentos da válvula de pressão do lock-up do conversor de torque
+O2 heater b1s2_active	Aquecedor da sonda lambda B1S2 ativo
+O2 heater current val bank 1 sensor 2	Corrente do aquecedor da sonda lambda banco 1 sensor 2
+O2 sensor voltage, rear	Tensão da sonda lambda traseira
+O2S heater monitor available?	Monitor do aquecedor da sonda lambda disponível?
+O2S heater monitor incomplete?	Monitor do aquecedor da sonda lambda incompleto?
+O2S heater monitor_avail	Monitor do aquecedor da sonda lambda disponível
+O2S heater monitor_incmpl	Monitor do aquecedor da sonda lambda incompleto
+O2S monitor available?	Monitor da sonda lambda disponível?
+O2S monitor incomplete?	Monitor da sonda lambda incompleto?
+O2S monitor_avail	Monitor da sonda lambda disponível
+O2S monitor_incmpl	Monitor da sonda lambda incompleto
+O2S, bank 1 sensor 2	Sonda lambda, banco 1 sensor 2
+OXS1, A/FS2 test result, incomplete	Resultado do teste da sonda 1 e A/F 2, incompleto
+Octane adjustment	Ajuste de octanagem
+Odometer	Hodômetro
+Odometer unit	Unidade do hodômetro
+Odometer, in the cluster's unit	Hodômetro, na unidade do painel
+Odometer, instrument panel	Hodômetro, painel de instrumentos
+Odometer, variation 3	Hodômetro, variante 3
+Off condition	Condição desligada
+Oil life remaining	Vida útil restante do óleo
+Oil pressure	Pressão do óleo
+Oil pressure switch	Interruptor de pressão do óleo
+Oil temperature	Temperatura do óleo
+Open side malfunction on	Defeito de circuito aberto ligado
+Operating mode used by the automatic transmission	Modo de funcionamento usado pelo câmbio automático
+Output mode	Modo de saída
+Output shaft speed	Rotação do eixo de saída
+Output speed	Rotação de saída
+Output speed sensor voltage	Tensão do sensor de rotação de saída
+Outside air temperature	Temperatura do ar externo
+Oxygen sensor voltage, bank 1 sensor 1	Tensão da sonda lambda, banco 1 sensor 1
+Oxygen sensor voltage, bank 1 sensor 2	Tensão da sonda lambda, banco 1 sensor 2
+P-seatbelt buckle SW	Interruptor do cinto do passageiro
+PM accumulation ratio - bank 1	Taxa de acúmulo de partículas, banco 1
+Paddle shift mode	Modo das borboletas de troca no volante
+Park	P (estacionamento)
+Park position switch terminal voltage	Tensão do interruptor da posição P
+Park selected	P (estacionamento) selecionado
+Parking brake	Freio de estacionamento
+Particulate filter differential pressure	Pressão diferencial do filtro de partículas
+Particulate filter differential pressure sensor deviation from reference	Desvio do sensor de pressão diferencial do filtro de partículas
+Particulate filter regeneration	Regeneração do filtro de partículas
+Particulate filter regeneration enabled	Regeneração do filtro de partículas habilitada
+Particulate filter regeneration status	Estado da regeneração do filtro de partículas
+Particulate filter soot clogging level	Nível de entupimento por fuligem do filtro de partículas
+Particulate filter soot load, closed loop estimate	Carga de fuligem do filtro de partículas, estimativa em malha fechada
+Particulate filter soot load, open loop estimate	Carga de fuligem do filtro de partículas, estimativa em malha aberta
+Particulate filter thermal aging	Envelhecimento térmico do filtro de partículas
+Passenger door ajar?	Porta do passageiro aberta?
+Passenger side output speed	Rotação de saída do lado do passageiro
+Passenger temperature setting	Temperatura ajustada pelo passageiro
+Pattern switch	Botão de modo de condução
+Position of the gearshift lever	Posição da alavanca de câmbio
+Power request	Pedido de potência
+Power resource IB	Fonte de energia IB
+Power resource current	Corrente da fonte de energia
+Power resource voltage	Tensão da fonte de energia
+Power steering	Direção assistida
+Powertrain condition	Condição do trem de força
+Predictive brake assist status	Estado da assistência preditiva de frenagem
+Pressure	Pressão
+Previous trip distance	Distância da viagem anterior
+Primary pressure	Pressão primária
+Problems detected while transmitting unlock code	Problemas ao transmitir o código de desbloqueio
+Prohibit DC/DC converter signal	Sinal de bloqueio do conversor CC-CC
+Proportional clutch pedal sensor	Sensor proporcional do pedal da embreagem
+Purge cut vacuum switching valve duty	Ciclo da válvula de vácuo de corte da purga
+Racing operation	Operação em competição
+Real engine torque	Torque real do motor
+Rear axle coupling clutch current	Corrente da embreagem de acoplamento do eixo traseiro
+Rear axle coupling clutch position sensor status	Estado do sensor de posição da embreagem do eixo traseiro
+Rear defogger ON/OFF count	Contagem de liga/desliga do desembaçador traseiro
+Rear left door ajar?	Porta traseira esquerda aberta?
+Rear left outer tire pressure	Pressão do pneu traseiro esquerdo externo
+Rear left wheel ABS status	Estado do ABS da roda traseira esquerda
+Rear left wheel EBS status	Estado do EBS da roda traseira esquerda
+Rear left wheel acceleration	Aceleração da roda traseira esquerda
+Rear left wheel electronic brake force distribution status	Estado da distribuição eletrônica de frenagem da roda traseira esquerda
+Rear left wheel speed	Velocidade da roda traseira esquerda
+Rear left wheel speed open	Velocidade da roda traseira esquerda (circuito aberto)
+Rear left wheel speed?	Velocidade da roda traseira esquerda?
+Rear left wheel vehicle stability control status	Estado do controle de estabilidade da roda traseira esquerda
+Rear motor inverter, coolant temperature	Inversor do motor traseiro, temperatura do líquido
+Rear motor regenerative brake torque	Torque de frenagem regenerativa do motor traseiro
+Rear motor regenerative brake torque, requested	Torque de frenagem regenerativa do motor traseiro, pedido
+Rear motor speed	Rotação do motor traseiro
+Rear motor torque	Torque do motor traseiro
+Rear right door ajar?	Porta traseira direita aberta?
+Rear right outer tire pressure	Pressão do pneu traseiro direito externo
+Rear right wheel ABS status	Estado do ABS da roda traseira direita
+Rear right wheel EBS status	Estado do EBS da roda traseira direita
+Rear right wheel acceleration	Aceleração da roda traseira direita
+Rear right wheel electronic brake force distribution status	Estado da distribuição eletrônica de frenagem da roda traseira direita
+Rear right wheel speed	Velocidade da roda traseira direita
+Rear right wheel speed open	Velocidade da roda traseira direita (circuito aberto)
+Rear right wheel speed?	Velocidade da roda traseira direita?
+Rear right wheel vehicle stability control status	Estado do controle de estabilidade da roda traseira direita
+Recirculation time	Tempo de recirculação
+Regen cooperation	Cooperação da regeneração
+Regeneration request soot deposit	Pedido de regeneração por depósito de fuligem
+Regenerative brake torque	Torque de frenagem regenerativa
+Regenerative brake torque requested	Torque de frenagem regenerativa pedido
+Regenerative braking cooperation	Cooperação da frenagem regenerativa
+Regenerative operation	Operação regenerativa
+Regenerative request	Pedido de regeneração
+Regulator pressure	Pressão do regulador
+Relay control solenoid current	Corrente do solenoide de controle do relé
+Remote wake-up circuit status	Estado do circuito de ativação remota
+Remote wake-up state	Estado da ativação remota
+Request engine run time	Pedido de funcionamento do motor
+Request to turn on the engine diagnostic indicator	Pedido para acender a luz de injeção
+Request warm-up	Pedido de aquecimento
+Requested engine torque	Torque pedido ao motor
+Requested value controlled thermostat	Valor pedido da válvula termostática controlada
+Reservoir warning	Aviso do reservatório
+Restart request sent by power steering computer	Pedido de nova partida enviado pela central da direção elétrica
+Restart request sent by suspension computer	Pedido de nova partida enviado pela central da suspensão
+Return to engine start and restart control by starter	Volta ao controle de partida e nova partida pelo motor de partida
+Return to starter engine restart control	Volta ao controle de nova partida pelo motor de partida
+Reverse	R (ré)
+Reverse beep	Bipe de ré
+Reverse gear contactor status	Estado do contator da marcha à ré
+Reverse selected	R (ré) selecionada
+Rheostat	Reostato (brilho do painel)
+Right coupling clutch current	Corrente da embreagem de acoplamento direita
+Running time from MIL ON	Tempo de funcionamento com a luz de injeção acesa
+SC5 shift solenoid control current	Corrente de controle do solenoide de troca SC5
+SC5 shift solenoid measured current	Corrente medida do solenoide de troca SC5
+SET/COAST switch	Botão SET/COAST do piloto automático
+SOC at ignition on	Estado de carga ao ligar a ignição
+SOC max	Estado de carga máximo
+SOC min	Estado de carga mínimo
+STATUS COMMANDS REGULATION OR LIMITATION SPEED	Estado dos comandos de regulador ou limitador de velocidade
+Seat belt beep, driver	Bipe do cinto, motorista
+Seat belt beep, passenger	Bipe do cinto, passageiro
+Seat belt beep, reminder	Bipe do cinto, lembrete
+Second battery current	Corrente da segunda bateria
+Second battery voltage	Tensão da segunda bateria
+Second gear	Segunda marcha
+Secondary brake contactor status	Estado do contator secundário do freio
+Secondary shaft speed 1	Rotação do eixo secundário 1
+Secondary shaft speed 2	Rotação do eixo secundário 2
+Service battery charge state	Estado de carga da bateria de serviço
+Service battery charge status	Situação da carga da bateria de serviço
+Service battery temperature	Temperatura da bateria de serviço
+Service battery voltage	Tensão da bateria de serviço
+Service battery wear condition	Desgaste da bateria de serviço
+Service contactor solenoid current	Corrente do solenoide do contator de serviço
+Service network related engine restart request	Pedido de nova partida ligado à rede de serviço
+Set speed of electric cooling fan	Velocidade programada da ventoinha elétrica
+Set temperature, driver side	Temperatura ajustada, lado do motorista
+Set voltage of storage battery charging	Tensão programada de carga da bateria
+Seventh gear	Sétima marcha
+Shift SW status, drive	Seletor de marchas: D
+Shift SW status, neutral	Seletor de marchas: N
+Shift SW status, parking	Seletor de marchas: P
+Shift SW status, reverse	Seletor de marchas: R
+Shift gear	Marcha do seletor
+Shift in drive	Seletor em D
+Shift position sensor voltage	Tensão do sensor de posição do seletor
+Shift select sensor main voltage	Tensão principal do sensor de seleção de marcha
+Shift select sensor sub voltage	Tensão secundária do sensor de seleção de marcha
+Shift sensor main	Sensor de troca principal
+Shift sensor main voltage	Tensão principal do sensor de troca
+Shift sensor select main	Sensor de seleção principal
+Shift sensor select sub	Sensor de seleção secundário
+Shift sensor sub	Sensor de troca secundário
+Shift sensor sub voltage	Tensão secundária do sensor de troca
+Shift solenoid control current SC3	Corrente de controle do solenoide de troca SC3
+Shift solenoid control current SC4	Corrente de controle do solenoide de troca SC4
+Shift solenoid measured current SC3	Corrente medida do solenoide de troca SC3
+Shift solenoid measured current SC4	Corrente medida do solenoide de troca SC4
+Shift-lock control	Controle da trava do seletor (shift-lock)
+Short FT B1S1	Correção de curto prazo B1S1
+Short circuit wave highest value	Valor máximo da onda de curto-circuito
+Short term fuel trim	Correção de mistura de curto prazo
+Short term fuel trim, bank 1	Correção de mistura de curto prazo, banco 1
+Short term fuel trim, bank 2	Correção de mistura de curto prazo, banco 2
+Short-term regeneration capability	Capacidade de regeneração de curto prazo
+Sixth gear	Sexta marcha
+Slave cylinder stroke	Curso do cilindro auxiliar da embreagem
+Sleep time of battery sensor	Tempo de repouso do sensor da bateria
+Slip indicator light	Luz indicadora de patinagem
+Slip speed	Velocidade de patinagem
+Small injection quantity learning	Aprendizado de pequenas quantidades injetadas
+Smart key	Chave presencial
+Solar sensor	Sensor solar
+Solar sensor, driver side	Sensor solar, lado do motorista
+Speed	Velocidade
+Speed meter	Velocímetro
+Speed output	Saída de velocidade
+Sport mode contactor state	Estado do contator do modo esportivo
+Sport mode selected	Modo esportivo selecionado
+Sports mode selection	Seleção do modo esportivo
+Sports shift down	Redução de marcha no modo esportivo
+Sports shift up	Subida de marcha no modo esportivo
+Stability control actuator signal	Sinal do atuador do controle de estabilidade
+Standby blower request status	Estado do pedido do ventilador em espera
+Start inhibit control, wired	Bloqueio de partida, por fio
+Start or restart inhibition transmitted by engine management computer	Bloqueio de partida ou nova partida enviado pela central do motor
+Start permission from gearbox computer	Permissão de partida da central do câmbio
+Start prohibition	Partida proibida
+Starter activation counter	Contador de acionamentos do motor de partida
+Starter control	Controle do motor de partida
+Starter control interface unit operating status	Estado da unidade de interface do motor de partida
+Starter duty cycle	Ciclo do motor de partida
+Starter engagement status	Estado de engate do motor de partida
+Starter relay on	Relé do motor de partida ligado
+Starter signal	Sinal do motor de partida
+State lock/unlock control unit	Estado da central de travamento/destravamento
+State of charge	Estado de carga
+State of charge, all bat	Estado de carga, todas as baterias
+State of charge, raw count	Estado de carga, valor bruto
+Static engine torque	Torque estático do motor
+Status of internal ignition motor	Estado da ignição interna do motor
+Steering angle	Ângulo da direção
+Steering wheel angle	Ângulo do volante
+Stop allowed by ESP computer	Parada permitida pela central do ESP
+Stop and start function state	Estado da função start/stop
+Stop and start switch	Botão do start/stop
+Stop light	Luz de freio
+Stop light relay	Relé da luz de freio
+Stop light switch 1, main processor	Interruptor 1 da luz de freio, processador principal
+Stop light switch 1, sub processor	Interruptor 1 da luz de freio, processador secundário
+Stop light switch 2, sub processor	Interruptor 2 da luz de freio, processador secundário
+Stop permitted by suspension computer	Parada permitida pela central da suspensão
+Stroke open	Curso (circuito aberto)
+Sub accelerator position	Posição secundária do acelerador
+Sub throttle position	Posição secundária da borboleta
+Sump oil temperature measured	Temperatura do óleo do cárter medida
+Synchronize stroke sensor position	Sincronizar a posição do sensor de curso
+System guard on	Proteção do sistema ligada
+System work time	Tempo de trabalho do sistema
+T/F status	Estado da caixa de transferência
+TC	TC
+TCM reported torque	Torque informado pela central do câmbio
+Tail cancel SW	Botão de cancelar lanterna
+Target air-fuel equivalence ratio	Relação ar/combustível equivalente desejada (lambda)
+Target air-fuel ratio	Relação ar/combustível desejada
+Target common rail fuel pressure	Pressão desejada no common rail
+Target engine speed	Rotação desejada do motor
+Target idle RPM	Rotação desejada da marcha lenta
+Target main throttle position	Posição principal desejada da borboleta
+Target throttle control	Controle desejado da borboleta
+Tenth gear	Décima marcha
+Third gear	Terceira marcha
+Throttle angle, actual	Ângulo da borboleta, real
+Throttle angle, desired	Ângulo da borboleta, desejado
+Throttle control relay	Relé de controle da borboleta
+Throttle control servo	Servo de controle da borboleta
+Throttle control trim angle, learned	Ângulo de ajuste da borboleta, aprendido
+Throttle fully close learn	Aprendizado da borboleta totalmente fechada
+Throttle idle position on	Borboleta em posição de repouso
+Throttle inlet pressure	Pressão na entrada da borboleta
+Throttle inlet pressure sensor voltage	Tensão do sensor de pressão na entrada da borboleta
+Throttle inlet pressure, desired	Pressão na entrada da borboleta, desejada
+Throttle motor DUTY	Ciclo do motor da borboleta
+Throttle motor current	Corrente do motor da borboleta
+Throttle motor duty	Ciclo do motor da borboleta
+Throttle motor duty, close	Ciclo do motor da borboleta, fechando
+Throttle motor duty, open	Ciclo do motor da borboleta, abrindo
+Throttle pedal sensor	Sensor do pedal do acelerador
+Throttle position	Posição da borboleta
+Throttle position command	Comando de posição da borboleta
+Throttle position, number 1	Posição da borboleta, nº 1
+Throttle position, number 2	Posição da borboleta, nº 2
+Throttle require position	Posição pedida da borboleta
+Throttle sensor open position 1	Posição de abertura do sensor da borboleta 1
+Throttle sensor open position 2	Posição de abertura do sensor da borboleta 2
+Throttle sensor position	Posição do sensor da borboleta
+Throttle sensor volt %, 1	Tensão do sensor da borboleta em %, 1
+Throttle sensor volt %, 2	Tensão do sensor da borboleta em %, 2
+Throttle sensor voltage, 1	Tensão do sensor da borboleta, 1
+Throttle sensor voltage, 2	Tensão do sensor da borboleta, 2
+Time after DTC cleared	Tempo desde que os códigos foram apagados
+Time since DTCs cleared	Tempo desde que os códigos foram apagados
+Time since engine start	Tempo desde a partida
+Time since last oil change	Tempo desde a última troca de óleo
+Tire pressure warning	Aviso de pressão dos pneus
+Tire size	Medida do pneu
+Tire temperature	Temperatura do pneu
+Torque converter and TE1 on	Conversor de torque e TE1 ligados
+Torque converter line pressure	Pressão de linha do conversor de torque
+Torque converter lock-up	Travamento (lock-up) do conversor de torque
+Torque converter lock-up pressure variation solenoid valve control current	Corrente de controle da válvula solenoide de pressão do lock-up do conversor
+Torque converter slip	Escorregamento do conversor de torque
+Torque converter slip mode, theoretical value	Modo de escorregamento do conversor de torque, valor teórico
+Torque converter slip speed, measured	Escorregamento do conversor de torque, medido
+Torque converter status	Estado do conversor de torque
+Torque converter turbine speed	Rotação da turbina do conversor de torque
+Torque converter turbine wheel speed	Rotação da turbina do conversor de torque
+Torque corresponding to driver requirement	Torque correspondente ao pedido do motorista
+Torque into torque converter	Torque na entrada do conversor de torque
+Torque request	Pedido de torque
+Torque supplied or taken by generator	Torque fornecido ou consumido pelo gerador
+Total distance	Distância total
+Total distance, lifetime	Distância total, vida útil
+Total fuel trim, bank 1	Correção total de mistura, banco 1
+Total mileage	Quilometragem total
+Total misfire count	Total de falhas de combustão
+Towing device configured	Engate de reboque configurado
+Traction control actuator signal	Sinal do atuador do controle de tração
+Traction control, brake status	Controle de tração, estado do freio
+Traction control, engine status	Controle de tração, estado do motor
+Traction control, status	Controle de tração, estado
+Traction or stability control regulating	Controle de tração ou estabilidade atuando
+Transaxle oil temperature	Temperatura do óleo do câmbio (transeixo)
+Transfer case fluid temperature	Temperatura do fluido da caixa de transferência
+Transmission belt clamping force sensor	Sensor de força de aperto da correia do câmbio
+Transmission fluid pan temperature	Temperatura do fluido do câmbio no cárter
+Transmission fluid post-converter temperature, variant 3	Temperatura do fluido do câmbio depois do conversor, variante 3
+Transmission fluid temperature	Temperatura do fluido do câmbio
+Transmission fluid temperature, after the torque converter	Temperatura do fluido do câmbio depois do conversor de torque
+Transmission fluid temperature, pan	Temperatura do fluido do câmbio, cárter
+Transmission fluid temperature, pan var.3	Temperatura do fluido do câmbio, cárter, variante 3
+Transmission fluid temperature, pipe	Temperatura do fluido do câmbio, tubulação
+Transmission gear	Marcha do câmbio
+Transmission gear ratio	Relação de marcha do câmbio
+Transmission input speed	Rotação de entrada do câmbio
+Transmission oil pressure calibration, complete	Calibração da pressão de óleo do câmbio concluída
+Transmission oil pressure sensor 2	Sensor 2 de pressão do óleo do câmbio
+Transmission oil temperature	Temperatura do óleo do câmbio
+Transmission output shaft speed	Rotação do eixo de saída do câmbio
+Transmission output speed	Rotação de saída do câmbio
+Transmission pressure, commanded	Pressão do câmbio, comandada
+Transmission shift state ratio	Relação do estado de troca do câmbio
+Transmission speed sensor NSS	Sensor de rotação do câmbio (NSS)
+Transmission temperature, pan	Temperatura do câmbio, cárter
+Transmission temperature, torque converter	Temperatura do câmbio, conversor de torque
+Trip distance	Distância da viagem
+Trunk ajar?	Porta-malas aberto?
+Turbine speed	Rotação da turbina
+Turbine speed sensor voltage	Tensão do sensor de rotação da turbina
+Turbo boost	Pressão do turbo
+Turbo inlet pressure	Pressão na entrada do turbo
+Turbocharger control duty cycle	Ciclo de controle do turbo
+Turbocharger first electronic boost	Primeiro reforço eletrônico do turbo
+Turbocharger position information	Informação de posição do turbo
+Turbocharger pressure measured	Pressão do turbo medida
+Turbocharger pressure reference	Pressão de referência do turbo
+Turbocharger, actual position	Turbo, posição real
+Turbocharger, target position	Turbo, posição desejada
+Unlocked	Destravado
+Upstream catalytic converter aging	Envelhecimento do primeiro catalisador
+VTEC pressure switch	Interruptor de pressão do VTEC
+VTEC solenoid valve	Válvula solenoide do VTEC
+VTEC valve control	Controle da válvula do VTEC
+VVT-ie duty ratio bank 1	Ciclo do VVT-iE banco 1
+VVT-ie motor direction: forward bank 1	Sentido do motor do VVT-iE: avanço, banco 1
+Vacuum circuit vacuum	Vácuo do circuito de vácuo
+Vacuum present in the brake system	Vácuo presente no sistema de freio
+Value during generator load smooth increase	Valor durante o aumento suave da carga do gerador
+Valvematic current angle	Ângulo atual do Valvematic
+Valvematic, target angle	Ângulo desejado do Valvematic
+Variable timing control duty	Ciclo do controle de variação do comando
+Variable valve timing aim angle 1	Ângulo desejado do comando variável 1
+Variable valve timing aim angle 1, raw count	Ângulo desejado do comando variável 1, valor bruto
+Variable valve timing change angle 1	Ângulo de variação do comando variável 1
+Variable valve timing control status 1 on	Controle do comando variável 1 ligado
+Variable valve timing duty	Ciclo do comando variável
+Variable valve timing duty ratio, bank 1	Ciclo do comando variável, banco 1
+Variable valve timing oil control valve duty 1	Ciclo da válvula de óleo do comando variável 1
+Variable valve timing oil temperature	Temperatura do óleo do comando variável
+Variable valve timing opening angle bank 1	Ângulo de abertura do comando variável, banco 1
+Vehicle fuel rate	Consumo de combustível do veículo
+Vehicle hour meter	Horímetro do veículo
+Vehicle load	Carga do veículo
+Vehicle mileage since the last oil change under severe vehicle operating conditions	Quilometragem desde a última troca de óleo em uso severo
+Vehicle odometer	Hodômetro do veículo
+Vehicle speed	Velocidade do veículo
+Vehicle speed limiter set speed	Velocidade programada do limitador de velocidade
+Vehicle speed limiter status, LW	Estado do limitador de velocidade, LW
+Vehicle speed sensor test result, incomplete	Resultado do teste do sensor de velocidade, incompleto
+Vehicle speed, 7B0	Velocidade do veículo (7B0)
+Vehicle speed, high resolution	Velocidade do veículo, alta resolução
+Vehicle speed, mirrored read	Velocidade do veículo, leitura espelhada
+Vehicle speed_7e2	Velocidade do veículo (7E2)
+Vh-voltage after boosting	Tensão VH depois da elevação
+Vl-voltage before boosting	Tensão VL antes da elevação
+Voltage of battery sensor	Tensão do sensor da bateria
+Warm-up cycle cleared DTC	Aquecimentos desde que os códigos foram apagados
+Warm-up cycles since DTCs cleared	Aquecimentos desde que os códigos foram apagados
+Warm-ups since DTC clear	Aquecimentos desde que os códigos foram apagados
+Wastegate control	Controle da válvula wastegate
+Wastegate duty cycle	Ciclo da válvula wastegate
+Water pump run control duty	Ciclo de controle da bomba d'água
+Water pump running	Bomba d'água funcionando
+Wheel cylinder pressure	Pressão no cilindro da roda
+Wheel speed FL	Velocidade da roda dianteira esquerda
+Wheel speed FR	Velocidade da roda dianteira direita
+Wheel speed RL	Velocidade da roda traseira esquerda
+Wheel speed RR	Velocidade da roda traseira direita
+Winter mode switch state	Estado do botão do modo inverno
+Yaw rate open error?	Erro de circuito aberto da taxa de guinada?
+Yaw rate value	Taxa de guinada
+Yaw rate value, degrees/sec	Taxa de guinada, graus/s
+Yaw rate, error?	Taxa de guinada, erro?
+Yaw rate, sensor 1	Taxa de guinada, sensor 1
+Yaw rate, sensor 2	Taxa de guinada, sensor 2
+Zero point of deceleration	Ponto zero da desaceleração
+Zero point of deceleration 2	Ponto zero da desaceleração 2
+Zero point of yaw rate	Ponto zero da taxa de guinada
+Zero point of yaw rate, degrees/sec	Ponto zero da taxa de guinada, graus/s

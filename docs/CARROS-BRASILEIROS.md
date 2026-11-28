@@ -60,9 +60,41 @@ peças), L8 a partir de 2025, com metas médias por fabricante até 2029/2031.
 ## 5. Parâmetros ao vivo (PIDs)
 
 O catálogo tem cerca de 80 parâmetros do Modo 01 (padrão SAE J1979), o que cobre o que carros a gasolina, flex e
-diesel costumam responder. Parâmetros próprios do fabricante (Modo 21/22) não entram por enquanto: a base aberta que
-existe (OBDb, licença CC BY-SA 4.0) tem dados de vários modelos vendidos aqui, mas muitos sinais estão marcados como
-não verificados e às vezes são de outra versão do carro (outro mercado ou motor).
+diesel costumam responder.
+
+### Parâmetros do fabricante (piloto)
+
+Alguns modelos têm também leituras próprias da montadora (Modo 21/22), como temperatura do óleo, marcha engatada,
+temperatura do câmbio e estado da bateria. Elas vêm da base aberta OBDb (CC BY-SA 4.0). No piloto entraram os
+modelos vendidos aqui com a maior parte dos dados confirmada em carros de verdade:
+
+| Modelo | Parâmetros | Conferidos em algum ano |
+| --- | --- | --- |
+| Peugeot 208 | 265 | 255 (confirmados num 2021) |
+| Jeep Renegade | 16 | 12 (a maior parte dos dados do Renegade pede sessão de diagnóstico e ficou de fora) |
+| Honda HR-V | 93 | 85 |
+| Honda Civic | 227 | 204 |
+| Toyota Yaris | 701 | 517 |
+| Toyota Corolla | 1.031 | 577 (inclui o híbrido) |
+| Ford Ranger | 215 | 153 (não conferidos para 2005 a 2018, outra geração) |
+| Mitsubishi L200 Triton | 200 | 126 |
+
+Como funciona: em **Painel ao vivo → Escolher parâmetros → Parâmetros do fabricante**, escolha o modelo (o chassi
+sugere a marca). Os parâmetros conferidos para o ano-modelo do carro aparecem; os outros só com **Mostrar parâmetros
+experimentais**, com uma etiqueta. Só funciona em carros com protocolo CAN. O decodificador foi conferido contra as
+cerca de 46 mil respostas gravadas nos testes do próprio OBDb.
+
+Cuidados:
+
+- "Conferido" quer dizer confirmado num carro de verdade, que pode ser de outro país ou ter outro motor (o Renegade
+  do OBDb é diesel, por exemplo). Compare com um valor conhecido antes de confiar.
+- Só entram pedidos de leitura (serviços 21 e 22) enviados direto a uma central. Pedidos que exigem abrir uma sessão
+  de diagnóstico ficaram de fora, para o programa continuar só lendo.
+- Cada parâmetro do fabricante é um pedido a mais por ciclo, então escolher muitos deixa a leitura mais lenta.
+- Ainda sem dados no OBDb: Fiat (Strada, Argo, Mobi, Toro, Cronos), Chevrolet Onix e Montana, VW Nivus, Renault
+  Kwid, Ford Ka, Citroën C3. VW Polo, Virtus e T-Cross, Renault, Nissan e Hyundai HB20 têm dados, mas quase todos
+  não conferidos; podem entrar depois.
+- O OBDb pede que quem lança um produto com esses dados avise antes (support@clutch.engineering).
 
 ## 6. Fontes
 
@@ -72,4 +104,5 @@ não verificados e às vezes são de outra versão do carro (outro mercado ou mo
 | [Wikibooks: WMI](https://en.wikibooks.org/wiki/Vehicle_Identification_Numbers_(VIN_codes)/World_Manufacturer_Identifier_(WMI)) | CC BY-SA 4.0 | códigos de fabricante e faixas de país do chassi |
 | [Wikipedia: OBD-II PIDs](https://en.wikipedia.org/wiki/OBD-II_PIDs) | CC BY-SA 4.0 | tabelas dos PIDs 1C (normas, incluindo OBDBr-1/2/3) e 51 (combustível) |
 | [TransportPolicy.net](https://www.transportpolicy.net/standard/brazil-light-duty-emissions/) e [DieselNet](https://dieselnet.com/standards/br/ld.php) | consulta | datas do PROCONVE e da norma OBDBr-3 (IN IBAMA 23/2020) |
+| [OBDb](https://github.com/OBDb) | CC BY-SA 4.0 | parâmetros do fabricante (Modo 21/22) de 8 modelos; nomes traduzidos para o português neste projeto |
 | pyOBD, AndrOBD, Libre Diagnostic | GPL/AGPL | base anterior (ver `docs/CREDITOS.md`) |

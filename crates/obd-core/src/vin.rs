@@ -317,6 +317,11 @@ const WMI: &[(&str, &str)] = &[
     ("5YJ", "Tesla"),
 ];
 
+/// Number of manufacturer codes (WMI) the decoder knows.
+pub fn wmi_count() -> usize {
+    WMI.len()
+}
+
 /// Decodes a VIN. `current_year` is used to resolve the model year cycle.
 pub fn decode_vin(vin: &str, current_year: u16) -> VinInfo {
     let vin: String = vin.trim().to_ascii_uppercase();
@@ -397,6 +402,12 @@ fn ascii_text(bytes: &[u8]) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn knows_many_manufacturers() {
+        assert!(wmi_count() >= 150);
+    }
+
     use super::*;
 
     #[test]

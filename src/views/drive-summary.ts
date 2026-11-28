@@ -102,7 +102,8 @@ function finished(s: DriveSummary | undefined) {
   // Real drives go to the trip history; replays of recordings do not.
   if (!state.playback) {
     const p = profile();
-    addDrive({ ...s, profileId: p.id, fuel: p.fuel, ethanolPercent: state.latest.ethanol_percent });
+    const cost = tripCost(s.fuelL, p.fuel, state.latest.ethanol_percent, prefs().fuelPrices, prefs().fuelRegion).cost;
+    addDrive({ ...s, profileId: p.id, fuel: p.fuel, ethanolPercent: state.latest.ethanol_percent, cost });
   }
   emit("trip");
   // A jump in a replay passes over old drives: keep them without a pop-up.

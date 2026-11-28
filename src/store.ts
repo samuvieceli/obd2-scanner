@@ -1,5 +1,6 @@
 // Application state shared by all screens, with a tiny publish/subscribe.
 import { calcInputs, isCalc } from "./calc";
+import { journeyInputs } from "./journey";
 import type {
   AdapterInfo,
   CmdError,
@@ -10,6 +11,7 @@ import type {
   LinkStatus,
   LiveFrame,
   LogEvent,
+  MakerParam,
   PidMeta,
   Readiness,
   RecordingStatus,
@@ -18,7 +20,7 @@ import type {
   VehicleInfo,
 } from "./api";
 
-export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units" | "dtcs";
+export type Topic = "maker" | "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units" | "dtcs" | "journey";
 
 export interface Series {
   t: number[];
@@ -59,6 +61,8 @@ export const state = {
   /** Recovery or reconnection in progress, null when the link is fine. */
   link: null as LinkStatus | null,
   catalog: [] as PidMeta[],
+  /** Manufacturer parameters of the car model chosen in the profile (maker.ts). */
+  maker: new Map<string, MakerParam>(),
   liveKeys: loadKeys() ?? [...DEFAULT_KEYS],
   /** Parameters chosen on the Charts screen; null = follow the dashboard. */
   chartKeys: loadKeys("chartKeys"),
@@ -93,6 +97,8 @@ export const state = {
   recoveredFrames: null as number | null,
   /** Parameters the car stopped answering in the newest live frame. */
   lastDropped: [] as string[],
+  /** A trip of the "Viagem" screen is being recorded (see journey-live.ts). */
+  journeyActive: false,
   /** Demo only: the virtual engine is stopped (ATSIMOFF). */
   demoEngineOff: false,
 };
@@ -116,13 +122,25 @@ export function emit(topic: Topic) {
 }
 
 export function meta(key: string): PidMeta | undefined {
-  return state.catalog.find((p) => p.key === key);
+  const m = state.catalog.find((p) => p.key === key);
+  if (m) return m;
+  const p = state.maker.get(key);
+  return p && { pid: 0, key, unit: p.unit, min: p.min, max: p.max, category: "vehicle" };
+}
+
+/** Manufacturer parameter keys (`mfr_corolla_eot`). */
+export const isMakerKey = (key: string) => key.startsWith("mfr_");
+
+/** CAN protocols (6-9): the only ones manufacturer parameters are read on. */
+export function adapterIsCan(): boolean {
+  return ["6", "7", "8", "9"].includes((state.adapter?.protocol_number ?? "").replace(/^A/, ""));
 }
 
 /** Keys the connected vehicle supports (battery voltage is read from the adapter). */
 export function isSupported(key: string): boolean {
   if (state.playback) return state.playback.keys.includes(key);
   if (key === "battery_voltage") return true;
+  if (isMakerKey(key)) return state.maker.has(key) && adapterIsCan();
   const m = meta(key);
   return !!m && !!state.adapter && state.adapter.supported_pids.includes(m.pid);
 }
@@ -160,7 +178,8 @@ export function setChartKeys(keys: string[] | null) {
 
 /**
  * Everything the adapter must read: the dashboard parameters plus those
- * chosen only for the charts (for a calculated value, the ones it needs).
+ * chosen only for the charts (for a calculated value, the ones it needs)
+ * and, during a trip of the "Viagem" screen, what its analysis needs.
  */
 export function readKeys(): string[] {
   const out = [...state.liveKeys];
@@ -168,6 +187,7 @@ export function readKeys(): string[] {
     const add = isCalc(k) ? (calcInputs(k, isSupported) ?? []) : isSupported(k) ? [k] : [];
     for (const a of add) if (!out.includes(a)) out.push(a);
   }
+  if (state.journeyActive) for (const a of journeyInputs(isSupported)) if (!out.includes(a)) out.push(a);
   return out;
 }
 

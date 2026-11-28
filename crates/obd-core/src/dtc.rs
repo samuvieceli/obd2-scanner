@@ -214,6 +214,31 @@ fn system_of(code: &str, pt: bool) -> String {
     }
 }
 
+/// Size of the trouble-code databases, shown on the Documentation screen.
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DtcStats {
+    /// Codes with a description in the main table.
+    pub codes: usize,
+    /// Of those, how many have a Brazilian Portuguese text.
+    pub translated_pt: usize,
+    /// Manufacturer tables: (brand, number of codes), in [`BRANDS`] order.
+    pub brands: Vec<(String, usize)>,
+}
+
+/// Counts the entries of the bundled code databases.
+pub fn stats() -> DtcStats {
+    let main = db();
+    DtcStats {
+        codes: main.len(),
+        translated_pt: main.values().filter(|e| e.contains_key("pt")).count(),
+        brands: BRANDS
+            .iter()
+            .map(|b| ((*b).to_string(), brand_db().get(*b).map_or(0, HashMap::len)))
+            .collect(),
+    }
+}
+
 /// Looks up a code. `lang` is `pt-BR`, `en-US`, etc.
 pub fn describe(code: &str, lang: &str) -> DtcInfo {
     describe_for(code, lang, None)
@@ -273,6 +298,16 @@ pub fn describe_for(code: &str, lang: &str, brand: Option<&str>) -> DtcInfo {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn stats_count_the_databases() {
+        let s = stats();
+        assert!(s.codes > 9000, "{}", s.codes);
+        assert!(s.translated_pt > 3000 && s.translated_pt <= s.codes);
+        assert_eq!(s.brands.len(), BRANDS.len());
+        assert!(s.brands.iter().all(|(_, n)| *n > 0));
+    }
+
     use super::*;
 
     #[test]

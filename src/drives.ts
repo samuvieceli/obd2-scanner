@@ -15,12 +15,14 @@ export interface StoredDrive extends DriveSummary {
   fuel: FuelType;
   /** Ethanol share the car reported (flex "auto"), if any. */
   ethanolPercent?: number;
+  /** Fuel cost with the pump prices of that day (missing in older drives). */
+  cost?: number;
 }
 
 export type FuelGroup = "gasoline" | "ethanol" | "mixed" | "other";
 
 /** Which column of the comparison a drive belongs to. */
-export function fuelGroup(d: StoredDrive): FuelGroup {
+export function fuelGroup(d: Pick<StoredDrive, "fuel" | "ethanolPercent">): FuelGroup {
   if (d.fuel === "auto") {
     // Brazilian gasoline already has ~30% ethanol: up to 40% counts as
     // gasoline; from 70% on it is ethanol (or E85 outside Brazil).
@@ -94,6 +96,49 @@ export function addDrive(d: StoredDrive) {
 /** Drives of one car, oldest first. */
 export function drivesOf(profileId: string): StoredDrive[] {
   return loadDrives().filter((d) => d.profileId === profileId);
+}
+
+/** Forgets one drive of a car (identified by when it ended). */
+export function removeDrive(profileId: string, endedAt: number) {
+  saveDrives(loadDrives().filter((d) => d.profileId !== profileId || d.endedAt !== endedAt));
+}
+
+export interface MonthTotals {
+  /** "2026-11" */
+  month: string;
+  drives: number;
+  distanceKm: number;
+  fuelL: number;
+  /** Sum of the drives that have a cost (undefined when none has). */
+  cost?: number;
+  /** Drives without a cost (older ones, or no price set). */
+  noCost: number;
+  kmPerL?: number;
+}
+
+/** Totals per calendar month (local time), newest month first. */
+export function monthlyTotals(drives: StoredDrive[]): MonthTotals[] {
+  const by = new Map<string, MonthTotals>();
+  for (const d of drives) {
+    const at = new Date(d.endedAt);
+    const month = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}`;
+    let m = by.get(month);
+    if (!m) by.set(month, (m = { month, drives: 0, distanceKm: 0, fuelL: 0, noCost: 0 }));
+    m.drives++;
+    m.distanceKm += d.distanceKm;
+    m.fuelL += d.fuelL;
+    if (d.cost !== undefined) m.cost = (m.cost ?? 0) + d.cost;
+    else m.noCost++;
+  }
+  const out = [...by.values()].sort((a, b) => b.month.localeCompare(a.month));
+  for (const m of out) m.kmPerL = m.distanceKm >= 1 && m.fuelL >= 0.05 ? m.distanceKm / m.fuelL : undefined;
+  return out;
+}
+
+/** Usual economy of this car with a fuel group, from the history (≥ 3 drives, ≥ 20 km). */
+export function usualKmPerL(drives: StoredDrive[], group: FuelGroup): number | undefined {
+  const g = compareByFuel(drives).find((s) => s.group === group);
+  return g && g.drives >= 3 && g.distanceKm >= 20 ? g.kmPerL : undefined;
 }
 
 /** Forgets one car's drives; the other cars keep theirs. */

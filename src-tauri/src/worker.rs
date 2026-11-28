@@ -23,6 +23,7 @@ use obd_core::ObdError;
 use obd_core::elm327::{AdapterInfo, Elm327};
 use obd_core::health::{self, Action, LinkHealth, Outcome};
 use obd_core::interpret::Interpreter;
+use obd_core::maker;
 use obd_core::pid::{self, BATTERY_VOLTAGE_KEY};
 use obd_core::session::Frame;
 use serde::Serialize;
@@ -310,23 +311,37 @@ struct Ctx {
 }
 
 /// One request of a polling cycle: the PIDs asked (empty = adapter battery
-/// voltage) and the live keys it answers.
+/// voltage), or a manufacturer request, and the live keys it answers.
 struct Group {
     pids: Vec<u8>,
+    maker: Option<maker::RequestId>,
     keys: Vec<String>,
 }
 
-/// Splits the live keys into requests. Keys sharing a PID are read together;
-/// unknown keys are skipped.
+/// Splits the live keys into requests. Keys sharing a PID (or a
+/// manufacturer request) are read together; unknown keys are skipped.
+/// Manufacturer requests come last, so the adapter switches its addressing
+/// to single control units once per cycle.
 fn request_groups(live: &[String], multi: bool) -> Vec<Group> {
     let mut groups = Vec::new();
     let mut per_pid: Vec<(u8, Vec<String>)> = Vec::new();
+    let mut per_request: Vec<Group> = Vec::new();
     for key in live {
         if key == BATTERY_VOLTAGE_KEY {
             groups.push(Group {
                 pids: vec![],
+                maker: None,
                 keys: vec![key.clone()],
             });
+        } else if let Some(id) = maker::request_of(key) {
+            match per_request.iter_mut().find(|g| g.maker == Some(id)) {
+                Some(g) => g.keys.push(key.clone()),
+                None => per_request.push(Group {
+                    pids: vec![],
+                    maker: Some(id),
+                    keys: vec![key.clone()],
+                }),
+            }
         } else if let Some(def) = pid::find_by_key(key) {
             match per_pid.iter_mut().find(|(p, _)| *p == def.pid) {
                 Some((_, keys)) => keys.push(key.clone()),
@@ -338,9 +353,11 @@ fn request_groups(live: &[String], multi: bool) -> Vec<Group> {
     for chunk in per_pid.chunks(size) {
         groups.push(Group {
             pids: chunk.iter().map(|(p, _)| *p).collect(),
+            maker: None,
             keys: chunk.iter().flat_map(|(_, k)| k.clone()).collect(),
         });
     }
+    groups.extend(per_request);
     groups
 }
 
@@ -438,12 +455,14 @@ fn run_loop(link: &mut Link, rx: &Receiver<Msg>, recorder: &Arc<Mutex<Recorder>>
                 break;
             }
             let elm = &mut link.elm;
-            let result: Result<Vec<(String, f64)>, ObdError> = match &group.pids[..] {
-                [] => elm
+            let result: Result<Vec<(String, f64)>, ObdError> = match (group.maker, &group.pids[..])
+            {
+                (Some(id), _) => maker::read(elm, id, &group.keys),
+                (None, []) => elm
                     .battery_voltage()
                     .map(|v| vec![(BATTERY_VOLTAGE_KEY.to_string(), v)]),
-                [one] => elm.read_pid_values(*one),
-                many => match elm.read_pids_multi(many) {
+                (None, [one]) => elm.read_pid_values(*one),
+                (None, many) => match elm.read_pids_multi(many) {
                     // Car or adapter does not cope with grouped requests
                     // (refusal, silence or garbage): one PID per request for
                     // the rest of this session. Silence still counts for the
@@ -468,7 +487,12 @@ fn run_loop(link: &mut Link, rx: &Receiver<Msg>, recorder: &Arc<Mutex<Recorder>>
                 },
             };
             let generation = link.generation;
-            if let Flow::Stop = link.observe(&result, rx, &mut ctx) {
+            // A manufacturer request to a unit this car does not have (wrong
+            // model chosen) goes unanswered: that is the parameter's
+            // failure, not a sign of a frozen adapter.
+            let maker_silent = group.maker.is_some()
+                && matches!(&result, Err(e) if Outcome::of_error(e) == Outcome::Suspicious);
+            if !maker_silent && let Flow::Stop = link.observe(&result, rx, &mut ctx) {
                 return;
             }
             // After a recovery or a reconnection, start a fresh cycle.
@@ -488,7 +512,7 @@ fn run_loop(link: &mut Link, rx: &Receiver<Msg>, recorder: &Arc<Mutex<Recorder>>
                 }
                 // Silence and link problems are the health check's business:
                 // do not blame the parameters for them.
-                Err(e) if Outcome::of_error(&e) != Outcome::Answered => {}
+                Err(e) if Outcome::of_error(&e) != Outcome::Answered && !maker_silent => {}
                 Err(_) => {
                     for key in &group.keys {
                         count_failure(&mut ctx.failures, &mut dropped, key);

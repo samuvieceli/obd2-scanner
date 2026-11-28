@@ -66,7 +66,7 @@ export function mount(root: HTMLElement) {
 const fresh = freshValue;
 
 /** Polls only `keys` while a test runs; gives the dashboard its keys back after. */
-function focusPolling() {
+export function focusPolling() {
   const wasPolling = state.polling;
   let current = "";
   return {

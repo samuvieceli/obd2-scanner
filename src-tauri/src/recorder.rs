@@ -17,6 +17,25 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use obd_core::session::{Frame, Session, Snapshot};
 
+/// Adds the unit and range of the manufacturer parameters the recording
+/// holds: they are not in the standard catalog copied at the start.
+fn describe_maker_keys(s: &mut Session) {
+    let mut keys: Vec<&str> = s
+        .frames
+        .iter()
+        .flat_map(|f| f.values.keys())
+        .filter(|k| k.starts_with(obd_core::maker::KEY_PREFIX))
+        .collect();
+    keys.sort_unstable();
+    keys.dedup();
+    let metas: Vec<_> = keys
+        .into_iter()
+        .filter(|k| !s.pids.iter().any(|p| p.key == *k))
+        .filter_map(obd_core::maker::meta)
+        .collect();
+    s.pids.extend(metas);
+}
+
 /// Safety copy of the recording in progress, inside the data folder.
 pub const BACKUP_FILE: &str = "gravacao-em-andamento.jsonl";
 /// Longest time frames stay only in memory.
@@ -145,7 +164,8 @@ impl Recorder {
     }
 
     pub fn stop(&mut self) -> Option<&Session> {
-        if let Some((_, s)) = self.active.take() {
+        if let Some((_, mut s)) = self.active.take() {
+            describe_maker_keys(&mut s);
             if let Some(mut b) = self.backup.take() {
                 let _ = writeln!(b.file, "{END_LINE}").and_then(|_| flush(&mut b));
             }

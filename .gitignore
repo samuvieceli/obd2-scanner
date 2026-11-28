@@ -29,3 +29,4 @@ dist/
 
 # Tauri generated schemas
 src-tauri/gen/
+__pycache__/

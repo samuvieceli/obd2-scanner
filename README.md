@@ -8,7 +8,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Conexão** por USB, Bluetooth clássico (porta COM; a porta certa já vem primeiro na lista, com o nome do adaptador), **Bluetooth LE**, Wi-Fi e **modo demonstração** (carro virtual, sem adaptador). A leitura ao vivo começa ao abrir o Painel ou o HUD, com botão **Pausar/Retomar leitura**. Tolerante aos defeitos comuns dos clones ELM327 (repete pedidos perdidos, avisa quais comandos o adaptador recusa), com **detecção de travamento** do adaptador (reinicia e reconfigura sozinho) e **reconexão automática** quando o Bluetooth ou o cabo cai.
 - **Perfis para vários carros**, reconhecidos pelo chassi (VIN), cada um com combustível, cilindrada, alertas e resultados próprios.
 - **Unidades** à escolha: km/h ou mph, °C ou °F, kPa, bar ou psi, km ou milhas, km/L, L/100 km ou mpg.
-- **Painel ao vivo** com mais de 80 parâmetros (rotação, temperatura, correção de combustível, sondas lambda e de banda larga, turbo, torque, filtro de partículas, hodômetro, tensão da bateria...), cada um com explicação curta.
+- **Painel ao vivo** com mais de 80 parâmetros (rotação, temperatura, correção de combustível, sondas lambda e de banda larga, turbo, torque, filtro de partículas, hodômetro, tensão da bateria...), cada um com explicação curta, e **parâmetros do fabricante** (piloto, dados do OBDb) para Peugeot 208, Jeep Renegade, Honda HR-V e Civic, Toyota Yaris e Corolla, Ford Ranger e Mitsubishi L200 Triton: temperatura do óleo e do câmbio, marcha engatada e outros, com os não conferidos marcados como experimentais.
 - **Cartões ou mostradores com ponteiro**, **alertas** com som quando um valor sai da faixa segura e **computador de bordo** com **Trip A e Trip B** independentes (Iniciar, Pausar e Zerar; consumo médio, velocidade média, distância, combustível, tempo e custo), **ajuste do consumo pelo abastecimento** ("Tanque cheio" e "Abasteci"), resumo ao desligar o motor e histórico de viagens com gasolina × etanol. Os combustíveis acompanham o idioma: Brasil (E32, E25, etanol, B15), EUA (E10, E15, E85, diesel, B20) e Europa/Reino Unido (E10, E5, E85, B7, HVO100, GLP).
 - **Testes de desempenho** 0–100, 100–0, 40–80 e 80–120 km/h, uma prova por vez, com detecção automática do início e do fim reais (a retomada só vale partindo de velocidade constante, como numa ultrapassagem), distância e histórico.
 - **Testes guiados**: bateria e alternador passo a passo (repouso, partida e carga), comparação das sondas lambda para avaliar o catalisador e mapa de correção de combustível por rotação e carga, com resultado em linguagem simples.
@@ -21,7 +21,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Teste de compatibilidade do adaptador**: descobre a versão real do ELM327 (clones costumam anunciar mais do que fazem).
 - **Terminal AT** para comandos diretos ao adaptador.
 - **Gravações e relatórios**: a gravação guarda os sensores e também os códigos de falha, a prontidão e o Modo 06 (lidos no começo e no fim). Exporta CSV (inclusive no formato do Excel brasileiro) e JSON, **reproduz gravações** como se fosse ao vivo, com marcas de evento, e gera, quando você pede, um relatório de diagnóstico a partir da gravação (códigos, prontidão, indícios do trajeto, gráficos e mínimo/média/máximo), para imprimir ou salvar como PDF.
-- Interface em **português (Brasil)**, **inglês (EUA)** e **inglês (Europa)**, cada um com as suas unidades (trocar o idioma troca as unidades na hora), 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
+- Interface em **português (Brasil)**, **inglês (EUA)** e **inglês (Europa)**, cada um com as suas unidades (trocar o idioma troca as unidades na hora), 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) **glossário** com todos os termos e tela **Documentação** com o manual, as regras do projeto, os diagramas, os dados do programa e as licenças, tudo sem internet.
 
 ## Baixar e instalar (Windows 10 e 11)
 
@@ -56,6 +56,8 @@ npm test               # testes da interface (desempenho, testes guiados, consum
 
 Base de dados e particularidades dos carros brasileiros (OBDBr, flex, chassi): [docs/CARROS-BRASILEIROS.md](docs/CARROS-BRASILEIROS.md).
 
+Regras gerais do projeto (produto e forma de trabalho): [docs/REGRAS-DO-PROJETO.md](docs/REGRAS-DO-PROJETO.md). Todos estes documentos também aparecem dentro do programa, na tela **Documentação**.
+
 Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md). Mapa visual de todos os componentes, com diagramas: [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
 
 ## Créditos e licença
@@ -67,6 +69,7 @@ Licença **GPL-3.0-or-later**. Fórmulas conforme SAE J1979 / ISO 15031-5. Parte
 - [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (GPL-3.0): ~2.500 descrições de códigos em português do Brasil; lista de PIDs (`pids.csv`) usada para conferir fórmulas dos parâmetros extras; ideia do modo head-up display.
 - [OBDex](https://github.com/foerbsnavi/OBDex) (dados CC0): ~6.250 códigos genéricos mais novos (títulos em inglês; textos em português escritos para este projeto).
 - Wikibooks e Wikipedia (CC BY-SA 4.0): códigos de fabricante do chassi e tabelas de norma OBD (OBDBr) e combustível.
+- [OBDb](https://github.com/OBDb) (CC BY-SA 4.0): parâmetros do fabricante (Modo 21/22) de 8 modelos (`crates/obd-core/data/maker_params.json`, que continua sob CC BY-SA 4.0).
 - [ELMduino](https://github.com/PowerBroker2/ELMduino) (MIT): ideia da leitura rápida (vários parâmetros por pedido).
 - [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) (AGPL-3.0): tabelas de códigos específicos de 10 marcas.
 - [DDT4ALL](https://github.com/cedricp/ddt4all) (GPL-3.0): ideia do teste de versão real do adaptador e da busca de centrais.
