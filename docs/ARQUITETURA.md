@@ -9,6 +9,7 @@
 │ trims · alerts · mode06hints · dtcadvice · recording-diagnostics · prefs · units ·  │
 │ fuels · cost                                                                        │
 │ presets · calc · warmup · search · share · gauge · theme · awake                    │
+│ journey (análise da viagem) · journey-live (gravação) · journey-store (IndexedDB)   │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
@@ -42,6 +43,7 @@
 - **Textos fora do código Rust.** O núcleo devolve chaves (`coolant_temp`, `mixture_lean_b1`) e a interface traduz. Descrições de DTC ficam em `crates/obd-core/data/dtc_descriptions.json` (pt e en).
 - **Cálculos derivados na interface.** Consumo (`trip.ts`; o consumo instantâneo também vira os parâmetros calculados de `calc.ts`, que a tela Gráficos desenha como os do carro), testes de desempenho (`perf.ts`, lógica pura testada com Vitest), testes guiados (`battery.ts`, `o2test.ts` e `trims.ts`, também lógica pura: etapas, limites e avaliação; a tela `views/guided.ts` só desenha e pede ao trabalhador que leia apenas os valores do teste), alertas (`alerts.ts`) e reprodução de gravações (`playback.ts`) usam os mesmos quadros ao vivo que o painel; por isso funcionam igual com o carro e com uma gravação. A interpretação durante a reprodução usa o mesmo código Rust (`interpret_frames`).
 - **Indícios do Modo 06** (`mode06hints.ts`, lógica pura testada com Vitest): lê a lista de testes da central já recebida e aponta padrões conhecidos (falha de combustão em um cilindro, catalisador, sondas). A tela `views/diagnostics.ts` só mostra o resultado.
+- **Viagens da tela Viagem no IndexedDB.** Uma viagem longa tem milhares de linhas (uma por segundo), demais para o `localStorage`. `journey-store.ts` guarda a lista (pequena) e as linhas (grandes) em dois depósitos do IndexedDB do WebView2, na mesma pasta de dados do programa (ou na portátil). `journey-live.ts` acrescenta os parâmetros da viagem ao que o adaptador lê (`readKeys` em `store.ts`), grava uma linha por segundo com o consumo do computador de bordo e salva a cada 30 s; uma viagem aberta continua quando o programa abre de novo. A análise (`journey.ts`) é lógica pura, testada com Vitest, e serve igual para viagens ao vivo e gravações.
 - **Nada carregado da internet.** O gráfico (uPlot) é empacotado no app; a política de segurança (CSP) bloqueia fontes externas.
 
 ## Testes
@@ -59,7 +61,8 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 - `src/calc.test.ts` (Vitest): de quais parâmetros do carro cada valor calculado depende.
 - `src/cost.test.ts` (Vitest): custo da viagem, comparação gasolina × etanol pela energia e preço da mistura no flex.
 - `src/search.test.ts` (Vitest): busca global (acentos e maiúsculas ignorados, todas as palavras, título vale mais que descrição, códigos de falha).
-- `src/drives.test.ts` (Vitest): histórico de viagens (grupos por combustível, flex pela porcentagem de etanol, médias pela distância total, viagens curtas sem média).
+- `src/drives.test.ts` (Vitest): histórico de viagens (grupos por combustível, flex pela porcentagem de etanol, médias pela distância total, viagens curtas sem média, totais por mês, média usual do carro).
+- `src/journey.test.ts` (Vitest): análise da tela Viagem (distância, litros e consumo por parado/cidade/estrada, buracos sem dados, carro sem dados de consumo, dicas de marcha lenta e velocidade alta, acelerações e freadas fortes, freio-motor e rotação alta, aquecimento do motor, mistura só em malha fechada, comparação com a média, séries dos gráficos e conversão de uma gravação).
 - `src/summary.test.ts` (Vitest): resumo da viagem (tempo parado e em movimento, distância, picos, alertas, viagens curtas ignoradas, falhas de leitura, conexão encerrada).
 - `src/trips.test.ts` e `src/refuel.test.ts` (Vitest): Trip A e Trip B (iniciar, pausar, zerar, velocidade média) e ajuste pelo abastecimento (trechos curtos, falhas de leitura, resultado fora da faixa, média dos últimos 5).
 - `src/fuels.test.ts` (Vitest): relação ar/combustível e densidade das misturas.

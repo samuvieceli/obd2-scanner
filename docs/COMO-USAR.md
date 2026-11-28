@@ -75,9 +75,33 @@ Na tela **Head-up display (HUD)**, escolha até 4 parâmetros (eles vêm da list
 - O computador de bordo tem duas viagens independentes, **Trip A** e **Trip B**, como no painel do carro. Cada uma tem os botões **Iniciar**, **Pausar** e **Zerar** (zerar pede confirmação) e mostra consumo médio, velocidade média (distância dividida pelo tempo contado, incluindo paradas com o motor ligado), distância, combustível gasto, tempo e custo. Elas só contam enquanto o programa está lendo o carro, ficam salvas ao fechar o programa e são separadas por carro (perfil). Exemplo: deixe a Trip A contando desde o último abastecimento e use a Trip B para uma viagem específica. O consumo de agora é um só para as duas. Ao reproduzir uma gravação, aparece uma viagem própria da gravação, que não mexe na Trip A nem na Trip B.
 - Combustíveis disponíveis, com as misturas em vigor em novembro de 2026: **gasolina comum ou aditivada** (32% de etanol), **gasolina premium** (25% de etanol), **etanol comum ou aditivado**, **diesel S10 ou S500** (15% de biodiesel) e **flex automático**. O flex automático usa a porcentagem de etanol informada pelo carro e, se o carro não informar, considera gasolina comum. Aditivos não mudam o cálculo.
 - **Resumo da viagem**: quando o motor desliga (ou a conexão termina) depois de pelo menos 2 minutos de motor ligado, abre um quadro com o tempo em movimento e parado com motor ligado, distância, velocidade média e máxima, rotação máxima, temperatura máxima do motor, menor tensão da bateria com o motor ligado, combustível, consumo, custo e os valores que saíram da faixa de alerta. **Copiar imagem** manda o resumo pelo WhatsApp. O último resumo pode ser aberto de novo pelo botão **Ver resumo da última viagem** no computador de bordo (até fechar o programa).
-- **Histórico de viagens**: cada resumo fica guardado em **Gravações e relatórios → Histórico de viagens**, separado por carro (perfil), com o combustível escolhido nas Configurações. A tabela compara o consumo médio real com gasolina e com etanol (no flex com sensor de etanol, a porcentagem lida decide o grupo). Reproduzir uma gravação não entra no histórico.
+- **Histórico de viagens**: cada resumo fica guardado na tela **Viagem → Histórico de viagens**, separado por carro (perfil), com o combustível escolhido nas Configurações. A tabela compara o consumo médio real com gasolina e com etanol (no flex com sensor de etanol, a porcentagem lida decide o grupo). Há também os **totais por mês** (distância, litros, consumo e custo) e a lista das viagens, cada uma com o botão **Apagar**. Reproduzir uma gravação não entra no histórico.
 - **Custo da viagem**: em **Configurações → Preço dos combustíveis**, informe o preço do litro. O computador de bordo passa a mostrar o custo da viagem e, em carros a gasolina, etanol ou flex, quanto a mesma viagem custaria com gasolina e com etanol. A comparação mantém a mesma energia: um litro de etanol tem cerca de 70% da energia de um litro de gasolina comum (E32), daí a regra "etanol compensa até 70% do preço da gasolina". Motores rendem um pouco melhor com etanol, então é uma estimativa. No flex automático, o preço do tanque é a mistura dos dois conforme a porcentagem de etanol que o carro informa.
 - **Alertas** (em **Configurações**): avisam com mensagem e som quando, por exemplo, a temperatura passa de 110 °C ou a bateria fica abaixo de 11,8 V com o motor ligado. Você pode mudar os limites e incluir outros parâmetros.
+
+## 6a. Viagem: analisar o consumo de um trecho
+
+A tela **Viagem** serve para entender quanto um trajeto custou e por quê, sem precisar montar painel nem escolher parâmetros.
+
+1. Conecte no carro, abra **Viagem** e aperte **Iniciar viagem** ao sair. O programa passa a ler sozinho o que a análise precisa e guarda uma linha por segundo. Pode usar as outras telas à vontade.
+2. Ao chegar, aperte **Encerrar viagem**. A análise abre na hora (viagens com menos de 1 minuto de dados não são guardadas).
+3. Dê um nome e uma anotação, se quiser (ex.: "Ida para a praia", "ar-condicionado ligado").
+
+O que a análise mostra:
+
+- **Números principais**: distância, tempo com o motor ligado, litros, consumo médio, custo em R$ (com o preço informado em Configurações), a mesma viagem com gasolina e com etanol (flex), velocidade média e máxima e a comparação com a média do carro (do histórico, com o mesmo combustível, a partir de 3 viagens e 20 km).
+- **O que a viagem mostra**: dicas em português simples, por exemplo tempo parado com o motor ligado, consumo pior acima de 110 km/h, acelerações fortes, rotação alta, motor frio e mistura fora do normal.
+- **Onde o combustível foi gasto**: parado com o motor ligado, cidade (até 60 km/h) e estrada (acima de 60 km/h), com tempo, distância, litros e consumo de cada parte.
+- **Consumo por faixa de velocidade**: uma barra para cada faixa de 10 km/h; a verde é a mais econômica.
+- **Jeito de dirigir**: acelerações e freadas fortes, tempo em rotação alta e tempo desacelerando engatado (freio-motor, quando a injeção corta o combustível).
+- **Motor e mistura**: temperatura na saída, tempo para esquentar, quanto foi gasto com o motor frio, temperatura máxima e a correção média da mistura com o motor quente.
+- **Gráficos**: velocidade, consumo minuto a minuto e temperatura do motor.
+
+Botões: **Relatório (PDF)** (use Imprimir e escolha "Microsoft Print to PDF"), **Planilha (CSV)** (dados segundo a segundo; em português com `;` e vírgula decimal) e **Copiar imagem** (para o WhatsApp).
+
+**Analisar uma gravação** abre um arquivo `.json` salvo em **Gravações e relatórios** e analisa como uma viagem, usando o combustível e a calibração atuais do carro.
+
+Cuidados: deixe o notebook na tomada do carro e com a tampa aberta (ou configure o Windows para não suspender ao fechar a tampa). O que for rodado com o programa parado ou sem conexão fica fora da conta. Se o programa fechar no meio, a viagem continua quando ele abrir de novo. O consumo fica mais certo depois da calibração no posto (**Tanque cheio** / **Abasteci**). As viagens ficam guardadas no computador, dentro da pasta de dados do programa (na versão portátil, em `OBD2-Scanner-dados`).
 
 ## 6b. Testes de desempenho
 

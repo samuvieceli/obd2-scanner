@@ -7,7 +7,6 @@ import { busy, button, clear, errorText, h, section, timestampForFile, toast } f
 import { startPlayback } from "../playback";
 import { buildReportHtml } from "./report";
 import { diagnosticsSaved, savingDiagnostics } from "../recording-diagnostics";
-import { driveHistorySection } from "./drive-history";
 import { toggleRecording } from "./dashboard";
 
 function duration(s: number): string {
@@ -143,7 +142,7 @@ export function mount(root: HTMLElement) {
         h("div", { class: "option" }, openBtn, h("p", { class: "muted small" }, t("sessions.openDesc"))),
       ),
     ),
-    driveHistorySection(),
+    h("p", { class: "muted" }, t("sessions.historyMoved"), " ", h("a", { href: "#/journey" }, t("nav.journey"))),
   );
 
   renderStatus();
@@ -164,7 +163,7 @@ export function mount(root: HTMLElement) {
 }
 
 /** Shows a report over the screen, with print (PDF) and save (HTML). */
-function openReport(html: string) {
+export function openReport(html: string, fileName = "obd2-relatorio") {
   const frame = h("iframe", { class: "report-frame", title: t("sessions.reportTitle") });
   const close = () => {
     overlay.remove();
@@ -178,7 +177,7 @@ function openReport(html: string) {
     frame.contentWindow?.print();
   };
   const saveHtml = async () => {
-    const path = await save({ defaultPath: `obd2-relatorio-${timestampForFile()}.html`, filters: [{ name: "HTML", extensions: ["html"] }] });
+    const path = await save({ defaultPath: `${fileName}-${timestampForFile()}.html`, filters: [{ name: "HTML", extensions: ["html"] }] });
     if (!path) return;
     try {
       await api.saveText(path, html);

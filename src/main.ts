@@ -23,6 +23,8 @@ import * as connection from "./views/connection";
 import * as dashboard from "./views/dashboard";
 import { markEvent } from "./views/dashboard";
 import * as charts from "./views/charts";
+import * as journey from "./views/journey";
+import { initJourney } from "./journey-live";
 import * as hud from "./views/hud";
 import * as performance from "./views/performance";
 import * as guided from "./views/guided";
@@ -40,6 +42,7 @@ const ROUTES: { id: string; icon: string; view: View }[] = [
   { id: "connection", icon: "M4 12h4l2-3 4 6 2-3h4", view: connection },
   { id: "dashboard", icon: "M4 14a8 8 0 1 1 16 0M12 14l4-4", view: dashboard },
   { id: "hud", icon: "M3 7h18v8H3zM8 19h8M7 11h2M11 11h6", view: hud },
+  { id: "journey", icon: "M7 21l3-18M17 21l-3-18M12 6v2M12 11v2M12 16v3", view: journey },
   { id: "performance", icon: "M9 2h6M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 9v4l3 2", view: performance },
   { id: "guided", icon: "M9 11l3 3 8-8M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11", view: guided },
   { id: "charts", icon: "M4 19V5M4 19h16M7 15l3-4 3 2 5-6", view: charts },
@@ -418,6 +421,7 @@ async function boot() {
 
   initTrip();
   initDriveSummary();
+  void initJourney();
   initSearch(ROUTES.map((r) => r.id));
   initMini();
   initTrimCollector();

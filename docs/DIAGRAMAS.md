@@ -216,6 +216,7 @@ flowchart LR
         refueldlg["Janela Abasteci<br/>views/refuel-dialog.ts"]
         safetydlg["Aviso de segurança<br/>ao abrir o programa<br/>views/safety.ts"]
         hud["HUD"]
+        journey["Viagem<br/>Iniciar/Encerrar, análise<br/>de consumo, relatório<br/>views/journey.ts"]
         performance["Testes de desempenho<br/>(uma prova por vez)"]
         guided["Testes guiados<br/>bateria, sondas,<br/>mapa de correção"]
         charts["Gráficos"]
@@ -249,7 +250,11 @@ flowchart LR
         share["share.ts<br/>cartão 'Copiar imagem'"]
         warmup["warmup.ts<br/>motor frio / pronto"]
         summary["summary.ts + drive-summary.ts<br/>resumo ao desligar o motor"]
-        drives["drives.ts + views/drive-history.ts<br/>histórico de viagens,<br/>gasolina × etanol"]
+        drives["drives.ts + views/drive-history.ts<br/>histórico de viagens,<br/>gasolina × etanol, totais do mês"]
+        jlive["journey-live.ts<br/>grava a viagem<br/>(1 amostra por segundo)"]
+        janalyze["journey.ts<br/>análise: onde o combustível<br/>foi gasto, faixas de velocidade,<br/>jeito de dirigir, dicas"]
+        jstore["journey-store.ts<br/>viagens salvas (IndexedDB)"]
+        jreport["views/journey-report.ts<br/>números da tela, relatório,<br/>CSV e cartão de imagem"]
         search["search.ts + views/search.ts<br/>busca Ctrl+F / Ctrl+K"]
         mini["views/mini.ts<br/>mini janela por cima das outras"]
         safety["safety.ts<br/>versão do aviso de segurança<br/>e se já foi aceito"]
@@ -275,7 +280,10 @@ flowchart LR
     dashboard --> summary
     summary --> trip & cost & share
     summary --> drives
-    sessions --> drives
+    journey --> jlive & janalyze & jstore & jreport & drives
+    jlive --> trip & jstore
+    jlive -- "parâmetros da viagem<br/>também são lidos" --> store
+    jreport --> cost & share & reportview
     search --> glossary & diagnostics
     performance --> perf
     guided --> battery & o2test & trims
@@ -293,6 +301,22 @@ flowchart LR
     dashboard --> cost
     cost --> prefs
 ```
+
+### Tela Viagem: do botão Iniciar ao relatório
+
+```mermaid
+flowchart LR
+    start["Iniciar viagem"] --> live["journey-live.ts<br/>pede ao adaptador o que a<br/>análise precisa e guarda<br/>1 linha por segundo"]
+    live -- "a cada 30 s" --> db[("IndexedDB<br/>(sobrevive se o programa fechar)")]
+    stop["Encerrar"] --> db
+    rec["Gravação salva (.json)"] -- "Analisar uma gravação" --> db
+    db --> an["journey.ts<br/>analyze()"]
+    an --> screen["Tela: números, dicas,<br/>onde o combustível foi gasto,<br/>faixas de velocidade, gráficos"]
+    an --> pdf["Relatório (PDF)"] & csv["Planilha (CSV)"] & img["Copiar imagem"]
+    hist["Histórico automático<br/>(drives.ts)"] -- "média do carro" --> an
+```
+
+O programa grava, uma vez por segundo, só o que a análise usa: velocidade, rotação, carga, borboleta, temperatura, correções de combustível, malha fechada, etanol (flex) e o necessário para calcular o consumo (vazão, MAF ou MAP). O consumo de cada linha é o mesmo do computador de bordo, já com a calibração do posto. Um intervalo de mais de 5 segundos sem dados (programa fechado, conexão caída) fica fora da conta.
 
 ### Quando a leitura ao vivo liga e desliga
 
@@ -400,15 +424,17 @@ flowchart LR
     perfres["Resultados de desempenho<br/>(por perfil)"] --> ls
     fillsum["Trip A/B e soma desde o<br/>tanque cheio (por perfil)"] --> ls
     drv["Histórico de viagens<br/>e prova de desempenho escolhida"] --> ls
+    jrn["Viagens da tela Viagem<br/>(uma linha por segundo)"] --> idb[("Banco do programa<br/>(IndexedDB do WebView2)")]
     conn["Última conexão usada"] --> ls
     aviso["Aviso de segurança aceito<br/>(versão do texto)"] --> ls
     rec["Gravação"] --> csv["CSV (Excel)"] & json["JSON (abre de novo<br/>no programa)"]
     rec -- "a cada minuto" --> backup[("Cópia de segurança<br/>gravacao-em-andamento.jsonl<br/>(recuperada se o programa fechar)")]
     chart["Gráfico"] --> png["PNG"]
+    jrn --> jcsv["CSV da viagem"] & jhtml["Relatório da viagem<br/>(HTML / PDF)"]
     rec --> report["Relatório de diagnóstico<br/>(só quando você pede)"]
     json --> report
     report --> html["HTML / PDF"]
-    csv & json & png & html --> files
+    csv & json & png & html & jcsv & jhtml --> files
 ```
 
 ### Gravação e relatório
