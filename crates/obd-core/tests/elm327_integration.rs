@@ -359,6 +359,7 @@ fn ecu_scan_finds_engine_and_transmission() {
                 .map(|i| i.value.clone())
         };
         assert_eq!(id("vin").as_deref(), Some(DEMO_VIN));
+        assert_eq!(engine.vin.as_deref(), Some(DEMO_VIN));
         assert_eq!(id("software_version").as_deref(), Some("SW 0102"));
         assert_eq!(id("serial_number"), None);
         let tcm = &ecus[1];
@@ -366,6 +367,7 @@ fn ecu_scan_finds_engine_and_transmission() {
         assert_eq!(tcm.supported_pids, 4);
         assert_eq!(tcm.name.as_deref(), Some("TCM-Transmission"));
         assert!(tcm.ids.is_empty());
+        assert_eq!(tcm.vin.as_deref(), Some(DEMO_VIN));
         // Headers are off again and requests go to every unit.
         assert!(elm.read_pid(0x0C).is_ok());
         assert_eq!(elm.read_vehicle_identity().vin.as_deref(), Some(DEMO_VIN));

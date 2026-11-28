@@ -628,7 +628,8 @@ impl Simulator {
         out
     }
 
-    /// The simulated automatic transmission: few PIDs, a name, no UDS.
+    /// The simulated automatic transmission: few PIDs, a name, the same
+    /// VIN as the engine (original units), no UDS.
     fn tcm_answer(req: &[u8]) -> Option<Vec<u8>> {
         match req {
             [0x01, 0x00] => Some(
@@ -638,6 +639,7 @@ impl Simulator {
                 ]
                 .concat(),
             ),
+            [0x09, 0x02] => Some([&[0x49, 0x02, 0x01][..], DEMO_VIN.as_bytes()].concat()),
             [0x09, 0x0A] => {
                 let mut name = b"TCM-Transmission".to_vec();
                 name.resize(20, 0);

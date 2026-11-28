@@ -166,6 +166,8 @@ export interface EcuInfo {
   role: "engine" | "transmission" | "other";
   supported_pids: number;
   name: string | null;
+  /** Chassis number stored in this unit (mode 09 PID 02), when it answers. */
+  vin: string | null;
   ids: { key: string; value: string }[];
 }
 
@@ -261,6 +263,8 @@ export const api = {
   readFreezeFrame: (lang: string) => invoke<FreezeFrame>("read_freeze_frame", { lang }),
   readReadiness: () => invoke<Readiness>("read_readiness"),
   readMode06: () => invoke<TestResult[]>("read_mode06"),
+  /** Reads these parameters once; those the car lacks are left out. */
+  readPids: (keys: string[]) => invoke<Record<string, number>>("read_pids", { keys }),
   testAdapter: () => invoke<AdapterReport>("test_adapter"),
   scanEcus: () => invoke<EcuInfo[]>("scan_ecus"),
   readVehicleInfo: () => invoke<VehicleInfo>("read_vehicle_info"),

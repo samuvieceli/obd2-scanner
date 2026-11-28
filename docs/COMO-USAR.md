@@ -103,6 +103,29 @@ Botões: **Relatório (PDF)** (use Imprimir e escolha "Microsoft Print to PDF"),
 
 Cuidados: deixe o notebook na tomada do carro e com a tampa aberta (ou configure o Windows para não suspender ao fechar a tampa). O que for rodado com o programa parado ou sem conexão fica fora da conta. Se o programa fechar no meio, a viagem continua quando ele abrir de novo. O consumo fica mais certo depois da calibração no posto (**Tanque cheio** / **Abasteci**). As viagens ficam guardadas no computador, dentro da pasta de dados do programa (na versão portátil, em `OBD2-Scanner-dados`).
 
+## 6f. Checagem pré-compra
+
+A tela **Checagem pré-compra** ajuda a olhar um carro usado antes de comprar. Ela junta as leituras que revelam um carro "maquiado" para a venda e termina com um semáforo: **verde** (nada de errado no que o OBD vê), **amarelo** (pontos de atenção) ou **vermelho** (problemas). O que o carro não responde aparece como **Não verificado**, nunca como verde.
+
+1. **Dados do carro**: um apelido, o chassi (VIN) do documento e a quilometragem do painel. Tudo opcional, mas o chassi e a quilometragem permitem duas conferências importantes.
+2. **Motor desligado** (ignição ligada): o programa lê o chassi gravado na central, os códigos (confirmados, pendentes e permanentes), os autotestes de prontidão, os contadores desde a última limpeza de códigos, os km rodados com a luz de injeção acesa, o hodômetro (quando o carro informa), a bateria em repouso e o chassi gravado em cada central.
+3. **Partida e marcha lenta**: dê a partida quando o programa pedir e deixe 3 minutos em marcha lenta. Ele mede a queda de tensão na partida, o alternador, a mistura de combustível e os alertas da interpretação automática; no fim, lê os testes da central (Modo 06) e os códigos de novo.
+4. **Volta de teste** (opcional): o programa grava a volta e analisa a gravação como qualquer outra. Quem dirige não mexe no computador.
+5. **Resultado**: cada item explicado, **Relatório (PDF)** e a checagem salva no histórico. No início da tela, marque dois ou três carros para comparar lado a lado.
+
+| Sinal | O que quer dizer |
+| --- | --- |
+| Poucos km, aquecimentos ou horas desde a última limpeza (menos de 300 km, 10 aquecimentos ou 8 h) | Códigos apagados ou bateria desligada há pouco tempo. Pode ser inocente; pergunte ao vendedor. |
+| 2 ou mais autotestes incompletos | Mesmo sinal: os autotestes recomeçam quando os códigos são apagados. Um incompleto sozinho é comum. |
+| Código permanente sem o código confirmado igual | Os códigos foram apagados, mas o defeito continua (vermelho). |
+| Km com a luz de injeção acesa | Um defeito ficou sem conserto por um tempo. |
+| Chassi da central diferente do documento | Central de outro carro (vermelho). Outra central com chassi diferente é amarelo. |
+| Hodômetro da central diferente do painel (mais de 50 km ou 2 %) | Quilometragem alterada ou painel trocado (vermelho). Só funciona nos carros que informam o hodômetro. |
+| Bateria, partida e alternador | Mesmos limites do teste guiado de bateria. |
+| Mistura em marcha lenta (correção curta + longa) | Até ±10 % normal, até ±20 % atenção, acima disso problema. |
+
+**Limites:** a maioria dos carros não informa o hodômetro real; o OBD comum vê basicamente o motor e às vezes o câmbio (airbag, ABS e carroceria ficam de fora); batidas, enchente e leilão não ficam nas centrais. Sempre consulte a placa, faça vistoria cautelar e leve a um mecânico de confiança.
+
 ## 6b. Testes de desempenho
 
 Abra **Testes de desempenho** e dirija: não há botão de iniciar. O programa reconhece sozinho cada teste e guarda o resultado (tempo, distância e aceleração média):
