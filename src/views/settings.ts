@@ -4,15 +4,15 @@ import { openSafetyNotice } from "./safety";
 import { emit, on, state } from "../store";
 import { applyTheme, getTheme, THEME_SWATCH, THEMES, type Theme } from "../theme";
 import { baseUnitOf, button, clear, h, infoTip, section, toast, unitOf } from "../ui";
-import { DEFAULT_ALERTS, newProfile, prefs, profile, savePrefs, saveProfile, setActiveProfile, type AlertRule, type FuelType, type Profile } from "../prefs";
+import { DEFAULT_ALERTS, newProfile, prefs, profile, savePrefs, saveProfile, setActiveProfile, setFuelRegion, type AlertRule, type FuelType, type Profile } from "../prefs";
 import { calibratedFills, resetCalibration } from "../trip";
 import { changeLanguage, displayUnit, fromDisplay, saveUnits, toDisplay, UNIT_CHOICES, UNIT_PRESETS, units, type UnitPrefs } from "../units";
 import { pidText } from "../i18n";
-import type { PriceKey } from "../cost";
+import { CURRENCY } from "../cost";
+import { FUEL_REGIONS, FUELS, isFuelRegion, regionFuels } from "../fuels";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 const REPO_URL = "https://github.com/samuvieceli/obd2-scanner";
-const FUELS: FuelType[] = ["auto", "gasoline", "gasoline_premium", "ethanol", "diesel", "gasoline_pure"];
 
 type NumField = (label: string, help: string, value: number, step: number, min: number, max: number, set: (v: number) => void) => HTMLElement;
 
@@ -152,11 +152,29 @@ function profilesSection(offs: (() => void)[]): HTMLElement {
       h(
         "label",
         { class: "field" },
+        h("span", null, t("settings.fuelRegion"), " ", infoTip(t("settings.fuelRegionHelp"))),
+        h(
+          "select",
+          {
+            onchange: (e: Event) => {
+              const v = (e.target as HTMLSelectElement).value;
+              if (!isFuelRegion(v)) return;
+              setFuelRegion(v);
+              emit("profile");
+              emit("trip");
+            },
+          },
+          FUEL_REGIONS.map((r) => h("option", { value: r, selected: r === prefs().fuelRegion }, t(`settings.fuelRegions.${r}`))),
+        ),
+      ),
+      h(
+        "label",
+        { class: "field" },
         h("span", null, t("settings.fuel")),
         h(
           "select",
           { onchange: (e: Event) => saveProfile({ fuel: (e.target as HTMLSelectElement).value as FuelType }) },
-          FUELS.map((f) => h("option", { value: f, selected: f === p.fuel }, t(`settings.fuels.${f}`))),
+          fuelChoices(p.fuel).map((f) => h("option", { value: f, selected: f === p.fuel }, t(`settings.fuels.${f}`))),
         ),
       ),
       ...engineFields(p, num),
@@ -240,22 +258,33 @@ function connectionSection(): HTMLElement {
   );
 }
 
-/** Pump prices, for the trip cost and the gasoline × ethanol comparison. */
+/**
+ * The fuels offered for a car: "auto", those of the chosen region and, so a
+ * saved choice is never lost, the car's own fuel when it is from another one.
+ */
+function fuelChoices(current: FuelType): FuelType[] {
+  const list: FuelType[] = ["auto", ...regionFuels(prefs().fuelRegion)];
+  return list.includes(current) ? list : [...list, current];
+}
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Pump prices of the region's fuels, for the trip cost and the gasoline × ethanol comparison. */
 function pricesSection(offs: (() => void)[]): HTMLElement {
-  const keys: PriceKey[] = ["gasoline", "gasoline_premium", "ethanol", "diesel"];
   const box = h("div", { class: "row wrap" });
   const render = () => {
     clear(box);
     // Prices are kept per litre and shown per the chosen volume (litre or gallon).
     const perVolume = toDisplay("L", 1);
-    const unit = `${t("cost.currency")}/${displayUnit("L")}`;
-    for (const k of keys) {
+    const unit = `${CURRENCY[prefs().fuelRegion]}/${displayUnit("L")}`;
+    // A fuel not sold in its region (Brazilian E0) uses another one's price.
+    for (const k of regionFuels(prefs().fuelRegion).filter((id) => !FUELS[id].priceAs)) {
       const cur = prefs().fuelPrices[k];
       box.append(
         h(
           "label",
           { class: "field" },
-          h("span", null, t(`cost.price.${k}`, { unit })),
+          h("span", null, capitalize(t("cost.priceOf", { fuel: t(`settings.fuelShort.${k}`), unit }))),
           h("input", {
             type: "number",
             step: 0.01,
@@ -276,7 +305,7 @@ function pricesSection(offs: (() => void)[]): HTMLElement {
     }
   };
   render();
-  offs.push(on("units", render));
+  offs.push(on("units", render), on("profile", render));
   return section(t("cost.title"), h("p", { class: "muted small" }, t("cost.help")), box);
 }
 

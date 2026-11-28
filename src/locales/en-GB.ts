@@ -52,7 +52,6 @@ function merge(base: Tree, extra: Tree): Tree {
 const OVERRIDES: Tree = {
   cost: {
     pricePlaceholder: "e.g. 1.79",
-    currency: "€",
   },
   refuel: {
     badLitres: "Enter the amount the pump showed, for example 38.5.",

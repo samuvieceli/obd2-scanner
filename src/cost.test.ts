@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hydratedShare, tripCost } from "./cost";
+import { ethanolShare, tripCost } from "./cost";
 
 describe("trip cost", () => {
   const prices = { gasoline: 6.0, ethanol: 4.0, diesel: 6.5 };
@@ -15,8 +15,8 @@ describe("trip cost", () => {
   });
 
   it("flex tank: mixes the prices by the reported ethanol share", () => {
-    expect(hydratedShare(32)).toBe(0);
-    expect(hydratedShare(95)).toBe(1);
+    expect(ethanolShare(32)).toBe(0);
+    expect(ethanolShare(95)).toBe(1);
     expect(tripCost(10, "auto", 95, prices).cost).toBeCloseTo(40, 5);
     expect(tripCost(10, "auto", undefined, prices).cost).toBeCloseTo(60, 5);
   });
@@ -26,5 +26,20 @@ describe("trip cost", () => {
     const d = tripCost(10, "diesel", undefined, prices);
     expect(d.cost).toBeCloseTo(65, 5);
     expect(d.asEthanol).toBeUndefined();
+  });
+
+  it("uses the region's gasoline and E85 outside Brazil", () => {
+    const us = { us_regular: 3.5, us_e85: 3.0, us_diesel: 4.0 };
+    const r = tripCost(10, "us_regular", undefined, us, "us");
+    expect(r.cost).toBeCloseTo(35, 5);
+    expect(r.breakEven).toBeGreaterThan(0.7);
+    expect(r.breakEven).toBeLessThan(0.8);
+    expect(tripCost(10, "auto", 75, us, "us").cost).toBeCloseTo(30, 5);
+    expect(tripCost(10, "auto", 10, us, "us").cost).toBeCloseTo(35, 5);
+    expect(tripCost(10, "eu_lpg", undefined, {}, "eu").asGasoline).toBeUndefined();
+  });
+
+  it("Brazilian gasoline without ethanol is priced as regular gasoline", () => {
+    expect(tripCost(10, "gasoline_pure", undefined, prices).cost).toBeCloseTo(60, 5);
   });
 });

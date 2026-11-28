@@ -3,7 +3,7 @@
 //
 // Pure logic plus browser storage, no DOM. Each car (profile) keeps its own
 // drives; the newest MAX_DRIVES of all cars together are stored.
-import type { FuelType } from "./fuels";
+import { FUELS, type FuelType } from "./fuels";
 import type { DriveSummary } from "./summary";
 
 export const MAX_DRIVES = 100;
@@ -23,20 +23,16 @@ export type FuelGroup = "gasoline" | "ethanol" | "mixed" | "other";
 
 /** Which column of the comparison a drive belongs to. */
 export function fuelGroup(d: Pick<StoredDrive, "fuel" | "ethanolPercent">): FuelGroup {
-  switch (d.fuel) {
-    case "gasoline":
-    case "gasoline_premium":
-    case "gasoline_pure":
-      return "gasoline";
-    case "ethanol":
-      return "ethanol";
-    case "auto":
-      // Brazilian gasoline already has ~30% ethanol: up to 40% counts as gasoline.
-      if (d.ethanolPercent === undefined) return "other";
-      return d.ethanolPercent <= 40 ? "gasoline" : d.ethanolPercent >= 70 ? "ethanol" : "mixed";
-    default:
-      return "other";
+  if (d.fuel === "auto") {
+    // Brazilian gasoline already has ~30% ethanol: up to 40% counts as
+    // gasoline; from 70% on it is ethanol (or E85 outside Brazil).
+    if (d.ethanolPercent === undefined) return "other";
+    return d.ethanolPercent <= 40 ? "gasoline" : d.ethanolPercent >= 70 ? "ethanol" : "mixed";
   }
+  const def = (FUELS as Partial<Record<string, (typeof FUELS)[keyof typeof FUELS]>>)[d.fuel];
+  if (!def) return "other";
+  if (def.slot === "ethanol") return "ethanol";
+  return ["regular", "midgrade", "premium", "e15", "pure"].includes(def.slot) ? "gasoline" : "other";
 }
 
 export interface GroupStats {

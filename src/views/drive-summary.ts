@@ -2,7 +2,7 @@
 // connection ends after a drive of 2 minutes or more. The last summary can be
 // opened again from the dashboard's trip box.
 import { activeAlerts } from "../alerts";
-import { tripCost } from "../cost";
+import { CURRENCY, tripCost } from "../cost";
 import { fmtNum, getLang, pidText, t } from "../i18n";
 import { prefs, profile } from "../prefs";
 import { addDrive } from "../drives";
@@ -45,8 +45,8 @@ export function summaryRows(s: DriveSummary): [string, string][] {
       const [v, unit] = consumption(s.distanceKm / s.fuelL);
       rows.push([t("summary.economy"), `${fmtNum(v, 1)} ${unit}`]);
     }
-    const c = tripCost(s.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices);
-    if (c.cost !== undefined) rows.push([t("cost.trip"), `${t("cost.currency")} ${fmtNum(c.cost, 2)}`]);
+    const c = tripCost(s.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices, prefs().fuelRegion);
+    if (c.cost !== undefined) rows.push([t("cost.trip"), `${CURRENCY[prefs().fuelRegion]} ${fmtNum(c.cost, 2)}`]);
   }
   return rows;
 }
@@ -102,7 +102,7 @@ function finished(s: DriveSummary | undefined) {
   // Real drives go to the trip history; replays of recordings do not.
   if (!state.playback) {
     const p = profile();
-    const cost = tripCost(s.fuelL, p.fuel, state.latest.ethanol_percent, prefs().fuelPrices).cost;
+    const cost = tripCost(s.fuelL, p.fuel, state.latest.ethanol_percent, prefs().fuelPrices, prefs().fuelRegion).cost;
     addDrive({ ...s, profileId: p.id, fuel: p.fuel, ethanolPercent: state.latest.ethanol_percent, cost });
   }
   emit("trip");

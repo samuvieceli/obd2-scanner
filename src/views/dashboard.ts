@@ -20,7 +20,8 @@ import { distanceText, openRefuelDialog, volumeText } from "./refuel-dialog";
 import { TRIP_IDS, average, averageSpeed, type TripId } from "../trips";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { lastDrive, showSummary } from "./drive-summary";
-import { tripCost } from "../cost";
+import { CURRENCY, tripCost } from "../cost";
+import { flexPair, type FuelId } from "../fuels";
 import { normalize } from "../search";
 import { prefs, profile, saveProfile } from "../prefs";
 import { saveDiagnostics } from "../recording-diagnostics";
@@ -375,7 +376,7 @@ export function mount(root: HTMLElement) {
   tripBox.append(tripData, tripActions);
   let actionsFor = "";
   const renderTripActions = (missing: string[]) => {
-    const noPrice = tripCost(1, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices).cost === undefined;
+    const noPrice = tripCost(1, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices, prefs().fuelRegion).cost === undefined;
     // Most Brazilian flex cars do not report the ethanol share (PID 52): in
     // "auto" the program would silently assume gasoline and show too low a
     // consumption with ethanol in the tank. Ask instead, with one click.
@@ -398,7 +399,8 @@ export function mount(root: HTMLElement) {
       );
     }
     if (flexBlind) {
-      const pick = (fuel: "gasoline" | "ethanol") => () => {
+      const pair = flexPair(prefs().fuelRegion);
+      const pick = (fuel: FuelId) => () => {
         saveProfile({ fuel });
         actionsFor = "";
         renderTrip();
@@ -408,7 +410,7 @@ export function mount(root: HTMLElement) {
           "div",
           { class: "alert small" },
           h("p", null, t("trip.flexUnknown")),
-          h("div", { class: "row" }, button(t("trip.flexGasoline"), pick("gasoline"), "ghost"), button(t("trip.flexEthanol"), pick("ethanol"), "ghost")),
+          h("div", { class: "row" }, button(t(`settings.fuelShort.${pair.gasoline}`), pick(pair.gasoline), "ghost"), button(t(`settings.fuelShort.${pair.ethanol}`), pick(pair.ethanol), "ghost")),
         ),
       );
     }
@@ -490,7 +492,7 @@ export function mount(root: HTMLElement) {
       return;
     }
     const instant = trip.kmpl !== undefined ? fmtEconomy(trip.kmpl) : trip.lph !== undefined ? `${fmtNum(toDisplay("L/h", trip.lph), 2)} ${displayUnit("L/h")}` : "—";
-    const money = (v: number) => `${t("cost.currency")} ${fmtNum(v, 2)}`;
+    const money = (v: number) => `${CURRENCY[prefs().fuelRegion]} ${fmtNum(v, 2)}`;
     const duration = (s: number) => {
       const hrs = Math.floor(s / 3600);
       const min = Math.floor((s % 3600) / 60);
@@ -500,7 +502,7 @@ export function mount(root: HTMLElement) {
     if (!state.playback) {
       // Trip A and Trip B side by side, the instant consumption shared above.
       const m = meters();
-      const cost = (fuelL: number) => tripCost(fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices).cost;
+      const cost = (fuelL: number) => tripCost(fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices, prefs().fuelRegion).cost;
       const line = (label: string, f: (id: TripId) => string) =>
         h("tr", null, h("th", null, label), ...TRIP_IDS.map((id) => h("td", { class: "num" }, f(id))));
       tripBox.append(
@@ -547,13 +549,14 @@ export function mount(root: HTMLElement) {
         row(t("trip.avgSpeed"), speedText(averageSpeed(trip))),
         row(t("trip.time"), duration(trip.timeS)),
       );
-      const c = tripCost(trip.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices);
+      const c = tripCost(trip.fuelL, profile().fuel, state.latest.ethanol_percent, prefs().fuelPrices, prefs().fuelRegion);
       if (c.cost !== undefined) tripBox.append(row(t("cost.trip"), money(c.cost)));
       if (c.asGasoline !== undefined && c.asEthanol !== undefined && trip.fuelL > 0.01) {
+        const pair = flexPair(prefs().fuelRegion);
         tripBox.append(
-          row(t("cost.asGasoline"), money(c.asGasoline)),
-          row(t("cost.asEthanol"), money(c.asEthanol)),
-          h("p", { class: "muted small" }, t("cost.breakEven", { pct: fmtNum(c.breakEven * 100, 0) })),
+          row(t("cost.asFuel", { fuel: t(`settings.fuelShort.${pair.gasoline}`) }), money(c.asGasoline)),
+          row(t("cost.asFuel", { fuel: t(`settings.fuelShort.${pair.ethanol}`) }), money(c.asEthanol)),
+          h("p", { class: "muted small" }, t("cost.breakEven", { pct: fmtNum(c.breakEven * 100, 0), ethanol: t(`settings.fuelShort.${pair.ethanol}`), regular: t(`settings.fuelShort.${pair.gasoline}`) })),
         );
       }
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));

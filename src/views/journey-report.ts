@@ -4,6 +4,7 @@
 import { BAND_KMH, CITY_MAX_KMH, economySeries, seriesOf, WARM_C, type JourneyAnalysis, type JourneyLog, type Tip } from "../journey";
 import type { JourneyMeta } from "../journey-store";
 import { tripCost } from "../cost";
+import { flexPair } from "../fuels";
 import { fmtNum, getLang, pidText, t } from "../i18n";
 import { prefs } from "../prefs";
 import { baseUnitOf, escapeHtml as e, displayValue, fmtValue, unitOf } from "../ui";
@@ -25,7 +26,7 @@ export function journeyTitle(m: JourneyMeta): string {
 }
 
 export function journeyCost(m: JourneyMeta, a: JourneyAnalysis) {
-  return a.fuelL === undefined ? undefined : tripCost(a.fuelL, m.fuel, m.ethanolPercent, prefs().fuelPrices);
+  return a.fuelL === undefined ? undefined : tripCost(a.fuelL, m.fuel, m.ethanolPercent, prefs().fuelPrices, prefs().fuelRegion);
 }
 
 export type Row = [label: string, value: string, help?: string];
@@ -42,7 +43,7 @@ export function mainRows(m: JourneyMeta, a: JourneyAnalysis): Row[] {
     const c = journeyCost(m, a);
     rows.push([t("journey.facts.cost"), c?.cost !== undefined ? moneyText(c.cost) : t("journey.facts.noPrice")]);
     if (m.fuel === "auto" && c?.asGasoline !== undefined && c.asEthanol !== undefined)
-      rows.push([t("journey.facts.flex"), t("journey.facts.flexValue", { g: moneyText(c.asGasoline), e: moneyText(c.asEthanol) }), t("cost.breakEven", { pct: Math.round(c.breakEven * 100) })]);
+      rows.push([t("journey.facts.flex"), t("journey.facts.flexValue", { g: moneyText(c.asGasoline), e: moneyText(c.asEthanol) }), t("cost.breakEven", { pct: Math.round(c.breakEven * 100), ethanol: t(`settings.fuelShort.${flexPair(prefs().fuelRegion).ethanol}`), regular: t(`settings.fuelShort.${flexPair(prefs().fuelRegion).gasoline}`) })]);
   }
   rows.push([t("journey.facts.avgSpeed"), speedText(a.avgMovingKmh), t("journey.facts.avgSpeedHelp")]);
   rows.push([t("journey.facts.maxSpeed"), speedText(a.maxSpeed)]);

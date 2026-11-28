@@ -1,6 +1,7 @@
-// Ready-made unit sets, and which one each language uses by default.
+// Ready-made unit sets, and which units and fuels each language uses by default.
 // Kept apart from units.ts so preferences and translations can use them
 // without importing the conversion code.
+import type { FuelRegion } from "./fuels";
 import type { Lang } from "./i18n";
 import type { UnitPrefs } from "./units";
 
@@ -15,6 +16,13 @@ export const UNIT_PRESETS: Record<UnitPreset, UnitPrefs> = {
 
 /** Units applied when the user picks a language (they can still change each one). */
 export const LANG_UNITS: Record<Lang, UnitPreset> = {
+  "pt-BR": "br",
+  "en-US": "us",
+  "en-GB": "eu",
+};
+
+/** Fuels listed when the user picks a language (see fuels.ts; can be changed in Settings). */
+export const LANG_FUELS: Record<Lang, FuelRegion> = {
   "pt-BR": "br",
   "en-US": "us",
   "en-GB": "eu",

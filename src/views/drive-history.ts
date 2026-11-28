@@ -4,7 +4,8 @@
 // one, each of which can be deleted.
 import { clearDrives, compareByFuel, drivesOf, fuelGroup, monthlyTotals, removeDrive, type StoredDrive } from "../drives";
 import { fmtNum, getLang, t } from "../i18n";
-import { profile } from "../prefs";
+import { prefs, profile } from "../prefs";
+import { CURRENCY } from "../cost";
 import { button, clear, fmtValue, h, section, unitOf } from "../ui";
 import { consumption, displayUnit, toDisplay } from "../units";
 
@@ -17,7 +18,7 @@ export const economyText = (kmPerL: number | undefined) => {
 };
 export const distanceText = (km: number) => `${fmtNum(toDisplay("km", km), 1)} ${displayUnit("km")}`;
 export const volumeText = (l: number) => `${fmtNum(toDisplay("L", l), 1)} ${displayUnit("L")}`;
-export const moneyText = (x: number | undefined) => (x === undefined ? "—" : `${t("cost.currency")} ${fmtNum(x, 2)}`);
+export const moneyText = (x: number | undefined) => (x === undefined ? "—" : `${CURRENCY[prefs().fuelRegion]} ${fmtNum(x, 2)}`);
 const percent = (x: number | undefined) => (x === undefined ? "—" : `${fmtNum(x * 100, 0)}%`);
 
 function table(head: string[], rows: (string | Node)[][]): HTMLElement {

@@ -79,7 +79,7 @@ export function mount(root: HTMLElement) {
     if (tot.fuelL !== undefined) {
       rows.push([t("journey.facts.fuel"), volumeText(tot.fuelL)]);
       rows.push([t("journey.facts.economy"), economyText(tot.distanceKm >= 1 && tot.fuelL >= 0.05 ? tot.distanceKm / tot.fuelL : undefined)]);
-      const c = tripCost(tot.fuelL, active.meta.fuel, state.latest.ethanol_percent, prefs().fuelPrices);
+      const c = tripCost(tot.fuelL, active.meta.fuel, state.latest.ethanol_percent, prefs().fuelPrices, prefs().fuelRegion);
       if (c.cost !== undefined) rows.push([t("journey.facts.cost"), moneyText(c.cost)]);
     }
     clear(liveEl);
