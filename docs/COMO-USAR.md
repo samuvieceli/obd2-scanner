@@ -99,6 +99,12 @@ O que a análise mostra:
 
 Botões: **Relatório (PDF)** (use Imprimir e escolha "Microsoft Print to PDF"), **Planilha (CSV)** (dados segundo a segundo; em português com `;` e vírgula decimal) e **Copiar imagem** (para o WhatsApp).
 
+**Cortar a viagem**: na análise, abra **Cortar a viagem**, escolha um trecho com os controles **Início** e **Fim** (o trecho aparece destacado no gráfico da velocidade) e clique em **Manter só este trecho** (analisa só ele) ou **Tirar este trecho** (deixa de fora, por exemplo, a parada no posto). As partes cortadas ficam cinza no gráfico; **Desfazer cortes** volta à viagem inteira, porque os dados originais continuam guardados. Relatório, planilha e imagem seguem os cortes.
+
+**Comparar duas viagens**: na lista **Viagens analisadas**, marque duas viagens e clique em **Comparar as duas marcadas**. A tabela mostra os números lado a lado (consumo, custo por km, tempo parado, cidade e estrada, acelerações fortes a cada 100 km, rotação alta, freio-motor, motor frio, mistura) e qual foi melhor em cada um. A segunda tabela compara o consumo em cada faixa de velocidade, que é a comparação mais justa entre rotas diferentes (por exemplo, a mesma estrada com gasolina e com etanol).
+
+**Checagem antes da estrada**: com o carro conectado, o botão ao lado de **Iniciar viagem** confere em uns 10 segundos os códigos de falha, a luz de injeção, a bateria (motor desligado: 12,4 V ou mais é carregada) ou o alternador (motor ligado: 13,2 a 14,8 V) e a temperatura do motor. Cada item aparece como ✓ certo, ! atenção, ✗ problema ou ? não lido. Só lê, não altera nada. O OBD2 não vê pneus, óleo, água, freios e luzes: confira por fora também.
+
 **Analisar uma gravação** abre um arquivo `.json` salvo em **Gravações e relatórios** e analisa como uma viagem, usando o combustível e a calibração atuais do carro.
 
 Cuidados: deixe o notebook na tomada do carro e com a tampa aberta (ou configure o Windows para não suspender ao fechar a tampa). O que for rodado com o programa parado ou sem conexão fica fora da conta. Se o programa fechar no meio, a viagem continua quando ele abrir de novo. O consumo fica mais certo depois da calibração no posto (**Tanque cheio** / **Abasteci**). As viagens ficam guardadas no computador, dentro da pasta de dados do programa (na versão portátil, em `OBD2-Scanner-dados`).

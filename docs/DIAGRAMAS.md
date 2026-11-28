@@ -256,6 +256,7 @@ flowchart LR
         janalyze["journey.ts<br/>análise: onde o combustível<br/>foi gasto, faixas de velocidade,<br/>jeito de dirigir, dicas"]
         jstore["journey-store.ts<br/>viagens salvas (IndexedDB)"]
         jreport["views/journey-report.ts<br/>números da tela, relatório,<br/>CSV e cartão de imagem"]
+        precheck["precheck.ts<br/>checagem antes da estrada:<br/>códigos, luz, bateria/alternador,<br/>temperatura"]
         search["search.ts + views/search.ts<br/>busca Ctrl+F / Ctrl+K"]
         mini["views/mini.ts<br/>mini janela por cima das outras"]
         safety["safety.ts<br/>versão do aviso de segurança<br/>e se já foi aceito"]
@@ -282,7 +283,7 @@ flowchart LR
     dashboard --> summary
     summary --> trip & cost & share
     summary --> drives
-    journey --> jlive & janalyze & jstore & jreport & drives
+    journey --> jlive & janalyze & jstore & jreport & drives & precheck
     jlive --> trip & jstore
     jlive -- "parâmetros da viagem<br/>também são lidos" --> store
     jreport --> cost & share & reportview
@@ -318,7 +319,12 @@ flowchart LR
     an --> screen["Tela: números, dicas,<br/>onde o combustível foi gasto,<br/>faixas de velocidade, gráficos"]
     an --> pdf["Relatório (PDF)"] & csv["Planilha (CSV)"] & img["Copiar imagem"]
     hist["Histórico automático<br/>(drives.ts)"] -- "média do carro" --> an
+    cuts["Cortes escolhidos<br/>(manter / tirar um trecho)"] -- "applyCuts()" --> an
+    an -- "duas viagens: compare()" --> cmp["Comparação<br/>lado a lado"]
+    chk["Checagem antes da estrada"] --> pc["precheck.ts<br/>evaluate()"]
 ```
+
+Os cortes ficam guardados junto com a viagem (o campo `cuts`), sem apagar as linhas originais: desfazer é só esvaziar a lista. A checagem antes da estrada pede ao adaptador, por uns segundos, rotação, temperatura e tensão (`state.extraKeys` em `store.ts`), lê os códigos de falha e a prontidão e depois devolve a leitura como estava.
 
 O programa grava, uma vez por segundo, só o que a análise usa: velocidade, rotação, carga, borboleta, temperatura, correções de combustível, malha fechada, etanol (flex) e o necessário para calcular o consumo (vazão, MAF ou MAP). O consumo de cada linha é o mesmo do computador de bordo, já com a calibração do posto. Um intervalo de mais de 5 segundos sem dados (programa fechado, conexão caída) fica fora da conta.
 

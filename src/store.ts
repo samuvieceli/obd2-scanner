@@ -96,6 +96,8 @@ export const state = {
   lastDropped: [] as string[],
   /** A trip of the "Viagem" screen is being recorded (see journey-live.ts). */
   journeyActive: false,
+  /** Parameters read only for a moment (the pre-trip check). */
+  extraKeys: [] as string[],
   /** Demo only: the virtual engine is stopped (ATSIMOFF). */
   demoEngineOff: false,
 };
@@ -173,6 +175,7 @@ export function readKeys(): string[] {
     for (const a of add) if (!out.includes(a)) out.push(a);
   }
   if (state.journeyActive) for (const a of journeyInputs(isSupported)) if (!out.includes(a)) out.push(a);
+  for (const a of state.extraKeys) if (isSupported(a) && !out.includes(a)) out.push(a);
   return out;
 }
 
