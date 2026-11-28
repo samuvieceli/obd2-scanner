@@ -29,6 +29,7 @@ import { initJourney } from "./journey-live";
 import * as hud from "./views/hud";
 import * as performance from "./views/performance";
 import * as guided from "./views/guided";
+import * as prepurchase from "./views/prepurchase";
 import { initTrimCollector } from "./views/guided";
 import * as diagnostics from "./views/diagnostics";
 import * as vehicle from "./views/vehicle";
@@ -47,6 +48,7 @@ const ROUTES: { id: string; icon: string; view: View }[] = [
   { id: "journey", icon: "M7 21l3-18M17 21l-3-18M12 6v2M12 11v2M12 16v3", view: journey },
   { id: "performance", icon: "M9 2h6M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 9v4l3 2", view: performance },
   { id: "guided", icon: "M9 11l3 3 8-8M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11", view: guided },
+  { id: "prepurchase", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16 16l5 5M8 11l2 2 4-4", view: prepurchase },
   { id: "charts", icon: "M4 19V5M4 19h16M7 15l3-4 3 2 5-6", view: charts },
   { id: "diagnostics", icon: "M12 3l9 16H3zM12 10v4M12 17v.01", view: diagnostics },
   { id: "vehicle", icon: "M5 16l1.5-5h11L19 16M5 16h14v3H5zM7.5 19v1M16.5 19v1", view: vehicle },

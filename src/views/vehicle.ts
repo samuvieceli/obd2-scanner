@@ -1,5 +1,5 @@
 // Vehicle information (VIN, ECU, adapter) and readiness monitors.
-import { api } from "../api";
+import { api, type EcuInfo } from "../api";
 import { reportVin } from "./connection";
 import { fmtNum, msgs, t } from "../i18n";
 import { state } from "../store";
@@ -125,8 +125,8 @@ export function mount(root: HTMLElement) {
                 h(
                   "td",
                   null,
-                  e.ids.length
-                    ? h("dl", { class: "kv compact" }, e.ids.flatMap((id) => [h("dt", null, t(`ecus.ids.${id.key}`)), h("dd", { class: "mono" }, id.value)]))
+                  ecuIds(e).length
+                    ? h("dl", { class: "kv compact" }, ecuIds(e).flatMap((id) => [h("dt", null, t(`ecus.ids.${id.key}`)), h("dd", { class: "mono" }, id.value)]))
                     : h("span", { class: "muted small" }, t("ecus.noIds")),
                 ),
               ),
@@ -174,4 +174,10 @@ export function mount(root: HTMLElement) {
   renderInfo();
   renderReady();
   renderEcus();
+}
+
+/** Identification records of a unit, with the VIN from mode 09 first when
+ * the unit did not also give it through UDS. */
+function ecuIds(e: EcuInfo): EcuInfo["ids"] {
+  return e.vin && !e.ids.some((i) => i.key === "vin") ? [{ key: "vin", value: e.vin }, ...e.ids] : e.ids;
 }

@@ -3,7 +3,8 @@
 //! With headers on (`ATH1`) every answer line starts with the address of the
 //! control unit that sent it, so one `0100` request lists all units that
 //! speak OBD (engine, transmission, hybrid system...). On CAN cars each unit
-//! is then asked directly for its name (mode 09 PID 0A) and for the standard
+//! is then asked directly for its name (mode 09 PID 0A), the chassis number
+//! (VIN) it has stored (mode 09 PID 02) and for the standard
 //! UDS identification records (service 0x22, ISO 14229): part number,
 //! software version, supplier... Everything here only reads.
 //! Idea from DDT4ALL's ECU scanner (GPL-3.0), which does the same with a
@@ -45,6 +46,10 @@ pub struct EcuInfo {
     pub supported_pids: usize,
     /// Name from mode 09 PID 0A.
     pub name: Option<String>,
+    /// Chassis number (VIN) stored in this unit, from mode 09 PID 02. A unit
+    /// moved from another car usually keeps that car's VIN, so the
+    /// pre-purchase check compares them.
+    pub vin: Option<String>,
     /// UDS identification records the unit answered.
     pub ids: Vec<EcuId>,
 }
@@ -147,6 +152,7 @@ fn scan_inner(elm: &mut Elm327) -> Result<Vec<EcuInfo>> {
                 address,
                 supported_pids: count,
                 name: None,
+                vin: None,
                 ids: Vec::new(),
             });
         }
@@ -168,6 +174,12 @@ fn scan_inner(elm: &mut Elm327) -> Result<Vec<EcuInfo>> {
             .request(0x09, &[0x0A])
             .ok()
             .and_then(|m| assemble_mode09_string(&m, true));
+        ecu.vin = elm
+            .request(0x09, &[0x02])
+            .ok()
+            .and_then(|m| assemble_mode09_string(&m, true))
+            .map(|v| v.trim().to_string())
+            .filter(|v| v.len() == 17);
         for (did, key) in DIDS {
             match elm.request(0x22, &[(did >> 8) as u8, *did as u8]) {
                 Ok(msgs) => {

@@ -237,6 +237,7 @@ flowchart LR
         journey["Viagem<br/>Iniciar/Encerrar, análise<br/>de consumo, relatório<br/>views/journey.ts"]
         performance["Testes de desempenho<br/>(uma prova por vez)"]
         guided["Testes guiados<br/>bateria, sondas,<br/>mapa de correção"]
+        prepurchase["Checagem pré-compra<br/>assistente em 5 etapas<br/>views/prepurchase.ts"]
         charts["Gráficos"]
         diagnostics["Códigos de falha<br/>+ Modo 06"]
         vehicle["Veículo e prontidão<br/>+ centrais"]
@@ -256,6 +257,8 @@ flowchart LR
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         o2test["o2test.ts<br/>sondas e catalisador"]
         trims["trims.ts<br/>mapa de correção<br/>de combustível"]
+        ppmod["prepurchase.ts<br/>semáforo de cada item,<br/>histórico e comparação"]
+        ppreport["views/prepurchase-report.ts<br/>relatório pré-compra"]
         m06hints["mode06hints.ts<br/>indícios dos testes<br/>da central (Modo 06)"]
         dtcadvice["dtcadvice.ts<br/>aviso de código da montadora<br/>sem descrição confiável"]
         makerts["maker.ts + views/maker-picker.ts<br/>modelo do carro e parâmetros<br/>do fabricante no Painel"]
@@ -310,6 +313,8 @@ flowchart LR
     settings --> docsview
     performance --> perf
     guided --> battery & o2test & trims
+    prepurchase --> ppmod & ppreport & recdiag
+    ppmod --> battery & m06hints
     sessions --> playback
     dashboard & sessions --> recdiag
     sessions --> reportview
@@ -340,6 +345,21 @@ flowchart LR
 ```
 
 O programa grava, uma vez por segundo, só o que a análise usa: velocidade, rotação, carga, borboleta, temperatura, correções de combustível, malha fechada, etanol (flex) e o necessário para calcular o consumo (vazão, MAF ou MAP). O consumo de cada linha é o mesmo do computador de bordo, já com a calibração do posto. Um intervalo de mais de 5 segundos sem dados (programa fechado, conexão caída) fica fora da conta.
+
+### Checagem pré-compra: das leituras ao semáforo
+
+```mermaid
+flowchart LR
+    dados["1. Dados do carro<br/>chassi do documento,<br/>km do painel"] --> off
+    off["2. Motor desligado<br/>chassi da central, códigos,<br/>prontidão, contadores desde a<br/>limpeza, hodômetro, bateria,<br/>chassi de cada central"] --> idle
+    idle["3. Partida e marcha lenta<br/>queda na partida (battery.ts),<br/>alternador, mistura, alertas;<br/>depois Modo 06 e códigos de novo"] --> drive
+    drive["4. Volta de teste (opcional)<br/>gravação normal analisada<br/>pela interpretação automática"] --> rules
+    rules["prepurchase.ts<br/>evaluate(): verde, amarelo,<br/>vermelho ou não verificado<br/>para cada item"] --> res["5. Resultado<br/>semáforo geral = pior item"]
+    res --> hist[("Histórico no computador<br/>(até 30 checagens)")] & pdf["Relatório (PDF)"]
+    hist --> cmp["Comparar 2 ou 3 carros<br/>lado a lado"]
+```
+
+Cada leitura é opcional: o que o carro não responde vira "Não verificado" (cinza), nunca verde. O semáforo geral é o pior item encontrado. Para o chassi de cada central, a procura de centrais (`ecu_scan.rs`) pergunta a cada uma o chassi gravado (Modo 09, PID 02). Os contadores e o hodômetro são lidos uma vez pelo comando `read_pids`, sem mexer na leitura ao vivo.
 
 ### Documentação dentro do programa
 
