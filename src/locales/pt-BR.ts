@@ -1363,7 +1363,6 @@ const ptBR = {
   docs: {
     title: "Documentação",
     intro: "Os documentos do projeto dentro do programa: como usar, o que ele sabe sobre carros brasileiros, os diagramas de como ele funciona, as regras do projeto, as fontes dos dados e as licenças. Funciona sem internet.",
-    ptOnly: "Os documentos estão em português (Brasil). A página Sobre o projeto tem um resumo em inglês no final.",
     jump: "Ir para a seção…",
     github: "Abrir no GitHub",
     drawing: "Desenhando o diagrama…",

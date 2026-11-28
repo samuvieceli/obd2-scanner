@@ -55,7 +55,8 @@ peças), L8 a partir de 2025, com metas médias por fabricante até 2029/2031.
   bicombustível; a tela **Veículo** mostra o que a central disser, com essa explicação.
 - O teor de etanol medido (PID 52) só existe em alguns carros; quando existe, aparece no **Painel**.
 - A conta de consumo usa as misturas atuais do Brasil (gasolina E32, premium E25, etanol hidratado, diesel B15):
-  ver `src/fuels.ts`.
+  ver `src/fuels.ts`. A lista de combustíveis acompanha o idioma (EUA e Europa/Reino Unido têm as suas misturas) e
+  as porcentagens precisam ser conferidas de tempos em tempos.
 
 ## 5. Parâmetros ao vivo (PIDs)
 

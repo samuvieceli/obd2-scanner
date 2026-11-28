@@ -84,6 +84,7 @@ Há dois tipos de regra:
 | T12 | **Manual atualizado junto com a função:** [COMO-USAR.md](COMO-USAR.md) explica cada tela; [CARROS-BRASILEIROS.md](CARROS-BRASILEIROS.md) diz o que o programa sabe sobre carros do Brasil e quais são as lacunas. |
 | T13 | **Guia para iniciantes** em [GUIA-INICIANTE.md](GUIA-INICIANTE.md): como ver, alterar, testar e publicar o código sem saber programar muito. |
 | T14 | **Os documentos aparecem dentro do programa** (tela Documentação). Um documento novo para usuários entra também na lista dessa tela (`src/docs.ts`). |
+| T19 | **Documentação em todos os idiomas do programa:** todo documento existe em português (Brasil) em `docs/` e em inglês em `docs/en/` (mesmos nomes de arquivo). Quem muda um atualiza o outro no mesmo commit. A tela Documentação mostra a versão do idioma escolhido, e o inglês (Europa) é o texto americano com a grafia britânica, sem arquivo extra. |
 
 ### 2.4 Versões
 

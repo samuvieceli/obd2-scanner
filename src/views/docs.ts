@@ -9,7 +9,7 @@ import { fmtNum, getLang, LANGS, msgs, t } from "../i18n";
 import { state } from "../store";
 import { THEMES } from "../theme";
 import { button, clear, escapeHtml, h } from "../ui";
-import { DOCS, REPO_URL, docById, resolveLink, slugger, type Doc } from "../docs";
+import { REPO_URL, docById, docsFor, resolveLink, slugger, type Doc } from "../docs";
 import { openSafetyNotice } from "./safety";
 
 /** Document open last time (kept while the program runs). */
@@ -33,13 +33,12 @@ export function mount(root: HTMLElement) {
   const side = h("nav", { class: "docs-list", "aria-label": t("docs.title") });
   const body = h("article", { class: "card docs-body" });
   page.append(h("h1", null, t("docs.title")), h("p", { class: "lead" }, t("docs.intro")));
-  if (getLang() !== "pt-BR") page.append(h("p", { class: "alert" }, t("docs.ptOnly")));
   page.append(h("div", { class: "docs-layout" }, side, body));
 
   const show = (id: string, anchor?: string) => {
-    current = docById(id) ? id : "home";
+    current = docById(id, getLang()) ? id : "home";
     clear(side);
-    for (const d of ["home", ...DOCS.map((x) => x.id)]) {
+    for (const d of ["home", ...docsFor(getLang()).map((x) => x.id)]) {
       side.append(
         h(
           "button",
@@ -50,7 +49,7 @@ export function mount(root: HTMLElement) {
       );
     }
     clear(body);
-    const doc = docById(current);
+    const doc = docById(current, getLang());
     if (doc) renderDoc(body, doc, show, offs);
     else renderHome(body, show);
     if (anchor) scrollToAnchor(body, anchor);
@@ -94,7 +93,7 @@ function renderDoc(body: HTMLElement, doc: Doc, show: (id: string, anchor?: stri
     const href = a?.getAttribute("href");
     if (!a || href === null || href === undefined) return;
     e.preventDefault();
-    const to = resolveLink(href, doc.file);
+    const to = resolveLink(href, doc.file, getLang());
     if (to.kind === "anchor") scrollToAnchor(body, to.id);
     else if (to.kind === "doc") show(to.id, to.anchor);
     else external(to.url);
