@@ -12,6 +12,7 @@ Este repositório segue integralmente as regras descritas em [docs/REGRAS-DO-PRO
 2. **Aprovação e execução automatizada (T2, T18):**
    - Após o dono aprovar a proposta, trabalhe em uma **branch separada** (nunca edite a mesma pasta/branch simultaneamente com outra IA).
    - Implemente as mudanças, atualize testes (T8), diagramas (`docs/DIAGRAMAS.md`, T11) e manuais (`docs/COMO-USAR.md`, `docs/CARROS-BRASILEIROS.md`, T12) quando aplicável.
+   - **Documentação nos três idiomas (T19):** todo documento em `docs/` (e o `README.md`) tem uma cópia em inglês americano em `docs/en/`, com o mesmo nome de arquivo. Mudou um, atualize o outro no mesmo commit. O inglês da Europa (en-GB) não tem arquivos: é o texto americano com a grafia britânica, aplicada pela tela Documentação. As notas da versão (`docs/release-notes/`) trazem o português e o inglês no mesmo arquivo. O teste `src/docs.test.ts` confere que as duas versões têm a mesma estrutura.
    - Abra o Pull Request, aguarde todas as verificações automáticas do GitHub (**CI**) passarem sem erros e faça o **merge na `main`**. Se qualquer teste ou verificação falhar, pare antes do merge e reporte ao dono.
 3. **Revisões vindas de outra IA (T3):**
    - Confira cada apontamento no código real antes de agir.

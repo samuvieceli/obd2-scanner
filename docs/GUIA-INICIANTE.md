@@ -30,13 +30,18 @@ Mapa das pastas:
 | `src/locales/pt-BR.ts` e `en-US.ts` | **Todos os textos** do programa, em português e inglês. É o lugar mais fácil para começar a mexer. O `en-GB.ts` (English Europe) é feito automaticamente a partir do `en-US.ts`. |
 | `src/styles.css` | Cores, tamanhos e temas. |
 | `src/trip.ts`, `src/trips.ts` e `src/refuel.ts` | O computador de bordo: a conta do consumo, a Trip A e a Trip B e o ajuste pelo abastecimento ("Tanque cheio" e "Abasteci"). |
+| `src/fuels.ts` | Os combustíveis e as misturas de cada região (Brasil, EUA, Europa/Reino Unido), que acompanham o idioma. |
+| `src/journey.ts` e `src/views/journey.ts` | A tela **Viagem**: análise de um trajeto (onde o combustível foi gasto, jeito de dirigir, cortar um trecho, comparar viagens). |
+| `src/prepurchase.ts` e `src/views/prepurchase.ts` | A **Checagem pré-compra**: o assistente de 5 etapas, o semáforo e o relatório. |
+| `src/maker.ts` | Os parâmetros do fabricante (piloto, dados do OBDb). |
 | `src/perf.ts` | Os testes de desempenho (0–100, retomadas, frenagem). |
 | `src/recording-diagnostics.ts` e `src/views/report.ts` | O que a gravação lê do carro (códigos, prontidão, Modo 06) e o relatório de diagnóstico. |
 | `crates/obd-core/src/interpret.rs` e `src/mode06hints.ts` | As regras da interpretação automática (indícios) dos dados ao vivo e dos testes da central (Modo 06). |
 | `crates/obd-core/` | O "motor": conversa com o adaptador ELM327, fórmulas dos sensores, códigos de falha, simulador. |
 | `crates/obd-core/data/` | Descrições dos códigos de falha (arquivos JSON). |
 | `src-tauri/` | A "casca" do programa para Windows (janela, instalador, ícones). |
-| `docs/` | Documentação (este guia, como usar, arquitetura, créditos). O **mapa visual com diagramas** de todos os componentes está em `docs/DIAGRAMAS.md`. |
+| `docs/` | Documentação (este guia, como usar, arquitetura, créditos). O **mapa visual com diagramas** de todos os componentes está em `docs/DIAGRAMAS.md`. As versões em inglês estão em `docs/en/`. |
+| `src/docs.ts` e `src/views/docs.ts` | A tela **Documentação**, que mostra os documentos no idioma escolhido. |
 | `.github/workflows/ci.yml` | A verificação automática do GitHub, que testa e gera o instalador a cada mudança. |
 
 ---
@@ -153,7 +158,7 @@ Você também não precisa rodar tudo isso sempre: **a cada envio, o GitHub roda
 
 A página **Releases** do GitHub é onde qualquer pessoa baixa o instalador. Uma versão nova é feita assim:
 
-1. A versão nova fica escrita em três arquivos (`package.json`, `src-tauri/tauri.conf.json` e `Cargo.toml`, no campo `version`) e as novidades ficam em `docs/release-notes/vX.Y.Z.md`. Pode pedir ao Claude no chat: "prepare a versão 1.1".
+1. A versão nova fica escrita em três arquivos (`package.json`, `src-tauri/tauri.conf.json` e `Cargo.toml`, no campo `version`) e as novidades ficam em `docs/release-notes/vX.Y.Z.md` (e a cópia em inglês em `docs/en/release-notes/`). Pode pedir ao Claude no chat: "prepare a versão 1.1".
 2. Faça o merge do PR na `main`.
 3. Crie a **tag** da versão (uma etiqueta no histórico, por exemplo `v1.0.0`). Pode pedir ao Claude: "pode criar a tag v1.0.0".
 4. O GitHub monta o instalador e a versão portátil (.zip) sozinho (uns 10 minutos, aba **Actions**, fluxo **Release**) e cria um **rascunho** da versão. Rascunho ainda não aparece para ninguém.

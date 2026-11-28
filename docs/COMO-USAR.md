@@ -314,7 +314,7 @@ A tela **Documentação** (no menu, logo abaixo do Glossário) reúne, sem preci
 - **Como usar** (este manual), **Sobre o projeto**, **Novidades da versão** e as **Regras do projeto** (o que o programa sempre faz e nunca faz).
 - **Carros brasileiros**, **Mapa visual** (os diagramas de todas as partes do programa, nas cores do tema), **Fontes e licenças**, **Arquitetura** e o **Guia do código para iniciantes**.
 
-Use **Ir para a seção…** para pular dentro de um documento. Diagramas largos aparecem encolhidos: clique para ver no tamanho real e de novo para encolher. Os documentos estão em português; em inglês, a página Sobre o projeto tem um resumo no final. Também dá para chegar aqui por **Configurações → Sobre → Documentação, fontes e licenças**.
+Todos os documentos existem nos três idiomas do programa e aparecem no idioma escolhido em **Configurações → Aparência e idioma** (o inglês da Europa usa a grafia britânica). Use **Ir para a seção…** para pular dentro de um documento. Diagramas largos aparecem encolhidos: clique para ver no tamanho real e de novo para encolher. Também dá para chegar aqui por **Configurações → Sobre → Documentação, fontes e licenças**.
 
 ## 14. Só leitura (segurança)
 

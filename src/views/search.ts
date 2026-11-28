@@ -23,7 +23,7 @@ function entries(): Entry[] {
   for (const x of msgs().terms) out.push({ kind: "term", id: x.term, title: x.term, detail: x.desc });
   for (const [id, m] of Object.entries(msgs().monitors)) out.push({ kind: "monitor", id, title: m.name, detail: m.desc });
   // Sections of the documents (Documentation screen).
-  for (const { doc, heading } of docSections()) {
+  for (const { doc, heading } of docSections(getLang())) {
     out.push({ kind: "doc", id: `${doc.id}#${heading.id}`, title: heading.text, detail: t(`docs.list.${doc.id}.title`) });
   }
   // Codes already read from the car.

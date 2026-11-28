@@ -1,0 +1,23 @@
+# Credits and third-party material
+
+| Source | License | What was reused | Where it is |
+| --- | --- | --- | --- |
+| [pyOBD](https://github.com/alexfare/pyobd) (Donour Sizemore, Secons Ltd., Jure Poljsak, FareBrothers) | GPL-2.0-or-later | English descriptions of ~1,900 generic codes (`obd2_codes.py`) | `crates/obd-core/data/dtc_descriptions.json` (entries with `en` only) |
+| pyOBD / [python-OBD](https://github.com/brendan-w/python-OBD) | GPL-2.0-or-later | The idea of the fast baud rate probe (`\x7F\x7F\r`) and of trying protocols one by one (`ATTP`) | `transport/serial.rs` (`probe_baud_rate`), `elm327.rs` (`try_protocols_one_by_one`), rewritten in Rust |
+| [Libre Diagnostic](https://github.com/Libre-Diagnosctic/libre-automotive-diagnostic) | AGPL-3.0 | Manufacturer-specific code tables by brand (Audi, BMW, Ford, Honda, Hyundai, Kia, Mazda, Nissan, Toyota, Volkswagen) | `crates/obd-core/data/dtc_brands.json` |
+| [AndrOBD](https://github.com/fr3ts0n/AndrOBD) (Erwin Scheuch-Heilig and translators) | GPL-3.0 | Descriptions of ~2,500 codes in Brazilian Portuguese and ~1,500 in English (`codes*.properties`); `pids.csv` used to check the formulas of the multi-value PIDs; the head-up display idea | `crates/obd-core/data/dtc_descriptions.json`, `pid.rs`, `src/views/hud.ts` |
+| [OBDex](https://github.com/foerbsnavi/OBDex) | CC0-1.0 data (public domain) | English titles of ~6,250 newer generic codes (SAE J2012); the Portuguese texts for these codes were written for this project | `crates/obd-core/data/dtc_descriptions.json` |
+| [Wikibooks: WMI](https://en.wikibooks.org/wiki/Vehicle_Identification_Numbers_(VIN_codes)/World_Manufacturer_Identifier_(WMI)) | CC BY-SA 4.0 | VIN manufacturer codes (WMI) and country ranges | `crates/obd-core/src/vin.rs` |
+| Public sources on fuels (facts, no text copied): [EIA](https://www.eia.gov/energyexplained/gasoline/), [DOE AFDC: E85](https://afdc.energy.gov/fuels/ethanol_e85_specs.html) and [biodiesel](https://afdc.energy.gov/fuels/biodiesel-blends), [CRS: E15](https://www.everycrsreport.com/files/2026-06-05_IN10979_eb05420c575483e6a2de62d125ad6e62798010f6.html), [GOV.UK: E10](https://www.gov.uk/guidance/e10-gasoline-explained), HVO100 data sheet (EN 15940) | — | Blends sold in the USA and in Europe/UK (ethanol and biodiesel content, octane rating) and HVO properties | `src/fuels.ts` |
+| [Wikipedia: OBD-II PIDs](https://en.wikipedia.org/wiki/OBD-II_PIDs) | CC BY-SA 4.0 | Tables for PIDs 1C (OBD standard, including OBDBr-1/2/3) and 51 (fuel type) | `src/locales/*.ts` (`obdStandards`, `fuelTypes`) |
+| [OBDb](https://github.com/OBDb) (Clutch Engineering and contributors) | CC BY-SA 4.0 | Requests and formulas of the manufacturer parameters (modes 21/22) for 8 models: Peugeot 208, Jeep Renegade, Honda HR-V and Civic, Toyota Yaris and Corolla, Ford Ranger, Mitsubishi L200 Triton. Only the read requests that do not need a diagnostic session; names translated into Portuguese in this project (`tools/obdb_names_pt.tsv`). The data file stays under CC BY-SA 4.0. OBDb asks anyone launching a product with this data to tell them first (support@clutch.engineering) | `crates/obd-core/data/maker_params.json`, `maker.rs`, `tools/obdb_import.py` |
+| [ELMduino](https://github.com/PowerBroker2/ELMduino) | MIT | The idea of asking for several PIDs per request (fast reading) | `elm327.rs` (`read_pids_multi`), rewritten in Rust |
+| [DDT4ALL](https://github.com/cedricp/ddt4all) (Cedric Paille and contributors) | GPL-3.0 | The idea of the real adapter version test (AT commands by ELM327 version, `elm_checker`) and of the control unit search with identification (`ecu_scanner`); list reduced to safe commands and rewritten in Rust | `adapter_test.rs`, `ecu_scan.rs` |
+| [obdium](https://github.com/provrb/obdium) | GPL-3.0 | Reference for formulas and for the demo mode idea | — |
+| [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) | MIT | Reference for P-code descriptions | — |
+| [uPlot](https://github.com/leeoniya/uPlot) | MIT | Charting library | npm dependency |
+| [marked](https://github.com/markedjs/marked) | MIT | Markdown reader of the Documentation screen | npm dependency |
+| [Mermaid](https://github.com/mermaid-js/mermaid) | MIT | Drawing of the diagrams on the Documentation screen | npm dependency |
+
+The GPL-2.0-or-later, AGPL-3.0 and CC BY-SA 4.0 licenses are compatible (CC BY-SA 4.0 can be incorporated into a GPLv3 work); CC0 is public domain. The GPL-2.0-or-later and AGPL-3.0 licenses are compatible with this project's GPL-3.0-or-later (GPLv3, section 13).
+The ~150 Portuguese descriptions of the most common codes were written for this project; the other Portuguese ones come from AndrOBD.

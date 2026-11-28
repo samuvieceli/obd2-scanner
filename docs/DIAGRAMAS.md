@@ -286,7 +286,7 @@ flowchart LR
         reportview["views/report.ts<br/>monta o relatório HTML"]
         i18n["i18n.ts + locales/<br/>textos pt-BR, en-US e en-GB<br/>(English Europe)"]
         upresets["unit-presets.ts<br/>unidades de cada idioma"]
-        docsmod["docs.ts<br/>documentos embutidos<br/>(README e docs/*.md)"]
+        docsmod["docs.ts<br/>documentos embutidos<br/>(README e docs/*.md,<br/>em cada idioma)"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup & findings & makerts
     diagnostics --> dtcadvice
@@ -369,13 +369,13 @@ Cada leitura é opcional: o que o carro não responde vira "Não verificado" (ci
 
 ### Documentação dentro do programa
 
-Os documentos do projeto (este arquivo incluído) entram no programa na hora de gerar o instalador, então abrem sem internet e sempre batem com a versão instalada. A tela **Documentação** mostra a lista, transforma o texto em página e desenha os diagramas com o Mermaid, que só é carregado quando um documento com diagrama é aberto, nas cores do tema escolhido. Os números da página inicial (quantos códigos de falha, fabricantes, parâmetros) vêm das próprias bases do programa, pelo comando `data_info`.
+Os documentos do projeto (este arquivo incluído) entram no programa na hora de gerar o instalador, então abrem sem internet e sempre batem com a versão instalada. Cada documento existe em português (`docs/`) e em inglês (`docs/en/`); a tela escolhe o do idioma do programa e, no inglês da Europa, aplica a grafia britânica ao texto em inglês. A tela **Documentação** mostra a lista, transforma o texto em página e desenha os diagramas com o Mermaid, que só é carregado quando um documento com diagrama é aberto, nas cores do tema escolhido. Os números da página inicial (quantos códigos de falha, fabricantes, parâmetros) vêm das próprias bases do programa, pelo comando `data_info`.
 
 ```mermaid
 flowchart LR
-    files["README.md e docs/*.md<br/>(inclusive as regras do projeto<br/>e as notas da versão)"]
+    files["README.md e docs/*.md<br/>(inclusive as regras do projeto<br/>e as notas da versão) + cópias<br/>em inglês em docs/en/"]
     build["Geração do instalador<br/>junta os textos ao programa"]
-    docsmod["docs.ts<br/>lista, títulos das seções<br/>e para onde cada link vai"]
+    docsmod["docs.ts<br/>lista, títulos das seções<br/>e para onde cada link vai,<br/>por idioma"]
     view["Tela Documentação<br/>views/docs.ts"]
     marked["marked<br/>texto → página"]
     mermaid["Mermaid<br/>desenha os diagramas<br/>(carregado só quando precisa)"]
@@ -387,7 +387,7 @@ flowchart LR
     search --> docsmod
 ```
 
-Links entre documentos abrem na própria tela; links para sites e para arquivos de código abrem no navegador (no GitHub). Um teste confere que todo link para uma seção de outro documento aponta para uma seção que existe.
+Links entre documentos abrem na própria tela; links para sites e para arquivos de código abrem no navegador (no GitHub). Um teste confere que todo link para uma seção de outro documento aponta para uma seção que existe e que os documentos em português e em inglês têm a mesma estrutura.
 
 ### Quando a leitura ao vivo liga e desliga
 

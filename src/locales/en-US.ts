@@ -1365,7 +1365,6 @@ const enUS: Messages = {
   docs: {
     title: "Documentation",
     intro: "The project's documents inside the program: how to use it, what it knows about Brazilian cars, diagrams of how it works, the project rules, where the data comes from and the licenses. Works offline.",
-    ptOnly: "The documents are in Brazilian Portuguese. The About the project page has an English summary at the end.",
     jump: "Go to section…",
     github: "Open on GitHub",
     drawing: "Drawing the diagram…",

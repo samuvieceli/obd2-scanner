@@ -1,6 +1,8 @@
 // Documentation screen data: the project's own documents (README and
 // docs/*.md) are bundled into the program at build time, so they open
-// offline and always match the installed version.
+// offline and always match the installed version. Each document exists in
+// Portuguese (docs/) and in American English (docs/en/); the English (Europe)
+// version is the American text with British spelling, with no extra files.
 //
 // Pure logic, no DOM: list of documents, heading ids (same rule as GitHub,
 // so the links inside the documents keep working) and where a link points.
@@ -12,6 +14,16 @@ import creditos from "../docs/CREDITOS.md?raw";
 import arquitetura from "../docs/ARQUITETURA.md?raw";
 import guia from "../docs/GUIA-INICIANTE.md?raw";
 import regras from "../docs/REGRAS-DO-PROJETO.md?raw";
+import enReadme from "../docs/en/README.md?raw";
+import enComoUsar from "../docs/en/COMO-USAR.md?raw";
+import enCarros from "../docs/en/CARROS-BRASILEIROS.md?raw";
+import enDiagramas from "../docs/en/DIAGRAMAS.md?raw";
+import enCreditos from "../docs/en/CREDITOS.md?raw";
+import enArquitetura from "../docs/en/ARQUITETURA.md?raw";
+import enGuia from "../docs/en/GUIA-INICIANTE.md?raw";
+import enRegras from "../docs/en/REGRAS-DO-PROJETO.md?raw";
+import type { Lang } from "./i18n";
+import { british } from "./locales/en-GB";
 
 export const REPO_URL = "https://github.com/samuvieceli/obd2-scanner";
 
@@ -23,26 +35,88 @@ export interface Doc {
   text: string;
 }
 
-// The latest release notes ("What's new"), whatever version they are.
+// The latest release notes ("What's new"), whatever version they are. The
+// file holds the Portuguese text, then "---" and the English text (the
+// heading of each carries a flag); a file without flags is the same for all.
 const notes = Object.entries(import.meta.glob<string>("../docs/release-notes/*.md", { query: "?raw", import: "default", eager: true }))
   .map(([path, text]) => ({ file: path.replace(/^\.\.\//, ""), text }))
   .sort((a, b) => compareVersions(b.file, a.file))[0];
 
+/** The part of the release notes written in the given language. */
+export function notesFor(text: string, lang: Lang): string {
+  const parts = text.split(/\n---\s*\n(?=##[^\n]*\p{Regional_Indicator})/u);
+  if (parts.length < 2) return text;
+  return lang === "pt-BR" ? parts[0] : parts[1];
+}
+
+interface Source {
+  id: string;
+  /** Path in the repository of the Portuguese original. */
+  pt: string;
+  ptText: string;
+  /** Path of the English copy and its text. */
+  en: string;
+  enText: string;
+}
+
 /** In the order shown on the screen: for users first, for programmers last. */
-export const DOCS: Doc[] = [
-  { id: "howto", file: "docs/COMO-USAR.md", text: comoUsar },
-  { id: "readme", file: "README.md", text: readme },
-  ...(notes ? [{ id: "news", file: notes.file, text: notes.text }] : []),
-  { id: "rules", file: "docs/REGRAS-DO-PROJETO.md", text: regras },
-  { id: "brazil", file: "docs/CARROS-BRASILEIROS.md", text: carros },
-  { id: "diagrams", file: "docs/DIAGRAMAS.md", text: diagramas },
-  { id: "credits", file: "docs/CREDITOS.md", text: creditos },
-  { id: "architecture", file: "docs/ARQUITETURA.md", text: arquitetura },
-  { id: "beginner", file: "docs/GUIA-INICIANTE.md", text: guia },
+const SOURCES: Source[] = [
+  { id: "howto", pt: "docs/COMO-USAR.md", ptText: comoUsar, en: "docs/en/COMO-USAR.md", enText: enComoUsar },
+  { id: "readme", pt: "README.md", ptText: readme, en: "docs/en/README.md", enText: enReadme },
+  ...(notes ? [{ id: "news", pt: notes.file, ptText: notes.text, en: notes.file, enText: notes.text }] : []),
+  { id: "rules", pt: "docs/REGRAS-DO-PROJETO.md", ptText: regras, en: "docs/en/REGRAS-DO-PROJETO.md", enText: enRegras },
+  { id: "brazil", pt: "docs/CARROS-BRASILEIROS.md", ptText: carros, en: "docs/en/CARROS-BRASILEIROS.md", enText: enCarros },
+  { id: "diagrams", pt: "docs/DIAGRAMAS.md", ptText: diagramas, en: "docs/en/DIAGRAMAS.md", enText: enDiagramas },
+  { id: "credits", pt: "docs/CREDITOS.md", ptText: creditos, en: "docs/en/CREDITOS.md", enText: enCreditos },
+  { id: "architecture", pt: "docs/ARQUITETURA.md", ptText: arquitetura, en: "docs/en/ARQUITETURA.md", enText: enArquitetura },
+  { id: "beginner", pt: "docs/GUIA-INICIANTE.md", ptText: guia, en: "docs/en/GUIA-INICIANTE.md", enText: enGuia },
 ];
 
-export function docById(id: string): Doc | undefined {
-  return DOCS.find((d) => d.id === id);
+/**
+ * British spelling for a Markdown text: only the prose (and the quoted labels
+ * of diagrams) is changed, never code blocks, inline code or link targets, so
+ * file names and links keep working.
+ */
+export function britishMarkdown(md: string): string {
+  let fence = false;
+  let diagram = false;
+  return md
+    .split("\n")
+    .map((line) => {
+      if (/^\s*(```|~~~)/.test(line)) {
+        diagram = !fence && /^\s*```mermaid/.test(line);
+        fence = !fence;
+        return line;
+      }
+      // Diagram labels are the quoted texts; names and arrows stay as they are.
+      if (diagram) return line.replace(/"[^"]*"/g, (label) => british(label));
+      if (fence) return line;
+      return line
+        .split(/(`[^`]*`|\]\([^)]*\)|<[^>]*>)/)
+        .map((part, i) => (i % 2 ? part : british(part)))
+        .join("");
+    })
+    .join("\n");
+}
+
+const cache = new Map<Lang, Doc[]>();
+
+/** The documents in the given language (pt-BR, en-US or en-GB). */
+export function docsFor(lang: Lang): Doc[] {
+  let docs = cache.get(lang);
+  if (!docs) {
+    docs = SOURCES.map((s) => {
+      if (lang === "pt-BR") return { id: s.id, file: s.pt, text: s.id === "news" ? notesFor(s.ptText, lang) : s.ptText };
+      const text = s.id === "news" ? notesFor(s.enText, lang) : s.enText;
+      return { id: s.id, file: s.en, text: lang === "en-GB" ? britishMarkdown(text) : text };
+    });
+    cache.set(lang, docs);
+  }
+  return docs;
+}
+
+export function docById(id: string, lang: Lang): Doc | undefined {
+  return docsFor(lang).find((d) => d.id === id);
 }
 
 /** "docs/release-notes/v1.10.0.md" after "v1.9.2.md". */
@@ -115,13 +189,13 @@ export type LinkTarget =
   | { kind: "external"; url: string };
 
 /** Where a link inside the document `from` (a repository path) leads. */
-export function resolveLink(href: string, from: string): LinkTarget {
+export function resolveLink(href: string, from: string, lang: Lang): LinkTarget {
   if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return { kind: "external", url: href };
   const [path, hash] = splitHash(href);
   const anchor = hash ? decodeURIComponent(hash) : undefined;
   if (!path) return { kind: "anchor", id: anchor ?? "" };
   const target = joinPath(from, path);
-  const doc = DOCS.find((d) => d.file === target);
+  const doc = docsFor(lang).find((d) => d.file === target);
   if (doc) return doc.file === from ? { kind: "anchor", id: anchor ?? "" } : { kind: "doc", id: doc.id, anchor };
   return { kind: "external", url: `${REPO_URL}/blob/main/${target}${hash !== undefined ? `#${hash}` : ""}` };
 }
@@ -143,6 +217,6 @@ export function joinPath(from: string, rel: string): string {
 }
 
 /** Sections of every document, for the global search. */
-export function docSections(): { doc: Doc; heading: Heading }[] {
-  return DOCS.flatMap((doc) => headings(doc.text).filter((x) => x.level >= 2 && x.level <= 3).map((heading) => ({ doc, heading })));
+export function docSections(lang: Lang): { doc: Doc; heading: Heading }[] {
+  return docsFor(lang).flatMap((doc) => headings(doc.text).filter((x) => x.level >= 2 && x.level <= 3).map((heading) => ({ doc, heading })));
 }
