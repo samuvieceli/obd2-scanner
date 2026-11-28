@@ -153,6 +153,22 @@ fn pid_catalog() -> Vec<PidMeta> {
     pid::catalog()
 }
 
+/// Car models with manufacturer parameters (OBDb data, see obd_core::maker).
+#[tauri::command]
+fn maker_models() -> Vec<obd_core::maker::ModelInfo> {
+    obd_core::maker::models()
+}
+
+/// Manufacturer parameters of a model, for its model year when known.
+#[tauri::command]
+fn maker_params(
+    model: String,
+    year: Option<u16>,
+    lang: String,
+) -> Vec<obd_core::maker::MakerParam> {
+    obd_core::maker::params(&model, year, &lang)
+}
+
 /// Size of the bundled databases, for the Documentation screen.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -802,6 +818,8 @@ pub fn run() {
             list_ports,
             scan_ble,
             pid_catalog,
+            maker_models,
+            maker_params,
             data_info,
             describe_dtc,
             connect,

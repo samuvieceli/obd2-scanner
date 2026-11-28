@@ -128,6 +128,7 @@ pub fn scan_ecus(elm: &mut Elm327) -> Result<Vec<EcuInfo>> {
 
 fn scan_inner(elm: &mut Elm327) -> Result<Vec<EcuInfo>> {
     let can = elm.info.is_can();
+    elm.standard_addressing()?;
     elm.command("ATH1")?;
     let lines = elm.command("0100")?;
     check_errors(&lines)?;

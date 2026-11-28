@@ -524,6 +524,14 @@ body.mini-mode > :not(.mini) { display: none !important; }
 .refuel-box .row { align-items: center; }
 .calibration-row { align-items: center; margin-top: 8px; }
 
+/* Manufacturer parameters in the dashboard's picker (views/maker-picker.ts). */
+.picker > .maker-box { grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: 10px; }
+.maker-picker h3 { margin: 0 0 4px; font-size: 1rem; }
+.maker-picker select { max-width: 100%; }
+.maker-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; }
+.maker-list .badge { margin-left: 6px; }
+.maker-warn { color: var(--warn); font-weight: 600; }
+
 /* Trip analysis ("Viagem") */
 .journey .btn-lg { margin: 6px 0; }
 .journey textarea { width: 100%; resize: vertical; font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }

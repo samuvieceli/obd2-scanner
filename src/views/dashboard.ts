@@ -5,6 +5,7 @@ import { DEFAULT_KEYS, displayKeys, emit, hasLiveSource, isSupported, on, readKe
 import { warmBadge, busy, button, clear, displayValue, errorText, fmtValue, h, infoTip, notConnected, pidTip, toast, unitOf } from "../ui";
 import type { Category } from "../api";
 import { findingList } from "./findings";
+import { makerPicker } from "./maker-picker";
 import { makeGauge } from "../gauge";
 import { activeAlerts } from "../alerts";
 import { fmtNum, getLang } from "../i18n";
@@ -161,6 +162,7 @@ export function mount(root: HTMLElement) {
   const renderPicker = () => {
     clear(picker);
     const list = h("div");
+    const makerBox = h("div", { class: "maker-box" });
     const apply = async (keys: string[]) => {
       setLiveKeys(keys);
       try {
@@ -215,6 +217,7 @@ export function mount(root: HTMLElement) {
         );
       }
       if (!shown) list.append(h("p", { class: "muted small" }, t("dashboard.pickerNone")));
+      makerBox.replaceChildren(makerPicker(query, (keys) => void apply(keys)));
     };
     const search = h("input", {
       type: "search",
@@ -257,6 +260,7 @@ export function mount(root: HTMLElement) {
           : "",
       ),
       list,
+      makerBox,
     );
     renderList();
     search.focus();
@@ -605,6 +609,10 @@ export function mount(root: HTMLElement) {
     on("live-keys", renderTrip),
     on("live-keys", renderCards),
     on("live-keys", renderPresets),
+    on("maker", () => {
+      renderCards();
+      if (!picker.hidden) renderPicker();
+    }),
     on("recording", renderToolbar),
     on("connection", renderToolbar),
   ];

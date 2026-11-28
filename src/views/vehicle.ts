@@ -4,6 +4,7 @@ import { reportVin } from "./connection";
 import { fmtNum, msgs, t } from "../i18n";
 import { state } from "../store";
 import { busy, button, clear, h, infoTip, notConnected, section } from "../ui";
+import { loadMaker } from "../maker";
 
 const place = (name: string) => (msgs().places as Record<string, string>)[name] ?? name;
 
@@ -148,6 +149,7 @@ export function mount(root: HTMLElement) {
     const v = await busy(infoBtn, () => api.readVehicleInfo());
     if (v) {
       state.vehicle = v;
+      void loadMaker();
       renderInfo();
       reportVin(v.identity.vin);
     }

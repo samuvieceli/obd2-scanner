@@ -3,7 +3,7 @@ import uPlot from "uplot";
 import { save } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { pidText, t } from "../i18n";
-import { hasLiveSource, isSupported, on, readKeys, setChartKeys, state, type Series } from "../store";
+import { hasLiveSource, isMakerKey, isSupported, on, readKeys, setChartKeys, state, type Series } from "../store";
 import { CALC_KEYS, calcInputs, isCalc } from "../calc";
 import { calcValues } from "../trip";
 import { CHART_PRESETS, chartPresetKeys, matchChartPreset, type ChartPresetId } from "../presets";
@@ -12,6 +12,7 @@ import { cssVar } from "../theme";
 import { button, clear, decimalsFor, displayValue, errorText, h, timestampForFile, toast, unitOf } from "../ui";
 import { fmtNum } from "../i18n";
 import { copyCard, drawCard } from "../share";
+import { makerOffered } from "../maker";
 
 const PALETTE = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
 const WINDOWS = [30, 60, 300, 900, 0]; // seconds, 0 = all
@@ -82,7 +83,8 @@ export function mount(root: HTMLElement) {
     if (live() && !state.adapter) return key === "battery_voltage" || state.catalog.some((m) => m.key === key);
     return isSupported(key);
   };
-  const allKeys = () => [...state.catalog.map((m) => m.key), ...(state.catalog.some((m) => m.key === "battery_voltage") ? [] : ["battery_voltage"]), ...CALC_KEYS];
+  // Manufacturer parameters: those of the chosen car model (see maker.ts).
+  const allKeys = () => [...state.catalog.map((m) => m.key), ...(state.catalog.some((m) => m.key === "battery_voltage") ? [] : ["battery_voltage"]), ...CALC_KEYS, ...[...state.maker.values()].filter(makerOffered).map((p) => p.key)];
   const available = () => (viewing ? [...sessionSeries.keys()] : allKeys().filter(has));
 
   let paused = false;
@@ -184,9 +186,10 @@ export function mount(root: HTMLElement) {
       return words.every((w) => text.includes(w));
     };
     const avail = available().filter(matches);
-    const category = (k: string) => (isCalc(k) ? "calculated" : k === "battery_voltage" ? "electrical" : (state.catalog.find((m) => m.key === k)?.category ?? "vehicle"));
+    const category = (k: string) =>
+      isCalc(k) ? "calculated" : k === "battery_voltage" ? "electrical" : isMakerKey(k) ? "maker" : (state.catalog.find((m) => m.key === k)?.category ?? "vehicle");
     let shown = 0;
-    for (const cat of ["calculated", ...CATEGORY_ORDER]) {
+    for (const cat of ["calculated", ...CATEGORY_ORDER, "maker"]) {
       const items = avail.filter((k) => category(k) === cat);
       if (!items.length) continue;
       shown += items.length;

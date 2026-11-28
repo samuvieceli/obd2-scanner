@@ -3,6 +3,7 @@ import { warmState } from "./warmup";
 import { fmtNum, pidText, t } from "./i18n";
 import type { CmdError } from "./api";
 import { meta, on, state } from "./store";
+import { stateLabel } from "./maker";
 import { CALC_UNITS } from "./calc";
 import { displayUnit, extraDecimals, toDisplay } from "./units";
 
@@ -158,6 +159,9 @@ export function displayValue(key: string, v: number): number {
 
 export function decimalsFor(key: string): number {
   const unit = baseUnitOf(key);
+  // Manufacturer values without a unit: small ones (a ratio) need decimals.
+  const mk = state.maker.get(key);
+  if (mk && unit === "") return mk.max - mk.min <= 10 ? 2 : 0;
   let d = 1;
   if (key === "rpm" || key === "speed" || key === "run_time") d = 0;
   else if (unit === "V") d = key.startsWith("o2_") ? 3 : 2;
@@ -169,6 +173,8 @@ export function decimalsFor(key: string): number {
 /** Formats a value in the unit shown on screen (without the unit). */
 export function fmtValue(key: string, v: number | undefined): string {
   if (v === undefined || Number.isNaN(v)) return "—";
+  const named = stateLabel(key, v);
+  if (named !== null) return named;
   return fmtNum(displayValue(key, v), decimalsFor(key));
 }
 
