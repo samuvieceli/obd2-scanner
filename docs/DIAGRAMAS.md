@@ -253,7 +253,8 @@ flowchart LR
         mini["views/mini.ts<br/>mini janela por cima das outras"]
         recdiag["recording-diagnostics.ts<br/>lê códigos, prontidão e<br/>Modo 06 ao gravar"]
         reportview["views/report.ts<br/>monta o relatório HTML"]
-        i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
+        i18n["i18n.ts + locales/<br/>textos pt-BR, en-US e en-GB<br/>(English Europe)"]
+        upresets["unit-presets.ts<br/>unidades de cada idioma"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup & findings
     diagnostics --> dtcadvice
@@ -283,6 +284,7 @@ flowchart LR
     telas --> store
     telas --> api
     telas --> i18n
+    units & prefs --> upresets
     trip & alerts --> prefs
     dashboard --> cost
     cost --> prefs
@@ -341,6 +343,22 @@ flowchart TB
     raw["Valor do carro<br/>(métrico: km/h, °C, kPa)"] --> conv["units.ts<br/>converte só na hora de mostrar"]
     conv --> screen["Tela: mph, °F, psi, bar,<br/>milhas, galões, mpg..."]
     raw --> files["Gravações e arquivos<br/>continuam métricos"]
+```
+
+### Trocar o idioma troca as unidades
+
+Escolher um idioma aplica as unidades usuais dele e redesenha todas as telas na hora. Os textos são escritos com valores métricos ("abaixo de 60 °C"); na hora de mostrar, `units.ts` converte esses números para as unidades escolhidas. O inglês da Europa (en-GB) não é um arquivo traduzido à parte: ele é gerado do inglês dos EUA trocando a grafia americana pela britânica (gasoline → petrol, liter → litre).
+
+```mermaid
+flowchart LR
+    pick["Usuário escolhe o idioma"] --> preset{"Qual idioma?"}
+    preset -- "Português (Brasil)" --> br["km/h · °C · kPa · km/L"]
+    preset -- "English (US)" --> us["mph · °F · psi · mpg"]
+    preset -- "English (Europe)" --> eu["km/h · °C · bar · L/100 km"]
+    br & us & eu --> save["Salva as unidades<br/>(dá para ajustar depois)"]
+    save --> redraw["Redesenha todas as telas<br/>e descreve de novo os códigos lidos"]
+    texts["Textos com valores métricos<br/>'abaixo de 60 °C'"] --> filter["units.ts converte<br/>'abaixo de 140 °F'"] --> redraw
+    us_txt["en-US.ts"] --> gb["en-GB.ts<br/>grafia britânica automática"]
 ```
 
 ### Como o consumo é calculado e o ajuste pelo abastecimento

@@ -1,11 +1,11 @@
 // Settings: language, theme, vehicle profiles, units, connection, alerts, about.
-import { fmtNum, getLang, LANGS, setLang, t } from "../i18n";
+import { fmtNum, getLang, LANGS, t, type Lang } from "../i18n";
 import { emit, on, state } from "../store";
 import { applyTheme, getTheme, THEME_SWATCH, THEMES, type Theme } from "../theme";
 import { baseUnitOf, button, clear, h, infoTip, section, toast, unitOf } from "../ui";
 import { DEFAULT_ALERTS, newProfile, prefs, profile, savePrefs, saveProfile, setActiveProfile, type AlertRule, type FuelType, type Profile } from "../prefs";
 import { calibratedFills, resetCalibration } from "../trip";
-import { fromDisplay, saveUnits, toDisplay, UNIT_CHOICES, UNIT_PRESETS, units, type UnitPrefs } from "../units";
+import { changeLanguage, displayUnit, fromDisplay, saveUnits, toDisplay, UNIT_CHOICES, UNIT_PRESETS, units, type UnitPrefs } from "../units";
 import { pidText } from "../i18n";
 import type { PriceKey } from "../cost";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -240,35 +240,42 @@ function connectionSection(): HTMLElement {
 }
 
 /** Pump prices, for the trip cost and the gasoline × ethanol comparison. */
-function pricesSection(): HTMLElement {
+function pricesSection(offs: (() => void)[]): HTMLElement {
   const keys: PriceKey[] = ["gasoline", "gasoline_premium", "ethanol", "diesel"];
   const box = h("div", { class: "row wrap" });
-  for (const k of keys) {
-    const cur = prefs().fuelPrices[k];
-    box.append(
-      h(
-        "label",
-        { class: "field" },
-        h("span", null, t(`cost.price.${k}`)),
-        h("input", {
-          type: "number",
-          step: 0.01,
-          min: 0,
-          max: 100,
-          inputmode: "decimal",
-          placeholder: t("cost.pricePlaceholder"),
-          value: cur ? String(cur) : "",
-          onchange: (e: Event) => {
-            const raw = (e.target as HTMLInputElement).value.replace(",", ".");
-            const v = raw === "" ? null : Number(raw);
-            if (v !== null && !(Number.isFinite(v) && v >= 0 && v <= 100)) return;
-            savePrefs({ fuelPrices: { ...prefs().fuelPrices, [k]: v } });
-            emit("trip");
-          },
-        }),
-      ),
-    );
-  }
+  const render = () => {
+    clear(box);
+    // Prices are kept per litre and shown per the chosen volume (litre or gallon).
+    const perVolume = toDisplay("L", 1);
+    const unit = `${t("cost.currency")}/${displayUnit("L")}`;
+    for (const k of keys) {
+      const cur = prefs().fuelPrices[k];
+      box.append(
+        h(
+          "label",
+          { class: "field" },
+          h("span", null, t(`cost.price.${k}`, { unit })),
+          h("input", {
+            type: "number",
+            step: 0.01,
+            min: 0,
+            inputmode: "decimal",
+            placeholder: t("cost.pricePlaceholder"),
+            value: cur ? String(Math.round((cur / perVolume) * 1000) / 1000) : "",
+            onchange: (e: Event) => {
+              const raw = (e.target as HTMLInputElement).value.replace(",", ".");
+              const v = raw === "" ? null : Number(raw) * perVolume;
+              if (v !== null && !(Number.isFinite(v) && v >= 0 && v <= 100)) return;
+              savePrefs({ fuelPrices: { ...prefs().fuelPrices, [k]: v } });
+              emit("trip");
+            },
+          }),
+        ),
+      );
+    }
+  };
+  render();
+  offs.push(on("units", render));
   return section(t("cost.title"), h("p", { class: "muted small" }, t("cost.help")), box);
 }
 
@@ -393,7 +400,7 @@ export function mount(root: HTMLElement) {
   root.append(page);
   const lang = h(
     "select",
-    { onchange: (e: Event) => setLang((e.target as HTMLSelectElement).value as "pt-BR" | "en-US") },
+    { onchange: (e: Event) => changeLanguage((e.target as HTMLSelectElement).value as Lang) },
     LANGS.map((l) => h("option", { value: l.id, selected: l.id === getLang() }, l.label)),
   );
   const swatch = (id: Theme) =>
@@ -430,12 +437,13 @@ export function mount(root: HTMLElement) {
     section(
       t("settings.appearance"),
       h("label", { class: "field" }, h("span", null, t("settings.language")), lang),
+      h("p", { class: "muted small" }, t("settings.languageHelp")),
       h("div", { class: "field" }, h("span", { class: "label" }, t("settings.theme")), theme),
     ),
     profilesSection(offs),
     unitsSection(),
     connectionSection(),
-    pricesSection(),
+    pricesSection(offs),
     alertsSection(offs),
     section(
       t("settings.about"),

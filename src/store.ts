@@ -18,7 +18,7 @@ import type {
   VehicleInfo,
 } from "./api";
 
-export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units";
+export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units" | "dtcs";
 
 export interface Series {
   t: number[];

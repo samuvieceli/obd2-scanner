@@ -2,7 +2,7 @@
 import { ask } from "@tauri-apps/plugin-dialog";
 import { api, type DtcInfo, type TestResult } from "../api";
 import { fmtNum, getLang, pidText, t } from "../i18n";
-import { state } from "../store";
+import { emit, on, state } from "../store";
 import { mode06Hints } from "../mode06hints";
 import { copyCard, drawCard, type Line } from "../share";
 import { findingList } from "./findings";
@@ -304,4 +304,27 @@ export function mount(root: HTMLElement) {
   renderLists();
   renderFreeze();
   renderMode06();
+  // Codes read before a language change come back described in the new language.
+  return on("dtcs", () => {
+    renderLists();
+    renderFreeze();
+  });
+}
+
+/** Describes the codes already on screen again in the current language. */
+export async function relocalizeDtcs() {
+  const lang = getLang();
+  const again = async (d: DtcInfo): Promise<DtcInfo> => {
+    try {
+      return await api.describeDtc(d.code, lang);
+    } catch {
+      return d;
+    }
+  };
+  const r = state.dtcs;
+  const f = state.freeze;
+  if (!r && !f?.dtc) return;
+  if (r) state.dtcs = { stored: await Promise.all(r.stored.map(again)), pending: await Promise.all(r.pending.map(again)), permanent: await Promise.all(r.permanent.map(again)) };
+  if (f?.dtc) state.freeze = { ...f, dtc: await again(f.dtc) };
+  emit("dtcs");
 }

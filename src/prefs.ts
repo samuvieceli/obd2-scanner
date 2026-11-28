@@ -9,7 +9,8 @@ import type { PerfTestId } from "./perf";
 import type { Prices } from "./cost";
 import type { UnitPrefs } from "./units";
 import { emit } from "./store";
-import { t } from "./i18n";
+import { getLang, t } from "./i18n";
+import { LANG_UNITS, UNIT_PRESETS } from "./unit-presets";
 
 import { migrateFuel, type FuelType } from "./fuels";
 import type { FillResult, FuelMethod } from "./refuel";
@@ -73,7 +74,6 @@ export function newProfile(name: string, id = `p${Date.now().toString(36)}`): Pr
   return { id, name, vin: null, fuel: "auto", displacementL: 1.6, volumetricEff: 0.85, fuelMethod: null, mafFactor: 1, fills: [], alerts: structuredClone(DEFAULT_ALERTS) };
 }
 
-const DEFAULT_UNITS: UnitPrefs = { speed: "km/h", temp: "°C", pressure: "kPa", distance: "km", volume: "L", consumption: "km/L", torque: "Nm" };
 
 /** Preferences saved by versions without profiles kept the car data at the top level. */
 type Stored = Partial<Prefs> & Partial<Omit<Profile, "id" | "name" | "vin">>;
@@ -112,7 +112,8 @@ function load(): Prefs {
     alertsEnabled: stored.alertsEnabled ?? true,
     alertSound: stored.alertSound ?? true,
     autoReconnect: stored.autoReconnect ?? true,
-    units: { ...DEFAULT_UNITS, ...(stored.units ?? {}) },
+    // First run: the units usual for the language the program opened in.
+    units: { ...UNIT_PRESETS[LANG_UNITS[getLang()]], ...(stored.units ?? {}) },
     profiles,
     activeProfile: active,
     fuelPrices: stored.fuelPrices ?? {},

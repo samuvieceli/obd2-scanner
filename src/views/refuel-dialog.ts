@@ -1,8 +1,8 @@
-// "Abasteci" window: asks the litres the pump showed, shows what the program
+// "Abasteci" window: asks how much fuel the pump showed (litres or gallons), shows what the program
 // calculated since "Tanque cheio" and applies the pump calibration (refuel.ts).
 import { fmtNum, t } from "../i18n";
 import { button, h, toast } from "../ui";
-import { displayUnit, toDisplay } from "../units";
+import { displayUnit, fromDisplay, toDisplay } from "../units";
 import { MIN_CALC_L, MIN_KM, type FillResult } from "../refuel";
 import { correction, fillTracker, finishFill } from "../trip";
 import { profile } from "../prefs";
@@ -14,8 +14,16 @@ function close() {
   open = null;
 }
 
+/** Amount of fuel in the chosen volume unit, e.g. "38,5 L" or "10.2 gal". */
+export const volumeText = (litres: number) => `${fmtNum(toDisplay("L", litres), 1)} ${displayUnit("L")}`;
+/** Distance in the chosen unit, e.g. "412 km" or "256 mi". */
+export const distanceText = (km: number) => `${fmtNum(toDisplay("km", km), 0)} ${displayUnit("km")}`;
+
+/** Lower limits of a calibration, in the chosen units. */
+const limits = () => ({ minDist: distanceText(MIN_KM), minVol: volumeText(MIN_CALC_L) });
+
 function resultText(r: FillResult): string {
-  const vars = { pump: fmtNum(r.pumpL, 1), calc: fmtNum(r.calcL, 1), km: fmtNum(r.distanceKm, 0), pct: fmtNum(r.estimate * 100, 0), minKm: MIN_KM, minL: MIN_CALC_L };
+  const vars = { pump: volumeText(r.pumpL), calc: volumeText(r.calcL), dist: distanceText(r.distanceKm), pct: fmtNum(r.estimate * 100, 0), ...limits() };
   if (!r.used) return t(`refuel.rejected.${r.reason ?? "short"}`, vars);
   const p = profile();
   return t(`refuel.applied.${r.method}`, { ...vars, now: fmtNum((r.method === "map" ? p.volumetricEff : p.mafFactor) * 100, 0) });
@@ -27,9 +35,11 @@ export function openRefuelDialog() {
   close();
   const calcL = f.baseL * correction(f.method);
   const short = f.distanceKm < MIN_KM || calcL < MIN_CALC_L;
-  const input = h("input", { type: "text", inputmode: "decimal", placeholder: "0,0", "aria-label": t("refuel.pumpLitres") }) as HTMLInputElement;
+  const unit = displayUnit("L");
+  const input = h("input", { type: "text", inputmode: "decimal", placeholder: fmtNum(0, 1), "aria-label": t("refuel.pumpLitres", { unit }) }) as HTMLInputElement;
   const confirm = () => {
-    const v = Number(input.value.trim().replace(",", "."));
+    // Typed in the chosen unit (litres or gallons), kept in litres.
+    const v = fromDisplay("L", Number(input.value.trim().replace(",", ".")));
     if (!Number.isFinite(v) || v < 0.5 || v > 200) {
       toast(t("refuel.badLitres"), "error");
       input.focus();
@@ -62,13 +72,13 @@ export function openRefuelDialog() {
         h("dt", null, t("refuel.since")),
         h("dd", null, new Date(f.since).toLocaleDateString()),
         h("dt", null, t("trip.distance")),
-        h("dd", null, `${fmtNum(toDisplay("km", f.distanceKm), 0)} ${displayUnit("km")}`),
+        h("dd", null, distanceText(f.distanceKm)),
         h("dt", null, t("refuel.calculated")),
-        h("dd", null, `${fmtNum(calcL, 1)} L`),
+        h("dd", null, volumeText(calcL)),
       ),
       h("p", { class: "alert small" }, t("refuel.fillRule")),
-      short ? h("p", { class: "alert" }, t("refuel.tooShort", { minKm: MIN_KM, minL: MIN_CALC_L })) : h("p", { class: "muted small" }, t("refuel.askHint")),
-      h("label", { class: "field" }, h("span", null, t("refuel.pumpLitres")), input),
+      short ? h("p", { class: "alert" }, t("refuel.tooShort", limits())) : h("p", { class: "muted small" }, t("refuel.askHint")),
+      h("label", { class: "field" }, h("span", null, t("refuel.pumpLitres", { unit })), input),
       h("div", { class: "row" }, button(t("refuel.confirm"), confirm, "primary"), button(t("common.cancel"), close, "ghost")),
     ),
   );

@@ -206,9 +206,19 @@ Em **Configurações** há 8 temas. O **Noturno** (vermelho no preto) não ofusc
 
 Em **Configurações → Veículos (perfis)**, clique em **Novo veículo** para cada carro e informe nome e combustível. Depois da primeira leitura, o perfil mostra como o consumo desse carro é calculado (vazão de combustível, sensor MAF ou sensor MAP). Só em carros com MAP aparecem a cilindrada e a eficiência volumétrica, porque só ali elas entram na conta (enquanto o carro não foi lido, aparece só a cilindrada). Cada perfil tem os seus próprios alertas e resultados de desempenho. Na primeira conexão, o programa lê o chassi (VIN) do carro e guarda no perfil ativo. Depois disso, ao conectar em qualquer um dos carros, ele **troca de perfil sozinho**. O perfil ativo também pode ser trocado na caixa no canto inferior esquerdo da janela.
 
-## 11. Unidades
+## 11. Idioma e unidades
 
-Em **Configurações → Unidades**, escolha um padrão (**Brasil**, **Europa**, **EUA**, **Reino Unido**) ou cada unidade separadamente: velocidade (km/h ou mph), temperatura (°C ou °F), pressão (kPa, bar ou psi), distância (km ou milhas), volume (litros ou galões), consumo (km/L, L/100 km, mpg) e torque. A troca vale para o painel, mostradores, HUD, gráficos, alertas, computador de bordo e relatório. As gravações e os arquivos exportados continuam no sistema métrico, que é o padrão do OBD2.
+O idioma fica em **Configurações → Aparência e idioma** e também na caixa no canto inferior esquerdo da janela. São três:
+
+| Idioma | Unidades que entram junto |
+|---|---|
+| **Português (Brasil)** | km/h, °C, kPa, km, litros, km/L |
+| **English (US)** (inglês dos EUA) | mph, °F, psi, milhas, galões americanos, mpg (EUA), lb·ft |
+| **English (Europe)** (inglês britânico, para quem usa o sistema métrico europeu) | km/h, °C, bar, km, litros, L/100 km |
+
+Ao trocar o idioma, a tela inteira muda na hora, sem reiniciar, e as unidades passam a ser as daquele idioma, mesmo que você tenha mudado alguma antes. Depois é só ajustar o que quiser em **Unidades**. Códigos de falha já lidos são descritos de novo no idioma novo. Os preços de combustível seguem a unidade de volume (R$/L, $/gal ou €/L; o valor guardado é o mesmo, só muda a forma de mostrar).
+
+Em **Configurações → Unidades**, escolha um padrão (**Brasil**, **Europa**, **EUA**, **Reino Unido**) ou cada unidade separadamente: velocidade (km/h ou mph), temperatura (°C ou °F), pressão (kPa, bar ou psi), distância (km ou milhas), volume (litros ou galões), consumo (km/L, L/100 km, mpg) e torque. A troca vale para o painel, mostradores, HUD, gráficos, alertas, computador de bordo, ajuste pelo abastecimento, interpretação dos dados, valores típicos do glossário e relatório. As gravações e os arquivos exportados continuam no sistema métrico, que é o padrão do OBD2.
 
 ## 12. Reconexão automática
 
