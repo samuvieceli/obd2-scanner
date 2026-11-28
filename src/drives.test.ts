@@ -25,6 +25,9 @@ describe("trip history", () => {
     expect(fuelGroup(drive("auto", 10, 1))).toBe("other");
     expect(fuelGroup(drive("gasoline_premium", 10, 1))).toBe("gasoline");
     expect(fuelGroup(drive("diesel", 10, 1))).toBe("other");
+    expect(fuelGroup(drive("us_e15", 10, 1))).toBe("gasoline");
+    expect(fuelGroup(drive("eu_e85", 10, 1))).toBe("ethanol");
+    expect(fuelGroup(drive("eu_lpg", 10, 1))).toBe("other");
   });
 
   it("averages by distance over fuel, long drives weighing more", () => {

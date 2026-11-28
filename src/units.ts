@@ -5,9 +5,9 @@
 // Conversion happens only when a value is displayed or typed by the user, so
 // changing units never changes stored data.
 import { fmtNum, getLang, setLang, setTextFilter, type Lang, type Params } from "./i18n";
-import { prefs, savePrefs } from "./prefs";
+import { prefs, savePrefs, setFuelRegion } from "./prefs";
 import { emit } from "./store";
-import { LANG_UNITS, UNIT_PRESETS } from "./unit-presets";
+import { LANG_FUELS, LANG_UNITS, UNIT_PRESETS } from "./unit-presets";
 
 export interface UnitPrefs {
   speed: "km/h" | "mph";
@@ -43,12 +43,15 @@ export function saveUnits(change: Partial<UnitPrefs>) {
 /**
  * Switches the language and applies that language's usual units
  * (pt-BR: km/h, °C, km/L; en-US: mph, °F, mpg; en-GB: km/h, °C, L/100 km).
+ * and the fuels sold there (pt-BR: Brazil, en-US: USA, en-GB: Europe and UK;
+ * each car moves to the same kind of fuel, see setFuelRegion).
  * A unit the user had changed by hand is replaced too: picking a language is
- * read as "show it the way people there are used to". Each unit can still be
- * adjusted afterwards in Settings. Every screen is redrawn at once.
+ * read as "show it the way people there are used to". Each unit and the fuel
+ * region can still be adjusted afterwards in Settings. Every screen is redrawn at once.
  */
 export function changeLanguage(lang: Lang) {
   savePrefs({ units: { ...UNIT_PRESETS[LANG_UNITS[lang]] } });
+  setFuelRegion(LANG_FUELS[lang]);
   setLang(lang);
   emit("units");
 }

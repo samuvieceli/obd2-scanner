@@ -10,9 +10,9 @@ import type { Prices } from "./cost";
 import type { UnitPrefs } from "./units";
 import { emit } from "./store";
 import { getLang, t } from "./i18n";
-import { LANG_UNITS, UNIT_PRESETS } from "./unit-presets";
+import { LANG_FUELS, LANG_UNITS, UNIT_PRESETS } from "./unit-presets";
 
-import { migrateFuel, type FuelType } from "./fuels";
+import { equivalentFuel, isFuelRegion, migrateFuel, type FuelRegion, type FuelType } from "./fuels";
 import type { FillResult, FuelMethod } from "./refuel";
 export type { FuelType };
 
@@ -54,8 +54,10 @@ export interface Prefs {
   units: UnitPrefs;
   profiles: Profile[];
   activeProfile: string;
-  /** Price per litre at the pump, for the trip cost (null = not given). */
+  /** Price per litre at the pump, by fuel, for the trip cost (null = not given). */
   fuelPrices: Prices;
+  /** Where the car is filled up: which fuels are listed (follows the language). */
+  fuelRegion: FuelRegion;
 }
 
 export const DEFAULT_ALERTS: AlertRule[] = [
@@ -117,6 +119,8 @@ function load(): Prefs {
     profiles,
     activeProfile: active,
     fuelPrices: stored.fuelPrices ?? {},
+    // Older versions only knew Brazilian fuels.
+    fuelRegion: isFuelRegion(stored.fuelRegion) ? stored.fuelRegion : stored.profiles || stored.fuel ? "br" : LANG_FUELS[getLang()],
   };
 }
 
@@ -144,6 +148,16 @@ export function profile(): Profile {
 
 export function saveProfile(change: Partial<Profile>, id = profile().id) {
   savePrefs({ profiles: prefs().profiles.map((p) => (p.id === id ? { ...p, ...change } : p)) });
+}
+
+/**
+ * Lists the fuels of another region and moves every car to the same kind of
+ * fuel sold there (regular gasoline stays regular gasoline, diesel stays
+ * diesel, flex "auto" stays "auto"). Nothing is deleted: prices typed for
+ * the other region stay saved for when it comes back.
+ */
+export function setFuelRegion(region: FuelRegion) {
+  savePrefs({ fuelRegion: region, profiles: prefs().profiles.map((p) => ({ ...p, fuel: equivalentFuel(p.fuel, region) })) });
 }
 
 /** Makes `id` the active profile and tells every screen. */

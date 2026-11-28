@@ -7,15 +7,14 @@
 //    Brazil): air mass = rpm × displacement × efficiency × pressure / (R × T).
 // Ethanol content from PID 52 is used for flex cars when available.
 import { emit, isSupported, on, pushCalculated, recentValues, state } from "./store";
-import { profile, saveProfile } from "./prefs";
-import { FUELS, flexProps, type FuelProps } from "./fuels";
+import { prefs, profile, saveProfile } from "./prefs";
+import { fuelProps as propsOf, type FuelProps } from "./fuels";
 import { advanceFill, closeFill, detectMethod, loadFill, saveFill, startFill, type FillResult, type FillTracker } from "./refuel";
 import { advance, loadMeters, resetMeter, saveMeters, type TripId, type TripMeters } from "./trips";
 
 /** Air/fuel ratio and density of the fuel in the tank (see fuels.ts). */
 function fuelProps(): FuelProps {
-  const p = profile();
-  return p.fuel === "auto" ? flexProps(state.latest.ethanol_percent) : FUELS[p.fuel];
+  return propsOf(profile().fuel, state.latest.ethanol_percent, prefs().fuelRegion);
 }
 
 /**

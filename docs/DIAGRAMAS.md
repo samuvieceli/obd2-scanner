@@ -231,7 +231,7 @@ flowchart LR
         api["api.ts<br/>ponte com o Rust"]
         trip["trip.ts + trips.ts<br/>consumo, Trip A e Trip B"]
         refuel["refuel.ts<br/>ajuste pelo abastecimento"]
-        cost["cost.ts + fuels.ts<br/>custo em R$ e<br/>gasolina × etanol"]
+        cost["cost.ts + fuels.ts<br/>combustíveis por região,<br/>custo e gasolina × etanol"]
         perf["perf.ts<br/>detecção 0-100 etc."]
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         o2test["o2test.ts<br/>sondas e catalisador"]
@@ -347,6 +347,23 @@ flowchart TB
     raw["Valor do carro<br/>(métrico: km/h, °C, kPa)"] --> conv["units.ts<br/>converte só na hora de mostrar"]
     conv --> screen["Tela: mph, °F, psi, bar,<br/>milhas, galões, mpg..."]
     raw --> files["Gravações e arquivos<br/>continuam métricos"]
+```
+
+### Combustíveis por região
+
+Cada país vende misturas diferentes: no Brasil a gasolina tem 32% de etanol, nos EUA e na Europa quase sempre 10% (E10). Isso muda a conta de consumo, então a lista de combustíveis acompanha o idioma (dá para escolher outra região em **Configurações → Veículos**). Ao trocar, cada carro vai para o mesmo tipo de combustível vendido lá; nada é apagado.
+
+```mermaid
+flowchart LR
+    lang["Troca de idioma"] --> region
+    pick["Escolha manual em<br/>Configurações → Veículos"] --> region
+    region{"Região dos<br/>combustíveis"}
+    region -- "Português (Brasil)" --> br["Brasil<br/>gasolina E32, premium E25,<br/>etanol, diesel B15, E0"]
+    region -- "English (US)" --> us["EUA<br/>regular/midgrade/premium E10,<br/>E15, E85, E0, diesel, B20"]
+    region -- "English (Europe)" --> eu["Europa e Reino Unido<br/>E10, E5, E85, diesel B7,<br/>HVO100, GLP"]
+    br & us & eu --> same["Cada carro vai para o<br/>combustível do mesmo papel<br/>(comum → E10, diesel → diesel)"]
+    same --> calc["Consumo usa a relação<br/>ar/combustível e a densidade<br/>da mistura daquela região"]
+    same --> money["Preços guardados por combustível,<br/>moeda da região (R$, $, €)"]
 ```
 
 ### Trocar o idioma troca as unidades
