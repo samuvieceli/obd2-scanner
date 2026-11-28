@@ -63,6 +63,8 @@ Há dois tipos de regra:
 | T3 | **Revisões feitas por outra IA:** cada apontamento é conferido no código. Erros reais confirmados são corrigidos direto (entram quando o CI passar) e só um resumo é enviado; o que não se confirmou é explicado. Função nova sugerida numa revisão ainda precisa de aprovação. |
 | T4 | **Decisões grandes viram notificação**, com explicação para leigo, mesmo quando o dono do projeto está ausente. O resto segue sozinho. |
 | T5 | **Trabalho interrompido (por exemplo, por limite de uso) é retomado sozinho**, parando só para decisões importantes. |
+| T17 | **Propostas prontas para o dono e para outra IA:** toda proposta de função nova ou de revisão de código traz (1) um resumo em linguagem simples para leigo, com opções e a recomendada, esperando aprovação antes de mexer no código, e (2) um bloco técnico organizado e autocontido, pronto para copiar e enviar a outra IA para segunda opinião. |
+| T18 | **Trabalho em turnos entre IAs:** nunca duas IAs editam a mesma pasta ou *branch* ao mesmo tempo. Cada tarefa roda em *branch* separada (via Pull Request) e só entra na `main` após aprovação do dono do projeto e com todas as verificações automáticas (CI) aprovadas sem erros. |
 
 ### 2.2 Qualidade
 
