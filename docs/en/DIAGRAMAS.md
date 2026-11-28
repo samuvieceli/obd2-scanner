@@ -517,6 +517,8 @@ flowchart LR
     aviso["Safety notice accepted<br/>(text version)"] --> ls
     rec["Recording"] --> csv["CSV (Excel)"] & json["JSON (reopens<br/>in the program)"]
     rec -- "every minute" --> backup[("Safety copy<br/>gravacao-em-andamento.jsonl<br/>(recovered if the program closes)")]
+    bb["Black box"] -- "new fault" --> auto[("gravacoes-automaticas/<br/>(JSON, opens again<br/>in the program)")]
+    auto --> report
     chart["Chart"] --> png["PNG"]
     jrn --> jcsv["Trip CSV"] & jhtml["Trip report<br/>(HTML / PDF)"]
     rec --> report["Diagnostic report<br/>(only when you ask)"]
@@ -538,6 +540,25 @@ flowchart LR
     rec -- "Report button" --> sum["report.rs:<br/>minimum, average, maximum,<br/>hints from the whole trip,<br/>charts"]
     sum --> html["Report<br/>(print / PDF / HTML)"]
     old[("Recording from an old version")] -. "without codes<br/>and readiness" .-> sum
+```
+
+### Black box: automatic fault recording
+
+While reading is on, the program keeps the last 2 minutes in memory. Every 5 seconds it asks the control unit whether the check-engine light turned on and, every 30 seconds, reads the pending codes. If a new fault shows up, it saves the 2 minutes before and the 2 minutes after by itself, with the codes and the freeze frame. Everything is read-only.
+
+```mermaid
+flowchart LR
+    frames["Screen readings +<br/>~10 essential sensors"] --> mem[("Memory:<br/>last 2 min")]
+    q1["Every 5 s: light on?<br/>how many codes? (01 01)"] --> watch{"New fault?<br/>(old codes<br/>do not count)"}
+    q2["Every 30 s: pending<br/>codes (07)"] --> watch
+    alert["An alert went off<br/>(optional)"] --> watch
+    btn(["Save last 2 min"]) --> clip
+    watch -- yes --> lists["Reads codes (03, 07, 0A)<br/>and freeze frame (02)"]
+    lists --> clip["Clip: 2 min before<br/>+ 2 min after<br/>(another fault stretches it,<br/>up to 10 min)"]
+    mem --> clip
+    lists -- "if you are recording" --> mine["Mark in your<br/>recording"]
+    clip --> file[("gravacoes-automaticas/<br/>up to 30 files or 200 MB<br/>(pinned ones stay)")]
+    file --> screen["Recordings and reports:<br/>play back, charts,<br/>report, pin, delete"]
 ```
 
 In the **portable version** (a `portable.txt` file next to the program), the program's memory stays in the `OBD2-Scanner-dados` folder, next to the `.exe`, instead of the user folder in Windows:

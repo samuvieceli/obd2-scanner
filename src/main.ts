@@ -10,6 +10,7 @@ import { applyTheme, getTheme, type Theme } from "./theme";
 import { prefs, setActiveProfile } from "./prefs";
 import { changeLanguage } from "./units";
 import { initAlerts } from "./alerts";
+import { initBlackbox } from "./blackbox";
 import { initTrip } from "./trip";
 import { initDriveSummary } from "./views/drive-summary";
 import { initSearch, openSearch } from "./views/search";
@@ -432,6 +433,7 @@ async function boot() {
   initMini();
   initTrimCollector();
   initAlerts();
+  initBlackbox();
   initKeepAwake();
   on("connection", renderStatus);
   on("link", renderLink);

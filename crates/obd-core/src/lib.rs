@@ -15,11 +15,14 @@
 //!    [`maker`] (manufacturer parameters of some car models, from OBDb).
 //! 5. [`interpret`]: plain-language findings from live data.
 //! 6. [`session`]: recording and export (CSV, JSON).
-//! 7. [`health`]: notices a frozen adapter or a lost link and says what to do.
-//! 8. Tools: [`adapter_test`] (real ELM327 version of an adapter) and
+//! 7. [`blackbox`]: keeps the last minutes in memory and saves them around
+//!    a fault (new trouble code, check-engine light).
+//! 8. [`health`]: notices a frozen adapter or a lost link and says what to do.
+//! 9. Tools: [`adapter_test`] (real ELM327 version of an adapter) and
 //!    [`ecu_scan`] (control units on the bus and their identification).
 
 pub mod adapter_test;
+pub mod blackbox;
 pub mod dtc;
 pub mod ecu_scan;
 pub mod elm327;

@@ -650,3 +650,8 @@ body.mini-mode > :not(.mini) { display: none !important; }
 @keyframes pp-blink { 50% { opacity: 0.3; } }
 @media (prefers-reduced-motion: reduce) { .pp-rec-dot { animation: none; } }
 .pp-cancel { margin-top: 18px; }
+
+/* Black box: automatic recordings on the Recordings screen */
+.auto-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.auto-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
+.auto-item .badge { margin-left: 8px; }

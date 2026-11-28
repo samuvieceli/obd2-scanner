@@ -31,7 +31,9 @@
 //! clear codes; battery at rest, about 12.5 V) and `ATSIMON` starts it again
 //! (1.2 s of cranking at about 10.3 V first, for the battery test).
 //! `ATSIMREV` holds the parked engine at about 2500 rpm (guided tests) and
-//! `ATSIMDRIVE` goes back to the driving cycle.
+//! `ATSIMDRIVE` goes back to the driving cycle. `ATSIMDTC` adds a new
+//! confirmed code (P0302) and turns the check-engine light on, to try the
+//! black box ([`crate::blackbox`]).
 
 use std::collections::VecDeque;
 use std::f64::consts::PI;
@@ -495,6 +497,14 @@ impl Simulator {
             }
             "SIMREV" | "SIMDRIVE" => {
                 self.rev = at == "SIMREV";
+                ok()
+            }
+            // A new fault, for trying the black box: misfire on cylinder 2,
+            // confirmed, with the check-engine light.
+            "SIMDTC" => {
+                if !self.stored.contains(&"P0302") {
+                    self.stored.push("P0302");
+                }
                 ok()
             }
             "SIMOFF" | "SIMON" => {

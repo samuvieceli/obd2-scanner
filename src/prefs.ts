@@ -62,6 +62,10 @@ export interface Prefs {
   fuelPrices: Prices;
   /** Where the car is filled up: which fuels are listed (follows the language). */
   fuelRegion: FuelRegion;
+  /** Black box: saves the minutes around a new fault by itself (blackbox.ts). */
+  blackbox: boolean;
+  /** A value outside its alert limits also starts an automatic recording. */
+  blackboxAlerts: boolean;
 }
 
 export const DEFAULT_ALERTS: AlertRule[] = [
@@ -118,6 +122,8 @@ function load(): Prefs {
     alertsEnabled: stored.alertsEnabled ?? true,
     alertSound: stored.alertSound ?? true,
     autoReconnect: stored.autoReconnect ?? true,
+    blackbox: stored.blackbox ?? true,
+    blackboxAlerts: stored.blackboxAlerts ?? false,
     // First run: the units usual for the language the program opened in.
     units: { ...UNIT_PRESETS[LANG_UNITS[getLang()]], ...(stored.units ?? {}) },
     profiles,

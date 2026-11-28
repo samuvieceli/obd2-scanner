@@ -517,6 +517,8 @@ flowchart LR
     aviso["Aviso de segurança aceito<br/>(versão do texto)"] --> ls
     rec["Gravação"] --> csv["CSV (Excel)"] & json["JSON (abre de novo<br/>no programa)"]
     rec -- "a cada minuto" --> backup[("Cópia de segurança<br/>gravacao-em-andamento.jsonl<br/>(recuperada se o programa fechar)")]
+    bb["Caixa-preta"] -- "falha nova" --> auto[("gravacoes-automaticas/<br/>(JSON, abre de novo<br/>no programa)")]
+    auto --> report
     chart["Gráfico"] --> png["PNG"]
     jrn --> jcsv["CSV da viagem"] & jhtml["Relatório da viagem<br/>(HTML / PDF)"]
     rec --> report["Relatório de diagnóstico<br/>(só quando você pede)"]
@@ -538,6 +540,25 @@ flowchart LR
     rec -- "botão Relatório" --> sum["report.rs:<br/>mínimo, média, máximo,<br/>indícios do trajeto todo,<br/>gráficos"]
     sum --> html["Relatório<br/>(imprimir / PDF / HTML)"]
     old[("Gravação de versão antiga")] -. "sem códigos<br/>e prontidão" .-> sum
+```
+
+### Caixa-preta: gravação automática de falha
+
+Enquanto a leitura está ligada, o programa guarda os últimos 2 minutos na memória. A cada 5 segundos pergunta à central se a luz de injeção acendeu e, a cada 30 segundos, lê os códigos pendentes. Se surgir uma falha nova, salva sozinho os 2 minutos antes e os 2 minutos depois, com os códigos e o quadro congelado. Tudo é só leitura.
+
+```mermaid
+flowchart LR
+    frames["Leituras da tela +<br/>~10 sensores essenciais"] --> mem[("Memória:<br/>últimos 2 min")]
+    q1["A cada 5 s: luz acesa?<br/>quantos códigos? (01 01)"] --> watch{"Falha nova?<br/>(códigos antigos<br/>não contam)"}
+    q2["A cada 30 s: códigos<br/>pendentes (07)"] --> watch
+    alert["Alerta disparou<br/>(opcional)"] --> watch
+    btn(["Salvar últimos 2 min"]) --> clip
+    watch -- sim --> lists["Lê códigos (03, 07, 0A)<br/>e quadro congelado (02)"]
+    lists --> clip["Trecho: 2 min antes<br/>+ 2 min depois<br/>(outra falha estica,<br/>até 10 min)"]
+    mem --> clip
+    lists -- "se você estiver gravando" --> mine["Marca na sua<br/>gravação"]
+    clip --> file[("gravacoes-automaticas/<br/>até 30 arquivos ou 200 MB<br/>(fixadas ficam)")]
+    file --> screen["Gravações e relatórios:<br/>reproduzir, gráficos,<br/>relatório, fixar, apagar"]
 ```
 
 Na **versão portátil** (arquivo `portable.txt` ao lado do programa), a memória do programa fica na pasta `OBD2-Scanner-dados`, ao lado do `.exe`, em vez da pasta do usuário no Windows:

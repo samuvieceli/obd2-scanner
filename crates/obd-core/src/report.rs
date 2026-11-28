@@ -81,6 +81,10 @@ pub struct RecordingReport {
     pub duration_s: f64,
     pub frames: usize,
     pub marks: Vec<u64>,
+    /// Faults the program noticed by itself (black box).
+    pub events: Vec<crate::session::Event>,
+    /// Saved by the black box around a fault.
+    pub automatic: bool,
     pub diagnostics: Vec<Snapshot>,
     /// In catalog order.
     pub stats: Vec<ParamStats>,
@@ -129,6 +133,8 @@ impl RecordingReport {
             duration_s: s.duration_s(),
             frames: s.frames.len(),
             marks: s.marks.clone(),
+            events: s.events.clone(),
+            automatic: s.automatic,
             diagnostics: s.diagnostics.clone(),
             stats,
             findings: trip_findings(s),

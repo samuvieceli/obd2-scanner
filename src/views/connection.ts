@@ -17,7 +17,7 @@ export function reportVin(vin: string | null) {
 }
 
 /** Clone failures the demo can imitate (see simulator.rs). */
-const DEMO_FAULTS = ["hang", "reset", "freeze", "drop"] as const;
+const DEMO_FAULTS = ["hang", "reset", "freeze", "drop", "dtc"] as const;
 type Kind = "demo" | "serial" | "tcp" | "ble";
 
 interface Form {

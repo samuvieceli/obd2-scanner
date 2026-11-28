@@ -12,6 +12,8 @@ function report(over: Partial<RecordingReport> = {}): RecordingReport {
     duration_s: 600,
     frames: 1200,
     marks: [120_000],
+    events: [],
+    automatic: false,
     diagnostics: [],
     stats: [{ key: "rpm", unit: "rpm", min: 780, avg: 1650, max: 4200, count: 1200 }],
     findings: [],
@@ -58,5 +60,24 @@ describe("diagnostic report from a recording", () => {
   it("escapes text from the file", () => {
     const html = buildReportHtml(report({ adapter: "<script>x</script>" }));
     expect(html).not.toContain("<script>x");
+  });
+
+  it("an automatic recording lists its faults and the freeze frame read at the fault", () => {
+    const html = buildReportHtml(
+      report({
+        automatic: true,
+        events: [{ t_ms: 120_000, kind: "dtc_stored", code: "P0302" }],
+        diagnostics: [
+          {
+            t_ms: 121_000,
+            dtcs: { stored: [code("P0302")], pending: [], permanent: [] },
+            freeze: { dtc: code("P0302"), values: [{ key: "rpm", value: 2100 }] },
+          },
+        ],
+      }),
+    );
+    expect(html).toContain("Automatic fault recording");
+    expect(html).toContain("2:00 Code P0302 (confirmed)");
+    expect(html).toContain("P0302</h3>");
   });
 });

@@ -12,6 +12,7 @@
     "dialog:allow-ask",
     "dialog:allow-message",
     "opener:allow-open-url",
+    "opener:allow-reveal-item-in-dir",
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-size",
     "core:window:allow-set-min-size",
