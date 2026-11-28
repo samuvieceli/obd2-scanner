@@ -268,6 +268,12 @@ export interface RecordingReport {
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
+/** Size of the bundled databases (Documentation screen). */
+export interface DataInfo {
+  dtc: { codes: number; translatedPt: number; brands: [string, number][] };
+  wmis: number;
+}
+
 export const api = {
   keepAwake: (on: boolean) => invoke<void>("keep_awake", { on }),
   recoveredRecording: () => invoke<number | null>("recovered_recording"),
@@ -277,6 +283,7 @@ export const api = {
   pidCatalog: () => invoke<PidMeta[]>("pid_catalog"),
   makerModels: () => invoke<MakerModel[]>("maker_models"),
   makerParams: (model: string, year: number | null, lang: string) => invoke<MakerParam[]>("maker_params", { model, year, lang }),
+  dataInfo: () => invoke<DataInfo>("data_info"),
   describeDtc: (code: string, lang: string) => invoke<DtcInfo>("describe_dtc", { code, lang }),
   connect: (target: ConnectionTarget, config: ElmConfig, demoQuirky: boolean, autoReconnect: boolean) =>
     invoke<ConnectResult>("connect", { request: { target, config, demoQuirky, autoReconnect } }),

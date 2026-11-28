@@ -163,21 +163,29 @@ export function buildReportHtml(r: RecordingReport, name?: string): string {
       : `<p class="muted">${e(t("report.noReadings"))}</p>`,
   );
 
-  const now = new Date().toLocaleString(lang);
-  return `<!doctype html>
-<html lang="${lang}"><head><meta charset="utf-8"><title>${e(t("sessions.reportHeading"))}</title>
-<style>
+  return reportPage(t("sessions.reportHeading"), r.app_version, parts.join("\n"));
+}
+
+/** Styles of the printable reports (light, whatever the app theme). */
+export const REPORT_CSS = `
 body{font-family:system-ui,"Segoe UI",sans-serif;color:#111;background:#fff;margin:32px;max-width:900px}
 h1{margin:0 0 4px;font-size:24px}h2{margin-top:28px;border-bottom:2px solid #0e7490;padding-bottom:4px;font-size:18px;color:#0e7490}
 h3{font-size:15px;margin:16px 0 6px}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left;vertical-align:top}
 th{width:45%;font-weight:600}.stats th{width:auto}.stats td{white-space:nowrap}.muted{color:#666}li{margin:4px 0}
 .sev-critical{color:#b91c1c;font-weight:600}.sev-warning{color:#b45309}
 figure{margin:12px 0 18px;break-inside:avoid}figcaption{font-weight:600;font-size:14px;margin-bottom:4px}svg{width:100%;height:auto;display:block}
-@media print{body{margin:12mm}h2{break-after:avoid}}
-</style></head><body>
-<h1>${e(t("sessions.reportHeading"))}</h1>
-<p class="muted">${e(t("sessions.reportGenerated", { date: now }))} · ${e(t("app.name"))} v${e(r.app_version || "?")}</p>
-${parts.join("\n")}
+@media print{body{margin:12mm}h2{break-after:avoid}}`;
+
+/** A whole report page: title, generation date and the given body. */
+export function reportPage(title: string, appVersion: string, body: string, css = ""): string {
+  const lang = getLang();
+  const now = new Date().toLocaleString(lang);
+  return `<!doctype html>
+<html lang="${lang}"><head><meta charset="utf-8"><title>${e(title)}</title>
+<style>${REPORT_CSS}${css}</style></head><body>
+<h1>${e(title)}</h1>
+<p class="muted">${e(t("sessions.reportGenerated", { date: now }))} · ${e(t("app.name"))} v${e(appVersion || "?")}</p>
+${body}
 </body></html>`;
 }
 
@@ -196,25 +204,32 @@ const PAD = { l: 56, r: 8, t: 8, b: 20 };
 /** One parameter over the trip: a thin line, its lowest and highest value
  * on the left, the time below and the driver's marks as dashed lines. */
 export function chartSvg(c: RecordingReport["charts"][number], durationS: number, marks: number[]): string {
-  const vals = c.v.map((x) => displayValue(c.key, x));
+  const unit = unitOf(c.key);
+  const title = `${pidText(c.key).name}${unit ? ` (${unit})` : ""}`;
+  return seriesSvg(title, c.t, c.v.map((x) => displayValue(c.key, x)), durationS, marks);
+}
+
+/** A series already in display units over time (seconds), as an SVG figure. */
+export function seriesSvg(title: string, t_: number[], vals: number[], durationS: number, marks: number[] = [], dots = false): string {
   let lo = Math.min(...vals);
   let hi = Math.max(...vals);
+  if (!vals.length) lo = hi = 0;
   if (hi - lo < 1e-9) {
     lo -= 1;
     hi += 1;
   }
-  const span = Math.max(durationS, c.t[c.t.length - 1] ?? 0, 1e-9);
+  const span = Math.max(durationS, t_[t_.length - 1] ?? 0, 1e-9);
   const x = (s: number) => PAD.l + (s / span) * (W - PAD.l - PAD.r);
   const y = (v: number) => PAD.t + (1 - (v - lo) / (hi - lo)) * (H - PAD.t - PAD.b);
-  const pts = c.t.map((s, i) => `${x(s).toFixed(1)},${y(vals[i]).toFixed(1)}`).join(" ");
+  const pts = t_.map((s, i) => `${x(s).toFixed(1)},${y(vals[i]).toFixed(1)}`).join(" ");
   const fmt = (v: number) => fmtNum(v, Math.abs(hi - lo) < 10 ? 1 : 0);
-  const unit = unitOf(c.key);
   const grid = [lo, (lo + hi) / 2, hi]
     .map((v) => `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="#e5e7eb"/><text x="${PAD.l - 6}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${e(fmt(v))}</text>`)
     .join("");
   const markLines = marks
     .map((m) => `<line x1="${x(m / 1000).toFixed(1)}" x2="${x(m / 1000).toFixed(1)}" y1="${PAD.t}" y2="${H - PAD.b}" stroke="#b45309" stroke-dasharray="3 3"/>`)
     .join("");
-  const title = `${pidText(c.key).name}${unit ? ` (${unit})` : ""}`;
-  return `<figure><figcaption>${e(title)}</figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${e(title)}" font-size="11" fill="#555">${grid}${markLines}<polyline points="${pts}" fill="none" stroke="#0e7490" stroke-width="1.5" stroke-linejoin="round"/><text x="${PAD.l}" y="${H - 4}">0:00</text><text x="${W - PAD.r}" y="${H - 4}" text-anchor="end">${e(clock(span))}</text></svg></figure>`;
+  const line = `<polyline points="${pts}" fill="none" stroke="#0e7490" stroke-width="1.5" stroke-linejoin="round"/>`;
+  const points = dots ? t_.map((s, i) => `<circle cx="${x(s).toFixed(1)}" cy="${y(vals[i]).toFixed(1)}" r="2.5" fill="#0e7490"/>`).join("") : "";
+  return `<figure><figcaption>${e(title)}</figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${e(title)}" font-size="11" fill="#555">${grid}${markLines}${line}${points}<text x="${PAD.l}" y="${H - 4}">0:00</text><text x="${W - PAD.r}" y="${H - 4}" text-anchor="end">${e(clock(span))}</text></svg></figure>`;
 }

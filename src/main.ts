@@ -24,6 +24,8 @@ import * as connection from "./views/connection";
 import * as dashboard from "./views/dashboard";
 import { markEvent } from "./views/dashboard";
 import * as charts from "./views/charts";
+import * as journey from "./views/journey";
+import { initJourney } from "./journey-live";
 import * as hud from "./views/hud";
 import * as performance from "./views/performance";
 import * as guided from "./views/guided";
@@ -33,6 +35,7 @@ import * as vehicle from "./views/vehicle";
 import * as terminal from "./views/terminal";
 import * as sessions from "./views/sessions";
 import * as glossary from "./views/glossary";
+import * as docs from "./views/docs";
 import * as settings from "./views/settings";
 
 type View = { mount: (root: HTMLElement) => (() => void) | void };
@@ -41,6 +44,7 @@ const ROUTES: { id: string; icon: string; view: View }[] = [
   { id: "connection", icon: "M4 12h4l2-3 4 6 2-3h4", view: connection },
   { id: "dashboard", icon: "M4 14a8 8 0 1 1 16 0M12 14l4-4", view: dashboard },
   { id: "hud", icon: "M3 7h18v8H3zM8 19h8M7 11h2M11 11h6", view: hud },
+  { id: "journey", icon: "M7 21l3-18M17 21l-3-18M12 6v2M12 11v2M12 16v3", view: journey },
   { id: "performance", icon: "M9 2h6M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 9v4l3 2", view: performance },
   { id: "guided", icon: "M9 11l3 3 8-8M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11", view: guided },
   { id: "charts", icon: "M4 19V5M4 19h16M7 15l3-4 3 2 5-6", view: charts },
@@ -49,6 +53,7 @@ const ROUTES: { id: string; icon: string; view: View }[] = [
   { id: "terminal", icon: "M4 5h16v14H4zM7 9l3 3-3 3M12 15h5", view: terminal },
   { id: "sessions", icon: "M6 3h9l4 4v14H6zM9 12h7M9 16h7", view: sessions },
   { id: "glossary", icon: "M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h6", view: glossary },
+  { id: "docs", icon: "M4 5a2 2 0 0 1 2-2h5v18H6a2 2 0 0 1-2-2zM13 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5M7 8h2M7 12h2M16 8h2M16 12h2", view: docs },
   { id: "settings", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2", view: settings },
 ];
 
@@ -420,6 +425,7 @@ async function boot() {
 
   initTrip();
   initDriveSummary();
+  void initJourney();
   initSearch(ROUTES.map((r) => r.id));
   initMini();
   initTrimCollector();

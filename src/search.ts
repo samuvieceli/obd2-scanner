@@ -6,7 +6,7 @@
 // matches in the title count more than in the description, and a title that
 // starts with the query comes first.
 
-export type Kind = "screen" | "pid" | "term" | "monitor" | "dtc";
+export type Kind = "screen" | "pid" | "term" | "monitor" | "dtc" | "doc";
 
 export interface Entry {
   kind: Kind;

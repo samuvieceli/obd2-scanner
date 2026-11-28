@@ -451,7 +451,12 @@ export function mount(root: HTMLElement) {
       h("p", null, h("strong", null, t("app.name")), " — ", t("settings.version", { version: state.appVersion })),
       state.portableData ? h("p", null, t("settings.portable", { folder: state.portableData })) : null,
       h("p", null, t("settings.aboutText")),
-      h("p", null, button(t("safety.review"), () => openSafetyNotice(true), "secondary")),
+      h(
+        "p",
+        { class: "row" },
+        h("a", { class: "btn btn-secondary", href: "#/docs" }, t("settings.openDocs")),
+        button(t("safety.review"), () => openSafetyNotice(true), "secondary"),
+      ),
       h(
         "p",
         { class: "muted small" },
