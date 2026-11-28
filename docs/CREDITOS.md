@@ -14,6 +14,8 @@
 | [obdium](https://github.com/provrb/obdium) | GPL-3.0 | Referência de fórmulas e da ideia de modo demonstração | — |
 | [o3DIAG](https://github.com/openw3rk-DEVELOP/o3DIAG) | MIT | Referência de descrições de códigos P | — |
 | [uPlot](https://github.com/leeoniya/uPlot) | MIT | Biblioteca de gráficos | dependência npm |
+| [marked](https://github.com/markedjs/marked) | MIT | Leitor de Markdown da tela Documentação | dependência npm |
+| [Mermaid](https://github.com/mermaid-js/mermaid) | MIT | Desenho dos diagramas na tela Documentação | dependência npm |
 
 As licenças GPL-2.0-or-later, AGPL-3.0 e CC BY-SA 4.0 são compatíveis (a CC BY-SA 4.0 pode ser incorporada em obra GPLv3); CC0 é domínio público. As licenças GPL-2.0-or-later e AGPL-3.0 são compatíveis com a GPL-3.0-or-later deste projeto (GPLv3, seção 13).
 As ~150 descrições em português dos códigos mais comuns foram escritas para este projeto; as demais em português vêm do AndrOBD.

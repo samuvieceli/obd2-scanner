@@ -32,6 +32,7 @@ import * as vehicle from "./views/vehicle";
 import * as terminal from "./views/terminal";
 import * as sessions from "./views/sessions";
 import * as glossary from "./views/glossary";
+import * as docs from "./views/docs";
 import * as settings from "./views/settings";
 
 type View = { mount: (root: HTMLElement) => (() => void) | void };
@@ -48,6 +49,7 @@ const ROUTES: { id: string; icon: string; view: View }[] = [
   { id: "terminal", icon: "M4 5h16v14H4zM7 9l3 3-3 3M12 15h5", view: terminal },
   { id: "sessions", icon: "M6 3h9l4 4v14H6zM9 12h7M9 16h7", view: sessions },
   { id: "glossary", icon: "M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h6", view: glossary },
+  { id: "docs", icon: "M4 5a2 2 0 0 1 2-2h5v18H6a2 2 0 0 1-2-2zM13 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5M7 8h2M7 12h2M16 8h2M16 12h2", view: docs },
   { id: "settings", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2", view: settings },
 ];
 

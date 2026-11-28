@@ -236,6 +236,12 @@ export interface RecordingReport {
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
+/** Size of the bundled databases (Documentation screen). */
+export interface DataInfo {
+  dtc: { codes: number; translatedPt: number; brands: [string, number][] };
+  wmis: number;
+}
+
 export const api = {
   keepAwake: (on: boolean) => invoke<void>("keep_awake", { on }),
   recoveredRecording: () => invoke<number | null>("recovered_recording"),
@@ -243,6 +249,7 @@ export const api = {
   listPorts: () => invoke<PortInfo[]>("list_ports"),
   scanBle: (seconds?: number) => invoke<BleDevice[]>("scan_ble", { seconds }),
   pidCatalog: () => invoke<PidMeta[]>("pid_catalog"),
+  dataInfo: () => invoke<DataInfo>("data_info"),
   describeDtc: (code: string, lang: string) => invoke<DtcInfo>("describe_dtc", { code, lang }),
   connect: (target: ConnectionTarget, config: ElmConfig, demoQuirky: boolean, autoReconnect: boolean) =>
     invoke<ConnectResult>("connect", { request: { target, config, demoQuirky, autoReconnect } }),
