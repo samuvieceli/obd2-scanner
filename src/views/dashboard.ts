@@ -15,7 +15,7 @@ function fmtEconomy(kmPerL: number): string {
   return `${fmtNum(v, 1)} ${unit}`;
 }
 import { calibratedFills, calibrationMethod, cancelFill, fillTracker, meters, resetTrip, resetTripMeter, setTripRunning, startFillTracker, trip } from "../trip";
-import { openRefuelDialog } from "./refuel-dialog";
+import { distanceText, openRefuelDialog, volumeText } from "./refuel-dialog";
 import { TRIP_IDS, average, averageSpeed, type TripId } from "../trips";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { lastDrive, showSummary } from "./drive-summary";
@@ -527,7 +527,7 @@ export function mount(root: HTMLElement) {
       const f = fillTracker();
       if (f && f.method === calibrationMethod())
         tripBox.append(
-          h("p", { class: "muted small" }, t("refuel.progress", { km: fmtNum(toDisplay("km", f.distanceKm), 0), kmUnit: displayUnit("km"), l: fmtNum(f.baseL * (f.method === "map" ? profile().volumetricEff : profile().mafFactor), 1) })),
+          h("p", { class: "muted small" }, t("refuel.progress", { dist: distanceText(f.distanceKm), vol: volumeText(f.baseL * (f.method === "map" ? profile().volumetricEff : profile().mafFactor)) })),
         );
       if (trip.source) tripBox.append(h("p", { class: "muted small" }, t(`trip.source.${trip.source}`)));
       return;

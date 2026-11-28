@@ -1,7 +1,8 @@
 // "Antes de usar" window: safety notice shown at start until confirmed
 // (see safety.ts), and again on request from Settings → About.
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { getLang, LANGS, onLangChange, setLang, t } from "../i18n";
+import { getLang, LANGS, onLangChange, t, type Lang } from "../i18n";
+import { changeLanguage } from "../units";
 import { button, h } from "../ui";
 import { acceptSafety, SAFETY_ITEMS, safetyPending } from "../safety";
 
@@ -29,7 +30,7 @@ export function openSafetyNotice(review = false) {
   openReview = review;
   const lang = h(
     "select",
-    { class: "lang-select", "aria-label": t("settings.language"), onchange: (e: Event) => setLang((e.target as HTMLSelectElement).value as typeof LANGS[number]["id"]) },
+    { class: "lang-select", "aria-label": t("settings.language"), onchange: (e: Event) => changeLanguage((e.target as HTMLSelectElement).value as Lang) },
     LANGS.map((l) => h("option", { value: l.id, selected: l.id === getLang() }, l.label)),
   );
   const ok = button(review ? t("common.close") : t("safety.accept"), () => {

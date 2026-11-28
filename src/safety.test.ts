@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { needsSafetyNotice, SAFETY_ITEMS, SAFETY_VERSION } from "./safety";
 import ptBR from "./locales/pt-BR";
 import enUS from "./locales/en-US";
+import enGB from "./locales/en-GB";
 
 describe("safety notice", () => {
   it("is shown until the current version is confirmed", () => {
@@ -14,7 +15,7 @@ describe("safety notice", () => {
   });
 
   it("has every point translated", () => {
-    for (const m of [ptBR, enUS]) {
+    for (const m of [ptBR, enUS, enGB]) {
       for (const id of SAFETY_ITEMS) {
         expect(m.safety.items[id].title.length).toBeGreaterThan(3);
         expect(m.safety.items[id].text.length).toBeGreaterThan(20);

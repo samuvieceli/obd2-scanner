@@ -4,8 +4,10 @@
 // performance tests) stays in metric units, the units of the OBD-II standard.
 // Conversion happens only when a value is displayed or typed by the user, so
 // changing units never changes stored data.
+import { fmtNum, getLang, setLang, setTextFilter, type Lang, type Params } from "./i18n";
 import { prefs, savePrefs } from "./prefs";
 import { emit } from "./store";
+import { LANG_UNITS, UNIT_PRESETS } from "./unit-presets";
 
 export interface UnitPrefs {
   speed: "km/h" | "mph";
@@ -27,12 +29,7 @@ export const UNIT_CHOICES: { [K in keyof UnitPrefs]: UnitPrefs[K][] } = {
   torque: ["Nm", "lb·ft"],
 };
 
-export const UNIT_PRESETS: Record<"br" | "eu" | "us" | "uk", UnitPrefs> = {
-  br: { speed: "km/h", temp: "°C", pressure: "kPa", distance: "km", volume: "L", consumption: "km/L", torque: "Nm" },
-  eu: { speed: "km/h", temp: "°C", pressure: "bar", distance: "km", volume: "L", consumption: "L/100km", torque: "Nm" },
-  us: { speed: "mph", temp: "°F", pressure: "psi", distance: "mi", volume: "gal", consumption: "mpg", torque: "lb·ft" },
-  uk: { speed: "mph", temp: "°C", pressure: "psi", distance: "mi", volume: "L", consumption: "mpg_uk", torque: "lb·ft" },
-};
+export { UNIT_PRESETS } from "./unit-presets";
 
 export function units(): UnitPrefs {
   return prefs().units;
@@ -40,6 +37,19 @@ export function units(): UnitPrefs {
 
 export function saveUnits(change: Partial<UnitPrefs>) {
   savePrefs({ units: { ...units(), ...change } });
+  emit("units");
+}
+
+/**
+ * Switches the language and applies that language's usual units
+ * (pt-BR: km/h, °C, km/L; en-US: mph, °F, mpg; en-GB: km/h, °C, L/100 km).
+ * A unit the user had changed by hand is replaced too: picking a language is
+ * read as "show it the way people there are used to". Each unit can still be
+ * adjusted afterwards in Settings. Every screen is redrawn at once.
+ */
+export function changeLanguage(lang: Lang) {
+  savePrefs({ units: { ...UNIT_PRESETS[LANG_UNITS[lang]] } });
+  setLang(lang);
   emit("units");
 }
 
@@ -118,3 +128,54 @@ export function consumption(kmPerL: number): [number, string] {
       return [kmPerL, "km/L"];
   }
 }
+
+// ---------------------------------------------------------------------------
+// Metric values written inside texts ("abaixo de 60 °C", "{km} km",
+// "entre 32 e 42 km/h", "~101 kPa") shown in the chosen units.
+
+/** Units the texts are written in that have a non-metric choice. */
+const TEXT_UNITS = "°C|km/h|kPa|km|L/h";
+const NUM = String.raw`-?\d[\d.,]*`;
+const TOKEN = String.raw`(${NUM}|\{\w+\})`;
+const RANGE_SEP = String.raw`\s*(?:–|\s(?:a|e|to|and)\s)\s*`;
+const IN_TEXT = new RegExp(String.raw`(?<![\w/.,])${TOKEN}(?:(${RANGE_SEP})${TOKEN})?\s?(${TEXT_UNITS})(?![\w/])`, "g");
+
+/** Number written in the current language ("1.234,5" in pt-BR, "1,234.5" in English). */
+function parseLocal(s: string): number {
+  const plain = getLang() === "pt-BR" ? s.replaceAll(".", "").replace(",", ".") : s.replaceAll(",", "");
+  return Number(plain);
+}
+
+function decimalsOf(s: string): number {
+  const sep = getLang() === "pt-BR" ? "," : ".";
+  const i = s.lastIndexOf(sep);
+  return i < 0 ? 0 : s.length - i - 1;
+}
+
+/**
+ * Converts metric values inside a text template to the chosen units. Literal
+ * numbers and `{placeholders}` right before a unit are both handled; a
+ * converted placeholder is written out, so `params` fills only the rest.
+ */
+export function convertUnitsIn(text: string, params?: Params): string {
+  if (!/°C|km|kPa|L\/h/.test(text)) return text;
+  return text.replace(IN_TEXT, (match, a: string, sep: string | undefined, b: string | undefined, base: string) => {
+    if (displayUnit(base) === base) return match;
+    const convert = (token: string): string | null => {
+      let raw: string | number | undefined = token;
+      const ph = /^\{(\w+)\}$/.exec(token);
+      if (ph) raw = params?.[ph[1]];
+      if (raw === undefined) return null;
+      const v = typeof raw === "number" ? raw : parseLocal(raw);
+      if (!Number.isFinite(v)) return null;
+      const d = (typeof raw === "number" ? (Number.isInteger(raw) ? 0 : 1) : decimalsOf(raw)) + extraDecimals(base);
+      return fmtNum(toDisplay(base, v), d);
+    };
+    const first = convert(a);
+    const second = b === undefined ? "" : convert(b);
+    if (first === null || second === null) return match;
+    return `${first}${b === undefined ? "" : `${sep}${second}`} ${displayUnit(base)}`;
+  });
+}
+
+setTextFilter(convertUnitsIn);

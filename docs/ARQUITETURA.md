@@ -4,7 +4,7 @@
 
 ```
 ┌──────────────────────── Interface (src/, TypeScript + Vite) ────────────────────────┐
-│ telas (views/) · textos pt-BR/en-US (locales/) · gráficos uPlot · estado (store.ts) │
+│ telas (views/) · textos pt-BR/en-US/en-GB (locales/) · gráficos uPlot · estado (store.ts) │
 │ playback · trip · trips · refuel · summary · drives · perf · battery · o2test       │
 │ trims · alerts · mode06hints · dtcadvice · recording-diagnostics · prefs · units ·  │
 │ fuels · cost                                                                        │
@@ -50,7 +50,8 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 
 - `crates/obd-core/src/*`: testes de saúde da conexão (`health.rs`), fórmulas, DTC, VIN, prontidão, interpretação, CSV/JSON.
 - `crates/obd-core/tests/elm327_integration.rs`: sessão completa contra o simulador (normal e clone), recuperação de adaptador travado, reiniciado, congelado e com conexão caída e respostas gravadas de adaptadores reais (clone sem `OK`, ignição desligada, protocolo ISO 9141 com duas centrais, `STOPPED`/`BUFFER FULL`, comandos AT recusados, Modo 06, leitura rápida).
-- `src/units.test.ts` (Vitest): conversão de unidades.
+- `src/units.test.ts` (Vitest): conversão de unidades, valores dentro dos textos e troca de unidades junto com o idioma.
+- `src/locales.test.ts` (Vitest): os três idiomas têm os mesmos textos e marcadores `{...}`, sem palavras de Portugal no pt-BR, sem grafia britânica no en-US e sem grafia americana no en-GB.
 - `src/battery.test.ts` (Vitest): teste de bateria com tensões simuladas (carro saudável, tensão instável, motor ligado na etapa 1, partida não vista, carga inteligente).
 - `src/o2test.test.ts` (Vitest): sondas com sinais simulados (catalisador bom e gasto, sonda parada, adaptador lento, sonda de banda larga).
 - `src/trims.test.ts` (Vitest): mapa de correção (faixas, malha aberta ignorada, reserva pela temperatura, padrões de entrada de ar, falta de combustível, pobre em tudo, purga).
@@ -75,4 +76,5 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 - **Um código de falha:** entrada em `dtc_descriptions.json`.
 - **Um tema:** bloco `:root[data-theme="nome"]` em `styles.css`, cores de prévia em `THEME_SWATCH` (`theme.ts`) e nome/descrição em `settings.themes`.
 - **Uma unidade:** caso em `conversion()` (`units.ts`), opção em `UNIT_CHOICES` e nome em `units.names`.
-- **Um idioma:** copie `src/locales/en-US.ts`, traduza e registre em `LANGS` (`src/i18n.ts`).
+- **Um idioma:** copie `src/locales/en-US.ts`, traduza, registre em `LANGS` (`src/i18n.ts`) e diga quais unidades ele usa em `LANG_UNITS` (`src/unit-presets.ts`). O English (Europe) (`en-GB.ts`) é gerado a partir do `en-US.ts` pela função `british()`; textos com palavras diferentes vão em `OVERRIDES` no mesmo arquivo.
+- **Valores com unidade nos textos:** escreva em métrico (`60 °C`, `{km} km`, `~101 kPa`). `convertUnitsIn()` (`units.ts`) converte na hora de mostrar. Textos que precisam ficar métricos (nomes das unidades, nome dos testes de desempenho) estão em `KEEP_UNITS` (`i18n.ts`).

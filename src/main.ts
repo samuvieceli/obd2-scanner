@@ -3,11 +3,12 @@ import "uplot/dist/uPlot.min.css";
 import "./styles.css";
 
 import { api, events, isTauri } from "./api";
-import { getLang, onLangChange, setLang, t } from "./i18n";
+import { getLang, LANGS, onLangChange, t, type Lang } from "./i18n";
 import { emit, on, pushFrame, pushLog, setChartKeys, state } from "./store";
 import { clear, h, installTooltips, toast, errorText } from "./ui";
 import { applyTheme, getTheme, type Theme } from "./theme";
 import { prefs, setActiveProfile } from "./prefs";
+import { changeLanguage } from "./units";
 import { initAlerts } from "./alerts";
 import { initTrip } from "./trip";
 import { initDriveSummary } from "./views/drive-summary";
@@ -301,10 +302,10 @@ function layout() {
     {
       class: "lang-select",
       "aria-label": t("settings.language"),
-      onchange: (e: Event) => setLang((e.target as HTMLSelectElement).value as "pt-BR" | "en-US"),
+      title: t("settings.languageHelp"),
+      onchange: (e: Event) => changeLanguage((e.target as HTMLSelectElement).value as Lang),
     },
-    h("option", { value: "pt-BR", selected: getLang() === "pt-BR" }, "PT-BR"),
-    h("option", { value: "en-US", selected: getLang() === "en-US" }, "EN-US"),
+    LANGS.map((l) => h("option", { value: l.id, selected: l.id === getLang(), title: l.label }, l.short)),
   );
   app.append(
     h(
@@ -453,7 +454,10 @@ async function boot() {
     e.preventDefault();
     void markEvent();
   });
-  onLangChange(layout);
+  onLangChange(() => {
+    layout();
+    void diagnostics.relocalizeDtcs();
+  });
   window.addEventListener("hashchange", renderView);
   layout();
   // Safety notice on top of everything until the user confirms it.

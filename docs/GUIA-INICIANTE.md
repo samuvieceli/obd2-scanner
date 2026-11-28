@@ -27,7 +27,7 @@ Mapa das pastas:
 | Pasta / arquivo | O que tem |
 | --- | --- |
 | `src/` | A interface (as telas). `src/views/` tem um arquivo por tela. |
-| `src/locales/pt-BR.ts` e `en-US.ts` | **Todos os textos** do programa, em português e inglês. É o lugar mais fácil para começar a mexer. |
+| `src/locales/pt-BR.ts` e `en-US.ts` | **Todos os textos** do programa, em português e inglês. É o lugar mais fácil para começar a mexer. O `en-GB.ts` (English Europe) é feito automaticamente a partir do `en-US.ts`. |
 | `src/styles.css` | Cores, tamanhos e temas. |
 | `src/trip.ts`, `src/trips.ts` e `src/refuel.ts` | O computador de bordo: a conta do consumo, a Trip A e a Trip B e o ajuste pelo abastecimento ("Tanque cheio" e "Abasteci"). |
 | `src/perf.ts` | Os testes de desempenho (0–100, retomadas, frenagem). |
@@ -99,7 +99,8 @@ Vamos trocar um texto:
 
 Dicas:
 
-- Ao mudar um texto em `pt-BR.ts`, mude o equivalente em `en-US.ts`, para os dois idiomas ficarem iguais.
+- Ao mudar um texto em `pt-BR.ts`, mude o equivalente em `en-US.ts`, para os idiomas ficarem iguais. O English (Europe) segue o `en-US.ts` sozinho.
+- Escreva valores com unidade no sistema métrico (`60 °C`, `200 km`): o programa converte para mph, °F etc. quando a pessoa escolhe essas unidades.
 - Palavras entre chaves, como `{rate}` ou `{name}`, são preenchidas pelo programa. Deixe-as no texto.
 - Se algo der errado, a aba **Controle do Código-Fonte** (ícone de ramo, `Ctrl+Shift+G`) mostra o que mudou. Clique com o botão direito no arquivo e escolha **Descartar Alterações** para voltar ao que era.
 

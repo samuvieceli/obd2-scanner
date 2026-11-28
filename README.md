@@ -21,7 +21,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Teste de compatibilidade do adaptador**: descobre a versão real do ELM327 (clones costumam anunciar mais do que fazem).
 - **Terminal AT** para comandos diretos ao adaptador.
 - **Gravações e relatórios**: a gravação guarda os sensores e também os códigos de falha, a prontidão e o Modo 06 (lidos no começo e no fim). Exporta CSV (inclusive no formato do Excel brasileiro) e JSON, **reproduz gravações** como se fosse ao vivo, com marcas de evento, e gera, quando você pede, um relatório de diagnóstico a partir da gravação (códigos, prontidão, indícios do trajeto, gráficos e mínimo/média/máximo), para imprimir ou salvar como PDF.
-- Interface em **português (Brasil)** e **inglês (EUA)**, 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
+- Interface em **português (Brasil)**, **inglês (EUA)** e **inglês (Europa)**, cada um com as suas unidades (trocar o idioma troca as unidades na hora), 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
 
 ## Baixar e instalar (Windows 10 e 11)
 
@@ -81,6 +81,6 @@ Live reading starts when the dashboard or HUD opens (Pause/Resume button).
 It shows live data as cards or dials with
 explanations, automatic interpretation (also from Mode 06 results), alerts, a trip computer with independent Trip A/B and fuel-pump calibration, automatic performance tests (0–100, 100–0, 40–80, 80–120 km/h, one at a time), guided tests (battery and alternator, O2 sensors and catalytic converter, fuel trim map) and a head-up display; charts of any supported parameter with presets; trouble codes (read/clear,
 freeze frame, 10 brand tables); Mode 06 test results; readiness monitors; VIN decoding; an AT terminal; recording (sensors plus trouble codes, readiness and Mode 06),
-playback and export to CSV/JSON/PNG plus an on-demand printable report built from a recording. UI in Brazilian Portuguese and US English with 8 themes.
+playback and export to CSV/JSON/PNG plus an on-demand printable report built from a recording. UI in Brazilian Portuguese, US English (mph, °F, mpg) and European English (British spelling, km/h, °C, L/100 km), switching units with the language, with 8 themes.
 Download the Windows installer from [Releases](https://github.com/samuvieceli/obd2-scanner/releases/latest), or the portable zip (`...-Windows-portatil.zip`) to run without installing; it keeps its settings in a folder next to the program.
 See `docs/ARQUITETURA.md` (Portuguese) for the design.
