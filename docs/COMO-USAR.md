@@ -1,5 +1,9 @@
 # Como usar o OBD2 Scanner
 
+## Antes de tudo: aviso de segurança
+
+Na primeira vez que o programa abre, aparece a janela **Antes de usar: segurança**, com seis pontos: não usar dirigindo (um passageiro opera), testes de desempenho só em local fechado e seguro, diagnóstico é indício e não substitui um mecânico, o programa só lê (a única ação é apagar códigos de falha quando você pede), prender o adaptador e os cabos longe dos pedais, e uso por sua conta e risco (GPL-3.0, sem garantia). Dá para trocar o idioma ali mesmo. Clique em **Li e concordo** para continuar; **Não concordo** fecha o programa. A janela só volta se o texto do aviso mudar em algo importante. Para reler: **Configurações → Sobre → Aviso de segurança**.
+
 ## 1. Primeiro teste, sem carro
 
 1. Abra o programa. A tela **Conexão** já vem com **Demonstração** selecionada.

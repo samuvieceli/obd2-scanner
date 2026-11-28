@@ -1208,6 +1208,22 @@ const ptBR = {
     { term: "Carga inteligente do alternador", desc: "Em muitos carros recentes a central baixa a tensão do alternador (12,6–13,2 V) quando a bateria está cheia, para economizar combustível. Por isso tensão um pouco baixa com o motor ligado nem sempre é defeito." },
     { term: "Corte de combustível na desaceleração", desc: "Ao tirar o pé do acelerador com marcha engatada, a central corta a injeção. Nesse momento a sonda lambda marca \"pobre\" e a correção de combustível não vale: o programa ignora esses instantes." },
   ],
+  safety: {
+    title: "Antes de usar: segurança",
+    intro: "Leia com atenção. Este aviso aparece na primeira vez que o programa é aberto e pode ser revisto em Configurações → Sobre.",
+    items: {
+      driving: { title: "Não use dirigindo.", text: "Não mexa no programa nem fique olhando para a tela com o carro em movimento. Conecte e configure tudo com o carro parado; andando, deixe um passageiro operar." },
+      tests: { title: "Testes de desempenho só em local seguro.", text: "Acelerações, retomadas e frenagens só em local fechado e próprio para isso, nunca em ruas ou estradas. Respeite sempre as leis de trânsito." },
+      hints: { title: "Diagnóstico é indício, não laudo.", text: "As explicações e sugestões do programa ajudam a entender o carro, mas podem errar e não substituem a avaliação de um mecânico ou eletricista automotivo." },
+      readOnly: { title: "O programa só lê.", text: "Ele não altera a programação nem as configurações da central do carro. A única ação é apagar os códigos de falha, e só quando você pedir: isso também apaga a luz de injeção e os testes de prontidão, sem consertar o defeito." },
+      cables: { title: "Prenda o adaptador e os cabos.", text: "Nada pode ficar solto perto dos pedais. Não deixe o adaptador ligado com o carro desligado por muitos dias: ele pode descarregar a bateria." },
+      warranty: { title: "Uso por sua conta e risco.", text: "Programa livre e gratuito (licença GPL-3.0), oferecido sem nenhuma garantia. Os autores não se responsabilizam por danos ao carro, multas ou acidentes." },
+    },
+    accept: "Li e concordo",
+    decline: "Não concordo (fechar)",
+    reviewHint: "Para rever depois: Configurações → Sobre → Aviso de segurança.",
+    review: "Aviso de segurança",
+  },
   pids: {
     calc_fuel_flow: { name: "Consumo instantâneo (litros por hora)", short: "Consumo L/h", desc: "Calculado pelo programa: vem do PID de consumo, ou do fluxo de ar (MAF), ou da pressão do coletor (MAP) com a cilindrada do perfil. É uma estimativa.", typical: "0,5–1,2 L/h em marcha lenta" },
     calc_economy: { name: "Consumo instantâneo (km por litro)", short: "Consumo km/L", desc: "Calculado pelo programa: velocidade dividida pelo consumo em L/h. Só aparece com o carro andando. É uma estimativa.", typical: "Varia muito; em velocidade constante na estrada costuma ser o maior valor" },

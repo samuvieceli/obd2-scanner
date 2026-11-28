@@ -1,5 +1,6 @@
 // Settings: language, theme, vehicle profiles, units, connection, alerts, about.
 import { fmtNum, getLang, LANGS, t, type Lang } from "../i18n";
+import { openSafetyNotice } from "./safety";
 import { emit, on, state } from "../store";
 import { applyTheme, getTheme, THEME_SWATCH, THEMES, type Theme } from "../theme";
 import { baseUnitOf, button, clear, h, infoTip, section, toast, unitOf } from "../ui";
@@ -450,6 +451,7 @@ export function mount(root: HTMLElement) {
       h("p", null, h("strong", null, t("app.name")), " — ", t("settings.version", { version: state.appVersion })),
       state.portableData ? h("p", null, t("settings.portable", { folder: state.portableData })) : null,
       h("p", null, t("settings.aboutText")),
+      h("p", null, button(t("safety.review"), () => openSafetyNotice(true), "secondary")),
       h(
         "p",
         { class: "muted small" },
