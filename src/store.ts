@@ -1,5 +1,6 @@
 // Application state shared by all screens, with a tiny publish/subscribe.
 import { calcInputs, isCalc } from "./calc";
+import { journeyInputs } from "./journey";
 import type {
   AdapterInfo,
   CmdError,
@@ -18,7 +19,7 @@ import type {
   VehicleInfo,
 } from "./api";
 
-export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units" | "dtcs";
+export type Topic = "connection" | "frame" | "findings" | "log" | "recording" | "live-keys" | "session" | "playback" | "trip" | "seek" | "alerts" | "profile" | "link" | "units" | "dtcs" | "journey";
 
 export interface Series {
   t: number[];
@@ -93,6 +94,8 @@ export const state = {
   recoveredFrames: null as number | null,
   /** Parameters the car stopped answering in the newest live frame. */
   lastDropped: [] as string[],
+  /** A trip of the "Viagem" screen is being recorded (see journey-live.ts). */
+  journeyActive: false,
   /** Demo only: the virtual engine is stopped (ATSIMOFF). */
   demoEngineOff: false,
 };
@@ -160,7 +163,8 @@ export function setChartKeys(keys: string[] | null) {
 
 /**
  * Everything the adapter must read: the dashboard parameters plus those
- * chosen only for the charts (for a calculated value, the ones it needs).
+ * chosen only for the charts (for a calculated value, the ones it needs)
+ * and, during a trip of the "Viagem" screen, what its analysis needs.
  */
 export function readKeys(): string[] {
   const out = [...state.liveKeys];
@@ -168,6 +172,7 @@ export function readKeys(): string[] {
     const add = isCalc(k) ? (calcInputs(k, isSupported) ?? []) : isSupported(k) ? [k] : [];
     for (const a of add) if (!out.includes(a)) out.push(a);
   }
+  if (state.journeyActive) for (const a of journeyInputs(isSupported)) if (!out.includes(a)) out.push(a);
   return out;
 }
 
