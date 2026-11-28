@@ -214,6 +214,7 @@ flowchart LR
         dashboard["Painel ao vivo"]
         findings["Quadro Interpretação<br/>dos dados<br/>views/findings.ts"]
         refueldlg["Janela Abasteci<br/>views/refuel-dialog.ts"]
+        safetydlg["Aviso de segurança<br/>ao abrir o programa<br/>views/safety.ts"]
         hud["HUD"]
         performance["Testes de desempenho<br/>(uma prova por vez)"]
         guided["Testes guiados<br/>bateria, sondas,<br/>mapa de correção"]
@@ -251,12 +252,15 @@ flowchart LR
         drives["drives.ts + views/drive-history.ts<br/>histórico de viagens,<br/>gasolina × etanol"]
         search["search.ts + views/search.ts<br/>busca Ctrl+F / Ctrl+K"]
         mini["views/mini.ts<br/>mini janela por cima das outras"]
+        safety["safety.ts<br/>versão do aviso de segurança<br/>e se já foi aceito"]
         recdiag["recording-diagnostics.ts<br/>lê códigos, prontidão e<br/>Modo 06 ao gravar"]
         reportview["views/report.ts<br/>monta o relatório HTML"]
         i18n["i18n.ts + locales/<br/>textos pt-BR e en-US"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup & findings
     diagnostics --> dtcadvice
+    settings --> safetydlg
+    safetydlg --> safety
     reportview --> dtcadvice
     trip --> refuel
     dashboard --> refueldlg
@@ -379,6 +383,7 @@ flowchart LR
     fillsum["Trip A/B e soma desde o<br/>tanque cheio (por perfil)"] --> ls
     drv["Histórico de viagens<br/>e prova de desempenho escolhida"] --> ls
     conn["Última conexão usada"] --> ls
+    aviso["Aviso de segurança aceito<br/>(versão do texto)"] --> ls
     rec["Gravação"] --> csv["CSV (Excel)"] & json["JSON (abre de novo<br/>no programa)"]
     rec -- "a cada minuto" --> backup[("Cópia de segurança<br/>gravacao-em-andamento.jsonl<br/>(recuperada se o programa fechar)")]
     chart["Gráfico"] --> png["PNG"]

@@ -1209,6 +1209,22 @@ const enUS: Messages = {
     { term: "Smart charging", desc: "Many recent cars lower the alternator voltage (12.6–13.2 V) when the battery is full, to save fuel. So a slightly low voltage with the engine running is not always a fault." },
     { term: "Deceleration fuel cut-off", desc: "Lifting off the throttle with a gear engaged makes the computer cut injection. At that moment the O2 sensor reads \"lean\" and fuel trims mean nothing: the program ignores those moments." },
   ],
+  safety: {
+    title: "Before you start: safety",
+    intro: "Please read carefully. This notice appears the first time the program opens and can be reviewed in Settings → About.",
+    items: {
+      driving: { title: "Do not use it while driving.", text: "Do not operate the program or keep looking at the screen while the car is moving. Connect and set everything up while parked; while driving, let a passenger operate it." },
+      tests: { title: "Performance tests only in a safe place.", text: "Acceleration, overtaking and braking tests only on a closed area meant for it, never on streets or roads. Always obey traffic laws." },
+      hints: { title: "Diagnostics are hints, not a verdict.", text: "The program's explanations and suggestions help you understand the car, but they can be wrong and do not replace an inspection by a mechanic or auto electrician." },
+      readOnly: { title: "The program only reads.", text: "It does not change the programming or settings of the car's control units. The only action is clearing trouble codes, and only when you ask: that also clears the check engine light and the readiness tests, without fixing the fault." },
+      cables: { title: "Secure the adapter and cables.", text: "Nothing may hang loose near the pedals. Do not leave the adapter plugged in with the car off for many days: it can drain the battery." },
+      warranty: { title: "Use at your own risk.", text: "Free and open-source software (GPL-3.0 license), provided without any warranty. The authors are not liable for damage to the car, fines or accidents." },
+    },
+    accept: "I have read and agree",
+    decline: "I do not agree (close)",
+    reviewHint: "To review it later: Settings → About → Safety notice.",
+    review: "Safety notice",
+  },
   pids: {
     calc_fuel_flow: { name: "Instant fuel use (liters per hour)", short: "Fuel L/h", desc: "Calculated by the app: from the fuel rate PID, or air flow (MAF), or manifold pressure (MAP) with the profile's engine size. An estimate.", typical: "0.5–1.2 L/h at idle" },
     calc_economy: { name: "Instant fuel economy", short: "Economy", desc: "Calculated by the app: speed divided by fuel use in L/h. Only while moving. An estimate.", typical: "Varies a lot; highest at steady highway speed" },
