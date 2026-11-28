@@ -224,7 +224,6 @@ flowchart LR
         terminal["Terminal AT"]
         sessions["Gravações e relatórios"]
         glossary["Glossário"]
-        docsview["Documentação<br/>guias, regras, diagramas,<br/>dados e licenças"]
         settings["Configurações"]
     end
     subgraph modulos["Módulos (src/)"]
@@ -258,7 +257,6 @@ flowchart LR
         reportview["views/report.ts<br/>monta o relatório HTML"]
         i18n["i18n.ts + locales/<br/>textos pt-BR, en-US e en-GB<br/>(English Europe)"]
         upresets["unit-presets.ts<br/>unidades de cada idioma"]
-        docsmod["docs.ts<br/>documentos embutidos<br/>(README e docs/*.md)"]
     end
     dashboard --> gauge & trip & alerts & presets & warmup & findings
     diagnostics --> dtcadvice
@@ -278,9 +276,7 @@ flowchart LR
     summary --> trip & cost & share
     summary --> drives
     sessions --> drives
-    search --> glossary & diagnostics & docsview
-    docsview --> docsmod & safetydlg & glossary
-    settings --> docsview
+    search --> glossary & diagnostics
     performance --> perf
     guided --> battery & o2test & trims
     sessions --> playback
@@ -297,28 +293,6 @@ flowchart LR
     dashboard --> cost
     cost --> prefs
 ```
-
-### Documentação dentro do programa
-
-Os documentos do projeto (este arquivo incluído) entram no programa na hora de gerar o instalador, então abrem sem internet e sempre batem com a versão instalada. A tela **Documentação** mostra a lista, transforma o texto em página e desenha os diagramas com o Mermaid, que só é carregado quando um documento com diagrama é aberto, nas cores do tema escolhido. Os números da página inicial (quantos códigos de falha, fabricantes, parâmetros) vêm das próprias bases do programa, pelo comando `data_info`.
-
-```mermaid
-flowchart LR
-    files["README.md e docs/*.md<br/>(inclusive as regras do projeto<br/>e as notas da versão)"]
-    build["Geração do instalador<br/>junta os textos ao programa"]
-    docsmod["docs.ts<br/>lista, títulos das seções<br/>e para onde cada link vai"]
-    view["Tela Documentação<br/>views/docs.ts"]
-    marked["marked<br/>texto → página"]
-    mermaid["Mermaid<br/>desenha os diagramas<br/>(carregado só quando precisa)"]
-    data["Comando data_info<br/>tamanho das bases de códigos<br/>de falha e de fabricantes"]
-    search["Busca Ctrl+F<br/>acha as seções"]
-    files --> build --> docsmod --> view
-    view --> marked & mermaid
-    view --> data
-    search --> docsmod
-```
-
-Links entre documentos abrem na própria tela; links para sites e para arquivos de código abrem no navegador (no GitHub). Um teste confere que todo link para uma seção de outro documento aponta para uma seção que existe.
 
 ### Quando a leitura ao vivo liga e desliga
 

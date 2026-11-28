@@ -21,7 +21,7 @@ Open-source OBD2 scanner for Windows and ELM327 adapters. *(English summary at t
 - **Teste de compatibilidade do adaptador**: descobre a versão real do ELM327 (clones costumam anunciar mais do que fazem).
 - **Terminal AT** para comandos diretos ao adaptador.
 - **Gravações e relatórios**: a gravação guarda os sensores e também os códigos de falha, a prontidão e o Modo 06 (lidos no começo e no fim). Exporta CSV (inclusive no formato do Excel brasileiro) e JSON, **reproduz gravações** como se fosse ao vivo, com marcas de evento, e gera, quando você pede, um relatório de diagnóstico a partir da gravação (códigos, prontidão, indícios do trajeto, gráficos e mínimo/média/máximo), para imprimir ou salvar como PDF.
-- Interface em **português (Brasil)**, **inglês (EUA)** e **inglês (Europa)**, cada um com as suas unidades (trocar o idioma troca as unidades na hora), 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) **glossário** com todos os termos e tela **Documentação** com o manual, as regras do projeto, os diagramas, os dados do programa e as licenças, tudo sem internet.
+- Interface em **português (Brasil)**, **inglês (EUA)** e **inglês (Europa)**, cada um com as suas unidades (trocar o idioma troca as unidades na hora), 8 temas (automático, escuro, claro, noturno vermelho, alto contraste, oficina, terminal e papel) e **glossário** com todos os termos.
 
 ## Baixar e instalar (Windows 10 e 11)
 
@@ -55,8 +55,6 @@ npm test               # testes da interface (desempenho, testes guiados, consum
 ```
 
 Base de dados e particularidades dos carros brasileiros (OBDBr, flex, chassi): [docs/CARROS-BRASILEIROS.md](docs/CARROS-BRASILEIROS.md).
-
-Regras gerais do projeto (produto e forma de trabalho): [docs/REGRAS-DO-PROJETO.md](docs/REGRAS-DO-PROJETO.md). Todos estes documentos também aparecem dentro do programa, na tela **Documentação**.
 
 Arquitetura: [docs/ARQUITETURA.md](docs/ARQUITETURA.md). Mapa visual de todos os componentes, com diagramas: [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
 

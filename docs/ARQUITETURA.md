@@ -8,7 +8,7 @@
 │ playback · trip · trips · refuel · summary · drives · perf · battery · o2test       │
 │ trims · alerts · mode06hints · dtcadvice · recording-diagnostics · prefs · units ·  │
 │ fuels · cost                                                                        │
-│ presets · calc · warmup · search · share · gauge · theme · awake · docs             │
+│ presets · calc · warmup · search · share · gauge · theme · awake                    │
 └──────────────────────────────── invoke() / eventos ─────────────────────────────────┘
 ┌──────────────────────── App Tauri (src-tauri/, Rust) ───────────────────────────────┐
 │ lib.rs: comandos · worker.rs: thread dona do adaptador, recuperação, reconexão      │
@@ -42,8 +42,7 @@
 - **Textos fora do código Rust.** O núcleo devolve chaves (`coolant_temp`, `mixture_lean_b1`) e a interface traduz. Descrições de DTC ficam em `crates/obd-core/data/dtc_descriptions.json` (pt e en).
 - **Cálculos derivados na interface.** Consumo (`trip.ts`; o consumo instantâneo também vira os parâmetros calculados de `calc.ts`, que a tela Gráficos desenha como os do carro), testes de desempenho (`perf.ts`, lógica pura testada com Vitest), testes guiados (`battery.ts`, `o2test.ts` e `trims.ts`, também lógica pura: etapas, limites e avaliação; a tela `views/guided.ts` só desenha e pede ao trabalhador que leia apenas os valores do teste), alertas (`alerts.ts`) e reprodução de gravações (`playback.ts`) usam os mesmos quadros ao vivo que o painel; por isso funcionam igual com o carro e com uma gravação. A interpretação durante a reprodução usa o mesmo código Rust (`interpret_frames`).
 - **Indícios do Modo 06** (`mode06hints.ts`, lógica pura testada com Vitest): lê a lista de testes da central já recebida e aponta padrões conhecidos (falha de combustão em um cilindro, catalisador, sondas). A tela `views/diagnostics.ts` só mostra o resultado.
-- **Nada carregado da internet.** O gráfico (uPlot), o leitor de Markdown (marked) e o desenhista de diagramas (Mermaid) são empacotados no app; a política de segurança (CSP) bloqueia fontes externas.
-- **Documentação embutida.** `src/docs.ts` importa o `README.md` e os `docs/*.md` como texto (`?raw` do Vite) e as notas da versão mais nova (`import.meta.glob`); `views/docs.ts` mostra com `marked` (HTML dentro do Markdown vira texto, nunca é executado) e desenha os blocos `mermaid` com `securityLevel: "strict"`, carregando o Mermaid só quando necessário (import dinâmico, fica num arquivo à parte). Os ids das seções seguem a regra do GitHub, então os mesmos links funcionam no site e no programa. As regras do projeto ficam em [REGRAS-DO-PROJETO.md](REGRAS-DO-PROJETO.md).
+- **Nada carregado da internet.** O gráfico (uPlot) é empacotado no app; a política de segurança (CSP) bloqueia fontes externas.
 
 ## Testes
 
@@ -59,7 +58,6 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 - `src/presets.test.ts` e `src/warmup.test.ts` (Vitest): painéis prontos e predefinições dos gráficos (só o que o carro informa, alternativas) e selo de motor frio/pronto.
 - `src/calc.test.ts` (Vitest): de quais parâmetros do carro cada valor calculado depende.
 - `src/cost.test.ts` (Vitest): custo da viagem, comparação gasolina × etanol pela energia e preço da mistura no flex.
-- `src/docs.test.ts` (Vitest): documentos embutidos, ids das seções iguais aos do GitHub, links entre documentos apontando para seções que existem.
 - `src/search.test.ts` (Vitest): busca global (acentos e maiúsculas ignorados, todas as palavras, título vale mais que descrição, códigos de falha).
 - `src/drives.test.ts` (Vitest): histórico de viagens (grupos por combustível, flex pela porcentagem de etanol, médias pela distância total, viagens curtas sem média).
 - `src/summary.test.ts` (Vitest): resumo da viagem (tempo parado e em movimento, distância, picos, alertas, viagens curtas ignoradas, falhas de leitura, conexão encerrada).
@@ -76,7 +74,6 @@ Rodar: `cargo test -p obd-core --all-features` (núcleo; um `cargo test` sem `-p
 
 - **Um parâmetro (PID):** linha em `PIDS` (`pid.rs`) + textos em `src/locales/*.ts` (`pids`).
 - **Um código de falha:** entrada em `dtc_descriptions.json`.
-- **Um documento para a tela Documentação:** arquivo em `docs/`, linha em `DOCS` (`src/docs.ts`) e título/descrição em `docs.list` (`src/locales/pt-BR.ts` e `en-US.ts`).
 - **Um tema:** bloco `:root[data-theme="nome"]` em `styles.css`, cores de prévia em `THEME_SWATCH` (`theme.ts`) e nome/descrição em `settings.themes`.
 - **Uma unidade:** caso em `conversion()` (`units.ts`), opção em `UNIT_CHOICES` e nome em `units.names`.
 - **Um idioma:** copie `src/locales/en-US.ts`, traduza, registre em `LANGS` (`src/i18n.ts`) e diga quais unidades ele usa em `LANG_UNITS` (`src/unit-presets.ts`). O English (Europe) (`en-GB.ts`) é gerado a partir do `en-US.ts` pela função `british()`; textos com palavras diferentes vão em `OVERRIDES` no mesmo arquivo.
