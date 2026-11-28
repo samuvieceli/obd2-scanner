@@ -112,9 +112,16 @@ export interface PidText {
   typical: string;
 }
 
+/** Texts of parameters that are not in the locale files (manufacturer
+ *  parameters, named by the program's data: see maker.ts). */
+let extraTexts: (key: string) => PidText | undefined = () => undefined;
+export function setExtraPidTexts(f: (key: string) => PidText | undefined) {
+  extraTexts = f;
+}
+
 export function pidText(key: string): PidText {
   const p = (msgs().pids as Record<string, PidText>)[key];
-  if (!p) return { name: key, short: key, desc: "", typical: "" };
+  if (!p) return extraTexts(key) ?? { name: key, short: key, desc: "", typical: "" };
   // Typical values ("85–105 °C") follow the chosen units too.
   return filter ? { ...p, desc: filter(p.desc), typical: filter(p.typical) } : p;
 }

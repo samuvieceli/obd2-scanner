@@ -155,6 +155,21 @@ pub struct VehicleIdentity {
     pub fuel_type: Option<u8>,
 }
 
+/// Where a manufacturer request goes (see [`crate::maker`]). Standard OBD
+/// requests are broadcast to every unit; a manufacturer request is sent to
+/// one control unit and its answer is picked out by address.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Addressing {
+    /// Request header as `ATSH` takes it: `7E0` (11-bit CAN) or `DA10F1`
+    /// (29-bit CAN, default priority 18).
+    pub header: String,
+    /// Address the answer comes from, for `ATCRA`: `7E8` or `18DAF110`.
+    pub receive: String,
+    /// Sends the flow control frames of long answers to `header`
+    /// (`ATFCSM1`), for units that do not answer from request address + 8.
+    pub flow_control: bool,
+}
+
 pub struct Elm327 {
     transport: Box<dyn Transport>,
     pub config: ElmConfig,
@@ -162,6 +177,9 @@ pub struct Elm327 {
     logger: Option<Logger>,
     /// Set when the transport failed (port closed, Bluetooth dropped).
     link_lost: bool,
+    /// Set while the adapter is addressed to one unit for manufacturer
+    /// requests; standard requests put the usual broadcast back first.
+    addressing: Option<Addressing>,
 }
 
 impl Elm327 {
@@ -176,6 +194,7 @@ impl Elm327 {
             info,
             logger: None,
             link_lost: false,
+            addressing: None,
         }
     }
 
@@ -329,6 +348,8 @@ impl Elm327 {
         let _ = self.raw_command("ATI", Duration::from_millis(300));
         let reset = Duration::from_millis(self.config.reset_timeout_ms);
         let lines = clean_lines(&self.raw_command("ATZ", reset)?, "ATZ");
+        // A reset also clears any manufacturer addressing.
+        self.addressing = None;
         if let Some(v) = lines
             .iter()
             .find(|l| l.to_ascii_uppercase().contains("ELM"))
@@ -359,6 +380,7 @@ impl Elm327 {
     /// Step 2: talk to the vehicle (ignition must be on), detect the protocol
     /// and read the supported PIDs.
     pub fn connect_vehicle(&mut self) -> Result<&AdapterInfo> {
+        self.standard_addressing()?;
         let first = match self.first_contact(self.config.search_timeout_ms) {
             Ok(f) => f,
             Err(e) if self.config.protocol == "0" && Self::worth_retrying(&e) => {
@@ -509,6 +531,12 @@ impl Elm327 {
     /// Sends an OBD request (`mode` + `data`) and returns the positive answers,
     /// one per responding ECU.
     pub fn request(&mut self, mode: u8, data: &[u8]) -> Result<Vec<Vec<u8>>> {
+        self.standard_addressing()?;
+        self.request_as_set(mode, data)
+    }
+
+    /// [`Self::request`] with the addressing as it is now.
+    fn request_as_set(&mut self, mode: u8, data: &[u8]) -> Result<Vec<Vec<u8>>> {
         let mut cmd = format!("{mode:02X}");
         for b in data {
             cmd.push_str(&format!("{b:02X}"));
@@ -534,10 +562,75 @@ impl Elm327 {
         filter_responses(messages, mode, &data[..echo_len.min(data.len())])
     }
 
+    /// Manufacturer request (service 0x21 or 0x22 only: both only read) to
+    /// one control unit. Returns the data after the service and identifier
+    /// echo. CAN only.
+    pub fn read_manufacturer(
+        &mut self,
+        to: &Addressing,
+        service: u8,
+        id: &[u8],
+    ) -> Result<Vec<u8>> {
+        if !matches!(service, 0x21 | 0x22) {
+            return Err(ObdError::Refused("blocked_write"));
+        }
+        if !self.info.is_can() {
+            return Err(ObdError::Refused("maker_needs_can"));
+        }
+        if self.addressing.as_ref() != Some(to) {
+            self.standard_addressing()?;
+            // Recorded first, so a failure below is undone next time.
+            self.addressing = Some(to.clone());
+            self.at_required(&format!("ATSH{}", to.header))?;
+            self.at_required(&format!("ATCRA{}", to.receive))?;
+            if to.flow_control {
+                let full = if to.header.len() == 6 {
+                    format!("18{}", to.header)
+                } else {
+                    to.header.clone()
+                };
+                self.at_required(&format!("ATFCSH{full}"))?;
+                self.at_required("ATFCSD300000")?;
+                self.at_required("ATFCSM1")?;
+            }
+        }
+        let msgs = self.request_as_set(service, id)?;
+        Ok(msgs[0][1 + id.len()..].to_vec())
+    }
+
+    /// Puts back the usual broadcast addressing after manufacturer requests
+    /// (header 7DF or DB33F1, no receive filter, automatic flow control).
+    /// Does nothing when it was never changed.
+    pub fn standard_addressing(&mut self) -> Result<()> {
+        let Some(previous) = self.addressing.take() else {
+            return Ok(());
+        };
+        let header = if previous.header.len() == 6 {
+            "DB33F1"
+        } else {
+            "7DF"
+        };
+        self.command(&format!("ATSH{header}"))?;
+        self.command("ATCRA")?;
+        if previous.flow_control {
+            self.command("ATFCSM0")?;
+        }
+        Ok(())
+    }
+
+    /// AT command the adapter must accept (`?` means it does not know it).
+    fn at_required(&mut self, cmd: &str) -> Result<()> {
+        if self.command(cmd)?.iter().any(|l| l.trim() == "?") {
+            return Err(ObdError::UnknownCommand);
+        }
+        Ok(())
+    }
+
     /// Reads several mode 01 PIDs in one request (CAN allows up to 6).
     /// Returns `(key, value)` for every key of every PID answered; PIDs
     /// missing from the answer are simply absent.
     pub fn read_pids_multi(&mut self, pids: &[u8]) -> Result<Vec<(String, f64)>> {
+        self.standard_addressing()?;
         let pids = &pids[..pids.len().min(6)];
         let mut cmd = String::from("01");
         for p in pids {

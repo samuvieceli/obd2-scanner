@@ -153,6 +153,22 @@ fn pid_catalog() -> Vec<PidMeta> {
     pid::catalog()
 }
 
+/// Car models with manufacturer parameters (OBDb data, see obd_core::maker).
+#[tauri::command]
+fn maker_models() -> Vec<obd_core::maker::ModelInfo> {
+    obd_core::maker::models()
+}
+
+/// Manufacturer parameters of a model, for its model year when known.
+#[tauri::command]
+fn maker_params(
+    model: String,
+    year: Option<u16>,
+    lang: String,
+) -> Vec<obd_core::maker::MakerParam> {
+    obd_core::maker::params(&model, year, &lang)
+}
+
 /// Size of the bundled databases, for the Documentation screen.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -487,6 +503,38 @@ async fn read_readiness(state: State<'_, AppState>) -> CmdResult<Readiness> {
     on_worker(&state, |elm| elm.read_readiness()).await
 }
 
+/// Reads the given parameters once (mode 01), outside the live reading:
+/// counters such as distance since codes were cleared, or the odometer.
+/// Parameters the car does not support, or does not answer, are left out.
+#[tauri::command]
+async fn read_pids(
+    state: State<'_, AppState>,
+    keys: Vec<String>,
+) -> CmdResult<std::collections::BTreeMap<String, f64>> {
+    on_worker(&state, move |elm| {
+        let mut pids: Vec<u8> = keys
+            .iter()
+            .filter_map(|k| pid::find_by_key(k))
+            .map(|d| d.pid)
+            .filter(|p| elm.info.supported_pids.contains(p))
+            .collect();
+        pids.sort_unstable();
+        pids.dedup();
+        let mut out = std::collections::BTreeMap::new();
+        for p in pids {
+            match elm.read_pid_values(p) {
+                Ok(values) => out.extend(values.into_iter().filter(|(k, _)| keys.contains(k))),
+                Err(e @ (ObdError::Io(_) | ObdError::Connection(_) | ObdError::Port(..))) => {
+                    return Err(e);
+                }
+                Err(_) => {}
+            }
+        }
+        Ok(out)
+    })
+    .await
+}
+
 /// Mode 06 on-board test results.
 #[tauri::command]
 async fn read_mode06(state: State<'_, AppState>) -> CmdResult<Vec<obd_core::mode06::TestResult>> {
@@ -802,6 +850,8 @@ pub fn run() {
             list_ports,
             scan_ble,
             pid_catalog,
+            maker_models,
+            maker_params,
             data_info,
             describe_dtc,
             connect,
@@ -813,6 +863,7 @@ pub fn run() {
             read_freeze_frame,
             read_readiness,
             read_mode06,
+            read_pids,
             test_adapter,
             scan_ecus,
             read_vehicle_info,

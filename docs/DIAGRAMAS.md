@@ -125,12 +125,14 @@ flowchart TB
         adaptertest["adapter_test.rs<br/>versão real do ELM327"]
         ecuscan["ecu_scan.rs<br/>centrais e identificação"]
         safety["safety.rs<br/>filtro só leitura<br/>do Terminal AT"]
+        maker["maker.rs + data/maker_params.json<br/>parâmetros do fabricante<br/>(OBDb, modos 21/22)"]
     end
     adaptertest --> elm327
     ecuscan --> elm327
     elm327 --> transport
     elm327 --> response
     elm327 --> pid & dtc & vin & readiness & mode06
+    maker --> elm327
     simulator -. "é um" .-> transport
     interpret --> pid
     session --> pid
@@ -151,6 +153,22 @@ flowchart LR
     end
     t3 & b3 --> r["ATZ + configuração<br/>(Elm327::reconfigure)"]
 ```
+
+### Parâmetros do fabricante (piloto)
+
+Além dos parâmetros padrão, que valem para qualquer carro, alguns modelos têm leituras próprias da montadora (temperatura do óleo, marcha engatada, temperatura do câmbio...). A tabela de cada modelo vem do projeto aberto OBDb e fica dentro do programa (`data/maker_params.json`, gerado por `tools/obdb_import.py`). O pedido vai para uma central só, e depois o adaptador volta ao modo normal, em que o pedido vai para todas.
+
+```mermaid
+flowchart LR
+    pick["Painel: Escolher parâmetros<br/>→ modelo do carro<br/>(o chassi sugere a marca)"] --> list["Lista do modelo<br/>conferidos + (opcional)<br/>experimentais"]
+    list --> keys["Parâmetros marcados<br/>entram na leitura ao vivo"]
+    keys --> worker["worker.rs: no fim de cada ciclo,<br/>um pedido por grupo"]
+    worker --> addr["ATSH + ATCRA<br/>(endereço de uma central)"] --> ask["21 xx ou 22 xxxx<br/>(só leitura)"] --> dec["maker.rs decodifica<br/>(bits, escala, unidade)"]
+    dec --> screen["Cartões, gráficos<br/>e gravações"]
+    ask --> back["Próximo pedido padrão:<br/>ATSH 7DF + ATCRA<br/>(volta ao normal)"]
+```
+
+O que o programa importa do OBDb é só leitura: pedidos 21 ou 22 direto para uma central. Pedidos que exigem abrir uma sessão de diagnóstico na central ficam de fora. Um parâmetro "conferido" foi confirmado num carro de verdade (às vezes de outro país); os "experimentais" ficam escondidos até o usuário pedir.
 
 ### Só leitura: o que nunca sai do programa
 
@@ -219,6 +237,7 @@ flowchart LR
         journey["Viagem<br/>Iniciar/Encerrar, análise<br/>de consumo, relatório<br/>views/journey.ts"]
         performance["Testes de desempenho<br/>(uma prova por vez)"]
         guided["Testes guiados<br/>bateria, sondas,<br/>mapa de correção"]
+        prepurchase["Checagem pré-compra<br/>assistente em 5 etapas<br/>views/prepurchase.ts"]
         charts["Gráficos"]
         diagnostics["Códigos de falha<br/>+ Modo 06"]
         vehicle["Veículo e prontidão<br/>+ centrais"]
@@ -238,8 +257,11 @@ flowchart LR
         battery["battery.ts<br/>etapas e limites do<br/>teste de bateria"]
         o2test["o2test.ts<br/>sondas e catalisador"]
         trims["trims.ts<br/>mapa de correção<br/>de combustível"]
+        ppmod["prepurchase.ts<br/>semáforo de cada item,<br/>histórico e comparação"]
+        ppreport["views/prepurchase-report.ts<br/>relatório pré-compra"]
         m06hints["mode06hints.ts<br/>indícios dos testes<br/>da central (Modo 06)"]
         dtcadvice["dtcadvice.ts<br/>aviso de código da montadora<br/>sem descrição confiável"]
+        makerts["maker.ts + views/maker-picker.ts<br/>modelo do carro e parâmetros<br/>do fabricante no Painel"]
         alerts["alerts.ts<br/>alertas e bipe"]
         playback["playback.ts<br/>reprodução"]
         prefs["prefs.ts<br/>preferências e perfis"]
@@ -266,7 +288,7 @@ flowchart LR
         upresets["unit-presets.ts<br/>unidades de cada idioma"]
         docsmod["docs.ts<br/>documentos embutidos<br/>(README e docs/*.md)"]
     end
-    dashboard --> gauge & trip & alerts & presets & warmup & findings
+    dashboard --> gauge & trip & alerts & presets & warmup & findings & makerts
     diagnostics --> dtcadvice
     settings --> safetydlg
     safetydlg --> safety
@@ -292,6 +314,8 @@ flowchart LR
     settings --> docsview
     performance --> perf
     guided --> battery & o2test & trims
+    prepurchase --> ppmod & ppreport & recdiag
+    ppmod --> battery & m06hints
     sessions --> playback
     dashboard & sessions --> recdiag
     sessions --> reportview
@@ -327,6 +351,21 @@ flowchart LR
 Os cortes ficam guardados junto com a viagem (o campo `cuts`), sem apagar as linhas originais: desfazer é só esvaziar a lista. A checagem antes da estrada pede ao adaptador, por uns segundos, rotação, temperatura e tensão (`state.extraKeys` em `store.ts`), lê os códigos de falha e a prontidão e depois devolve a leitura como estava.
 
 O programa grava, uma vez por segundo, só o que a análise usa: velocidade, rotação, carga, borboleta, temperatura, correções de combustível, malha fechada, etanol (flex) e o necessário para calcular o consumo (vazão, MAF ou MAP). O consumo de cada linha é o mesmo do computador de bordo, já com a calibração do posto. Um intervalo de mais de 5 segundos sem dados (programa fechado, conexão caída) fica fora da conta.
+
+### Checagem pré-compra: das leituras ao semáforo
+
+```mermaid
+flowchart LR
+    dados["1. Dados do carro<br/>chassi do documento,<br/>km do painel"] --> off
+    off["2. Motor desligado<br/>chassi da central, códigos,<br/>prontidão, contadores desde a<br/>limpeza, hodômetro, bateria,<br/>chassi de cada central"] --> idle
+    idle["3. Partida e marcha lenta<br/>queda na partida (battery.ts),<br/>alternador, mistura, alertas;<br/>depois Modo 06 e códigos de novo"] --> drive
+    drive["4. Volta de teste (opcional)<br/>gravação normal analisada<br/>pela interpretação automática"] --> rules
+    rules["prepurchase.ts<br/>evaluate(): verde, amarelo,<br/>vermelho ou não verificado<br/>para cada item"] --> res["5. Resultado<br/>semáforo geral = pior item"]
+    res --> hist[("Histórico no computador<br/>(até 30 checagens)")] & pdf["Relatório (PDF)"]
+    hist --> cmp["Comparar 2 ou 3 carros<br/>lado a lado"]
+```
+
+Cada leitura é opcional: o que o carro não responde vira "Não verificado" (cinza), nunca verde. O semáforo geral é o pior item encontrado. Para o chassi de cada central, a procura de centrais (`ecu_scan.rs`) pergunta a cada uma o chassi gravado (Modo 09, PID 02). Os contadores e o hodômetro são lidos uma vez pelo comando `read_pids`, sem mexer na leitura ao vivo.
 
 ### Documentação dentro do programa
 
